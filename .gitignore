@@ -109,3 +109,7 @@ UpgradeLog*.XML
 /.vs
 *.sln
 /SkyPay/website.publishproj
+/SkyPay/Backend/assets/css-old
+/SkyPay/prepros-6.config
+/SkyPay/.vs/SkyPay/config/applicationhost.config
+*.scss
