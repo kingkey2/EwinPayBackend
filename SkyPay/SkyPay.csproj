@@ -212,6 +212,8 @@
     <Content Include="Backend\assets\fonts\nucleo-outline.woff.html" />
     <Content Include="Backend\assets\fonts\nucleo-outline.woff2.html" />
     <Content Include="Backend\assets\images\background1.jpg" />
+    <Content Include="Backend\assets\images\BG_login_s.jpg" />
+    <Content Include="Backend\assets\images\BG_login_s.png" />
     <Content Include="Backend\assets\images\blog\05-img.jpg" />
     <Content Include="Backend\assets\images\blog\06-img.jpg" />
     <Content Include="Backend\assets\images\blog\07-img.jpg" />
@@ -288,6 +290,7 @@
     <Content Include="Backend\assets\images\login.jpg.html" />
     <Content Include="Backend\assets\images\logo.svg" />
     <Content Include="Backend\assets\images\Logo_001a.png" />
+    <Content Include="Backend\assets\images\logo_vpay.svg" />
     <Content Include="Backend\assets\images\model1.jpg" />
     <Content Include="Backend\assets\images\model2.jpg" />
     <Content Include="Backend\assets\images\model3.jpg" />
@@ -299,6 +302,8 @@
     <Content Include="Backend\assets\images\sm\avatar3.jpg" />
     <Content Include="Backend\assets\images\sm\avatar4.jpg" />
     <Content Include="Backend\assets\images\sm\avatar5.jpg" />
+    <Content Include="Backend\assets\images\star_L.png" />
+    <Content Include="Backend\assets\images\star_R.png" />
     <Content Include="Backend\assets\images\ui-icons_444444_256x240.png" />
     <Content Include="Backend\assets\images\ui-icons_555555_256x240.png" />
     <Content Include="Backend\assets\images\ui-icons_777620_256x240.png" />
