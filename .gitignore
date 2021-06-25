@@ -113,3 +113,4 @@ UpgradeLog*.XML
 /SkyPay/prepros-6.config
 /SkyPay/.vs/SkyPay/config/applicationhost.config
 *.scss
+/SkyPay/Backend/Index - 複製.cshtml

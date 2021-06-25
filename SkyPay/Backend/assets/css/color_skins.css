@@ -173,7 +173,7 @@
 
 .theme-cyan .card .header h2 strong {
   color: #6f7884;
-  font-size: 22px; }
+  font-size: 19px; }
 
 .theme-cyan .card .header .dropdown-menu li a:hover {
   background-color: #49c5b6;
@@ -392,6 +392,9 @@
 .theme-cyan .form-control:focus, .theme-cyan .form-control:focus + .input-group-addon, .theme-cyan .form-control:focus ~ .input-group-addon {
   border-color: #49c5b6; }
 
+.theme-violet a {
+  color: inherit; }
+
 .theme-violet .form-control:focus, .theme-violet .form-control:focus + .input-group-addon, .theme-violet .form-control:focus ~ .input-group-addon {
   border-color: #ada4ff; }
 
@@ -406,3 +409,22 @@
   color: #fff !important; }
   .theme-violet *.btn-primary:focus {
     background-color: #6a52ff !important; }
+
+.theme-violet .page-loader-wrapper {
+  background: #806bff; }
+
+.theme-violet li[role=tab] a {
+  padding: 6px 1.5ex !important; }
+
+.theme-violet .ui-state-active, .theme-violet .ui-widget-content .ui-state-active, .theme-violet .ui-widget-header .ui-state-active, .theme-violet a.ui-button:active, .theme-violet .ui-button:active, .theme-violet .ui-button.ui-state-active:hover {
+  border: 1px solid #c6befa;
+  background: #cac4f4; }
+
+.theme-violet .ui-state-active a, .theme-violet .ui-state-active a:link, .theme-violet .ui-state-active a:visited {
+  color: #454545;
+  text-decoration: none;
+  font-weight: 600; }
+
+.theme-violet .sidebar .menu .list li a:hover {
+  background: rgba(130, 117, 251, 0.09);
+  border-radius: 5px; }
