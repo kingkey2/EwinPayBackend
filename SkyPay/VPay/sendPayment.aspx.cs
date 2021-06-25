@@ -32,30 +32,30 @@ namespace SkyPay.Backend
             var CompanyKey = "";
             if (isTestSite.ToUpper()=="TRUE")
             {
-                ReturnURL = "http://gpay.dev4.mts.idv.tw" + "/api/ProviderResult/GPayTestCompanyReturn?result=AAA";
-                URL = "http://gpay.dev4.mts.idv.tw" + "/api/Gateway/RequirePayment";
+                ReturnURL = "https://pay.thespeedpay.com" + "/api/CallBack/GPayTestCompanyReturn?result=AAA";
+                URL = "https://pay.thespeedpay.com" + "/api/Gate/RequirePaying";
                 //URL = "https://cn.richpay888.com:1443" + "/api/Gateway/RequirePayment";
-                CompanyKey = "a401412855904796a32d20acb6bfa1dc";
+                CompanyKey = "1085533300c147acbfd0c606567fffec";
          
             }
             else
             {
-                ReturnURL = "https://www.richpay888.com" + "/api/ProviderResult/GPayTestCompanyReturn?result=AAA";
-                URL = "https://www.richpay888.com" + "/api/Gateway/RequirePayment";
-                CompanyKey = "f54da926c66e4182a2574f12140ada73";
+                ReturnURL = "https://pay.thespeedpay.com" + "/api/CallBack/GPayTestCompanyReturn?result=AAA";
+                URL = "https://pay.thespeedpay.com" + "/api/Gate/RequirePaying";
+                CompanyKey = "1085533300c147acbfd0c606567fffec";
             }
 
             var Sign = GetGPaySign(OrderID, OrderAmount, OrderDate, ServiceType, CurrencyType, CompanyCode, CompanyKey);
 
             System.Collections.Specialized.NameValueCollection data = new System.Collections.Specialized.NameValueCollection();
-            data.Add("CompanyCode", CompanyCode);
-            data.Add("CurrencyType", CurrencyType);
-            data.Add("ServiceType", ServiceType);
-            data.Add("ClientIP", "121.1.1.1");
+            data.Add("ManageCode", CompanyCode);
+            data.Add("Currency", CurrencyType);
+            data.Add("Service", ServiceType);
+            data.Add("CustomerIP", "121.1.1.1");
             data.Add("OrderID", OrderID);
             data.Add("OrderDate", OrderDate.ToString("yyyy-MM-dd HH:mm:ss"));
             data.Add("OrderAmount", OrderAmount.ToString("#.##"));
-            data.Add("ReturnURL", ReturnURL);
+            data.Add("RevolveURL", ReturnURL);
             data.Add("Sign", Sign);
 
             RedirectAndPOST(this.Page, URL, data);
@@ -138,9 +138,9 @@ namespace SkyPay.Backend
         public static string GetGPaySign(string OrderID, decimal OrderAmount, DateTime OrderDateTime, string ServiceType, string CurrencyType, string CompanyCode, string CompanyKey)
         {
             string sign;
-            string signStr = "CompanyCode=" + CompanyCode;
-            signStr += "&CurrencyType=" + CurrencyType;
-            signStr += "&ServiceType=" + ServiceType;
+            string signStr = "ManageCode=" + CompanyCode;
+            signStr += "&Currency=" + CurrencyType;
+            signStr += "&Service=" + ServiceType;
             signStr += "&OrderID=" + OrderID;
             signStr += "&OrderAmount=" + OrderAmount.ToString("#.##");
             signStr += "&OrderDate=" + OrderDateTime.ToString("yyyy-MM-dd HH:mm:ss");

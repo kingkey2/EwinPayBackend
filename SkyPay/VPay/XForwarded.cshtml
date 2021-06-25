@@ -1,0 +1,17 @@
+﻿@{
+
+    string XForward = CodingControl.GetXForwardedFor();
+
+    string GPayApiUrl = System.Configuration.ConfigurationManager.AppSettings["GPayApiUrl"];
+    var returnValue = CodingControl.RequestJsonAPI(GPayApiUrl + "ReSendPayment", "{'PaymentSerial': 'PT2021062514470000000012','Sign': '8N/BfBl4oCjUFRWb3qNfg+KUJ/1dm0mHQKWJvP5Qbo4='}");
+}
+
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+</head>
+<body>
+    @returnValue
+</body>
+</html>
