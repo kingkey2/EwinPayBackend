@@ -232,6 +232,7 @@
     <Content Include="Backend\assets\images\blog\blog-page-3.jpg" />
     <Content Include="Backend\assets\images\blog\blog-page-4.jpg" />
     <Content Include="Backend\assets\images\cash-icon-300x300.png" />
+    <Content Include="Backend\assets\images\closeMusic-violet.png" />
     <Content Include="Backend\assets\images\closeMusic.png" />
     <Content Include="Backend\assets\images\closeMusic3.png" />
     <Content Include="Backend\assets\images\ecommerce\1.png" />
@@ -294,6 +295,7 @@
     <Content Include="Backend\assets\images\model1.jpg" />
     <Content Include="Backend\assets\images\model2.jpg" />
     <Content Include="Backend\assets\images\model3.jpg" />
+    <Content Include="Backend\assets\images\openMusic-violet.png" />
     <Content Include="Backend\assets\images\openMusic.png" />
     <Content Include="Backend\assets\images\openMusic3.png" />
     <Content Include="Backend\assets\images\profile_av.jpg" />
