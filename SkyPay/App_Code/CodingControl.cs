@@ -242,7 +242,7 @@ public class CodingControl
             {
                 for (int j = 1; j < XForwarderLst.Count(); j++)
                 {
-                    if (!gpayIP.Contains(XForwarderLst[j].Trim()) && !CheckIPInCDNList(XForwarderLst[j].Trim()))
+                    if (!CheckIPInCDNList(XForwarderLst[j].Trim()))
                     {
                         WriteBlackList(XForwarderLst[j].Trim());
                         return RetValue;
@@ -251,7 +251,7 @@ public class CodingControl
                 }
             }
 
-            if (!gpayIP.Contains(HttpContext.Current.Request.UserHostAddress) && !CheckIPInCDNList(HttpContext.Current.Request.UserHostAddress))
+            if (!gpayIP.Contains(HttpContext.Current.Request.UserHostAddress))
             {
                 WriteBlackList(HttpContext.Current.Request.UserHostAddress);
                 return RetValue;
