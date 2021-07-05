@@ -114,3 +114,9 @@ UpgradeLog*.XML
 /SkyPay/.vs/SkyPay/config/applicationhost.config
 *.scss
 /SkyPay/Backend/Index - 複製.cshtml
+/SkyPay/VPay/assets/css-old/jstree
+/SkyPay/VPay/assets/css-old
+/prepros-6.config
+/SkyPay/VPay/Index - 複製.cshtml
+/.vscode/settings.json
+/SkyPay/VPay/Result.html
