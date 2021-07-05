@@ -17440,7 +17440,7 @@ section small {
       -webkit-transform: translate(-300px, 0);
       -ms-transform: translate(-300px, 0);
       transform: translate(-300px, 0); } }
-  .bg_login:before {
+.bg_login:before {
     content: "";
     position: absolute;
     z-index: 0;
@@ -17451,4 +17451,5 @@ section small {
     top: 0;
     background-image: url(/VPay/assets/images/star_L.png), url(/VPay/assets/images/star_R.png);
     background-position: -50% center, 1400px center;
-    background-repeat: no-repeat,no-repeat; }
+    background-repeat: no-repeat,no-repeat;
+}

@@ -26,12 +26,11 @@ using Newtonsoft.Json;
 
 public class BackendController : ApiController {
 
-
     [ActionName("HeartBeat")]
     [HttpGet]
     [HttpPost]
     public string HeartBeat(string echo) {
-        
+
         return echo;
     }
 
