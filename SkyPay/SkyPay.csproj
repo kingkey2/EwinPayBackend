@@ -204,6 +204,7 @@
     <Content Include="VPay\assets\css\jquery-ui.css" />
     <Content Include="VPay\assets\css\main.css" />
     <Content Include="VPay\assets\css\otherStyle.css" />
+    <Content Include="VPay\assets\css\result.css" />
     <Content Include="VPay\assets\css\rtl.css" />
     <Content Include="VPay\assets\css\timeline.css" />
     <Content Include="VPay\assets\css\ui.tabs.overflowResize.css" />
@@ -704,6 +705,7 @@
     <None Include="packages.config" />
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
     <Content Include="VPay\XForwarded.cshtml" />
+    <Content Include="VPay\Result.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
