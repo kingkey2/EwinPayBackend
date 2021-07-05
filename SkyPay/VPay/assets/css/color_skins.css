@@ -413,6 +413,9 @@
 .theme-violet .page-loader-wrapper {
   background: #806bff; }
 
+.theme-violet .mainWrapper {
+  background: #998bef; }
+
 .theme-violet li[role=tab] a {
   padding: 6px 1.5ex !important; }
 
