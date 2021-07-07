@@ -17,10 +17,10 @@ namespace SkyPay.Backend
             SendPayment(amount, serviceType, isTestSite);
         }
 
-        public void SendPayment(decimal amount, string serviceType,string isTestSite)
+        public void SendPayment(decimal amount, string serviceType, string isTestSite)
         {
-    
-            var CompanyCode = "GPayTest";
+
+            var CompanyCode = "VPayTest";
             var CurrencyType = "CNY";
             var ServiceType = serviceType;
             var ClientIP = "";
@@ -30,19 +30,18 @@ namespace SkyPay.Backend
             var ReturnURL = "";
             var URL = "";
             var CompanyKey = "";
-            if (isTestSite.ToUpper()=="TRUE")
+            if (isTestSite.ToUpper() == "TRUE")
             {
-                ReturnURL = "https://pay.thespeedpay.com" + "/api/CallBack/GPayTestCompanyReturn?result=AAA";
-                URL = "https://pay.thespeedpay.com" + "/api/Gate/RequirePaying";
-                //URL = "https://cn.richpay888.com:1443" + "/api/Gateway/RequirePayment";
-                CompanyKey = "1085533300c147acbfd0c606567fffec";
-         
+                ReturnURL = "http://vpay.dev4.mts.idv.tw" + "/api/CallBack/TestCompanyReturn?result=AAA";
+                URL = "http://vpay.dev4.mts.idv.tw" + "/api/Gate/RequirePaying";
+                CompanyKey = "81a5ad6e8048459590f47a13c4a48e09";
+
             }
             else
             {
-                ReturnURL = "https://pay.thespeedpay.com" + "/api/CallBack/GPayTestCompanyReturn?result=AAA";
-                URL = "https://pay.thespeedpay.com" + "/api/Gate/RequirePaying";
-                CompanyKey = "1085533300c147acbfd0c606567fffec";
+                ReturnURL = "https://pay.thespeedpay.com" + "/api/CallBack/TestCompanyReturn?result=AAA";
+                URL = "https://api.thespeedpay.com" + "/api/Gate/RequirePaying";
+                CompanyKey = "e2c377e5a6f14019990cc21947e737f1";
             }
 
             var Sign = GetGPaySign(OrderID, OrderAmount, OrderDate, ServiceType, CurrencyType, CompanyCode, CompanyKey);

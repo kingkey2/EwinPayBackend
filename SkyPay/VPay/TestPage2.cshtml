@@ -1063,7 +1063,7 @@
     function CreateTestPayment(objbtn){
         var amount = $(objbtn).parent().find('input').eq(0).val();
         var serviceType = $($(objbtn).parent().parent().find('td')[2]).html();
-        window.open('/Backend/sendPayment2.aspx?amount=' + amount + "&serviceType=" + serviceType + "&isTestSite=" + isTestSite);
+        window.open('/VPay/sendPayment2.aspx?amount=' + amount + "&serviceType=" + serviceType + "&isTestSite=" + isTestSite);
 
     }
 

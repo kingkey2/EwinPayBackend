@@ -3,7 +3,7 @@
     var result = bc.CheckLoginPermission(BID);
     if (result.ResultCode != BackendController.APIResult.enumResult.OK)
     {
-        Response.Redirect("/Backend/Index.cshtml");
+        Response.Redirect("/VPay/Index.cshtml");
     }
 
     var resultCheckLoginIP = bc.CheckLoginIPByCompany(BID);

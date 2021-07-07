@@ -1454,6 +1454,7 @@ if ('@CheckLoginPermission' == 'false') {
                             case 2:
                                 return '<button onclick="reSendPayment(this)">补单</button><button style="margin-left:5px" onclick="PaymentRecord(this)">订单记录</button><button style="margin-left:5px" data-ip="' + rowdata.UserIP + '" onclick="SearchIP_County(this)">IP位置</button><button style="margin-left:5px" data-returnurl="' + rowdata.ReturnURL + '"  onclick="CompanyUrl(this)">回调网址</button>';
                                 break;
+                      
                             default:
                                 return '<button  onclick="PaymentRecord(this)">订单记录</button><button style="margin-left:5px" data-ip="' + rowdata.UserIP + '" onclick="SearchIP_County(this)">IP位置</button><button style="margin-left:5px" data-returnurl="' + rowdata.ReturnURL + '"  onclick="CompanyUrl(this)">回调网址</button>';
                                 break;

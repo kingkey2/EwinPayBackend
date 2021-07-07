@@ -1,5 +1,5 @@
 ﻿@{
-    //Layout = "~/Backend/_Layout.cshtml";
+    //Layout = "~/VPay/_Layout.cshtml";
     var bc = new BackendController(); string BID = HttpContext.Current.Request.Cookies.AllKeys.Contains("BID") == true ?  HttpContext.Current.Request.Cookies["BID"].Value.ToString():"";
     var resultCheckLoginIP = bc.CheckLoginIPByCompany(BID);
     string CheckLoginPermission = "success";

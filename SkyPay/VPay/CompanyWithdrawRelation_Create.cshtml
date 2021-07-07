@@ -1,10 +1,10 @@
 ﻿@{
-    //Layout = "~/Backend/_Layout.cshtml";
+    //Layout = "~/VPay/_Layout.cshtml";
     var bc = new BackendController(); string BID = HttpContext.Current.Request.Cookies.AllKeys.Contains("BID") == true ?  HttpContext.Current.Request.Cookies["BID"].Value.ToString():"";
     var result = bc.CheckLoginPermission(BID);
     if (result.ResultCode != BackendController.APIResult.enumResult.OK)
     {
-        Response.Redirect("/Backend/Index.cshtml");
+        Response.Redirect("/VPay/Index.cshtml");
     }
 
     var resultCheckLoginIP = bc.CheckLoginIPByCompany(BID);
