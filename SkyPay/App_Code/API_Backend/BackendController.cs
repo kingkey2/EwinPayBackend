@@ -228,7 +228,7 @@ public class BackendController : ApiController
 
                     BackendFunction backendFunction = new BackendFunction();
                     string IP = backendFunction.CheckIPInTW(UserIP);
-                    int AdminOP = backendDB.InsertAdminOPLog(AdminData.forCompanyID, AdminData.AdminID, 0, "登入IP有误:" + UserIP, IP);
+                    int AdminOP = backendDB.InsertAdminOPLog(AdminData.forCompanyID, AdminData.AdminID, 0, "登入IP有误:" + UserIP+ ",X-Forwarded:" + HttpContext.Current.Request.Headers["X-Forwarded-For"], IP);
                     backendDB.InsertBotSendLog(AdminData.CompanyCode, "登入帳號:" + AdminData.AdminAccount + ",登入IP有误:" + UserIP);
                     string XForwardIP = CodingControl.GetXForwardedFor();
                     CodingControl.WriteXFowardForIP(AdminOP);
@@ -247,7 +247,7 @@ public class BackendController : ApiController
                 {
                     BackendFunction backendFunction = new BackendFunction();
                     string IP = backendFunction.CheckIPInTW(UserIP);
-                    int AdminOP = backendDB.InsertAdminOPLog(AdminData.forCompanyID, AdminData.AdminID, 0, "登入IP有误:" + UserIP, IP);
+                    int AdminOP = backendDB.InsertAdminOPLog(AdminData.forCompanyID, AdminData.AdminID, 0, "登入IP有误:" + UserIP + ",X-Forwarded:" + HttpContext.Current.Request.Headers["X-Forwarded-For"], IP);
                     backendDB.InsertBotSendLog(AdminData.CompanyCode, "登入帳號:" + AdminData.AdminAccount + ",登入IP有误:" + UserIP);
                     string XForwardIP = CodingControl.GetXForwardedFor();
                     CodingControl.WriteXFowardForIP(AdminOP);

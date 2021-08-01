@@ -77,7 +77,7 @@ using Google.Authenticator;
             //第二個參數為 User 代碼
             //第三個參數為 SecreKey，這裡很簡單的只使用 Key，真實的環境請自行設置夠安全的 SecreKey
             //第四和第五個參數為 QRCode 的寬和高
-            var setupInfo = tfa.GenerateSetupCode("GPay", CompanyName, AccountSecretKey, 300, 300);
+            var setupInfo = tfa.GenerateSetupCode("VPay", CompanyName, AccountSecretKey, 300, 300);
             //用內建的API 產生
             retValue.ImageUrl =setupInfo.QrCodeSetupImageUrl;
             retValue.ManualEntryKey = setupInfo.ManualEntryKey;

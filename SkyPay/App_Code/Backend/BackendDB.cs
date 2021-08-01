@@ -7366,7 +7366,7 @@ public class BackendDB
                 int.TryParse(DBAccess.GetDBValue(DBConnStr, DBCmd).ToString(), out WithdrawalID);
                 if (WithdrawalID != 0)
                 {
-                    WithdrawSerial = "WT" + System.DateTime.Now.ToString("yyyyMMddHHmm") + (new string('0', 10 - WithdrawalID.ToString().Length) + WithdrawalID.ToString());
+                    WithdrawSerial = "OP" + System.DateTime.Now.ToString("yyyyMMddHHmm") + (new string('0', 10 - WithdrawalID.ToString().Length) + WithdrawalID.ToString());
                     SS = "UPDATE Withdrawal  SET WithdrawSerial=@WithdrawSerial " +
                     " WHERE WithdrawID=@WithdrawID";
 
@@ -14068,7 +14068,7 @@ public class BackendDB
         }
 
         #region 新建單 => 尚未提交
-        PaymentSerial = "PT" + System.DateTime.Now.ToString("yyyyMMddHHmm") + (new string('0', 10 - PaymentID.ToString().Length) + PaymentID.ToString());
+        PaymentSerial = "IP" + System.DateTime.Now.ToString("yyyyMMddHHmm") + (new string('0', 10 - PaymentID.ToString().Length) + PaymentID.ToString());
 
         if (UpdatePaymentSerial2(PaymentSerial, PaymentID) == 0)
         {
@@ -14138,7 +14138,7 @@ public class BackendDB
         PaymentModel.PaymentID = PaymentID;
 
         #region 新建單 => 尚未提交
-        PaymentSerial = "PT" + System.DateTime.Now.ToString("yyyyMMddHHmm") + (new string('0', 10 - PaymentModel.PaymentID.ToString().Length) + PaymentModel.PaymentID.ToString());
+        PaymentSerial = "IP" + System.DateTime.Now.ToString("yyyyMMddHHmm") + (new string('0', 10 - PaymentModel.PaymentID.ToString().Length) + PaymentModel.PaymentID.ToString());
 
         if (UpdatePaymentSerial(PaymentSerial, PaymentModel.PaymentID) == 0)
         {
@@ -15618,7 +15618,7 @@ public class BackendDB
         DataTable DT;
         string SummaryDateString = string.Empty;
 
-        if (TransactionSerial.Contains("PT"))
+        if (TransactionSerial.Contains("IP"))
         {
             SS = "SELECT P.* ,  " +
                  "       PPG.GroupName, " +
@@ -15673,7 +15673,7 @@ public class BackendDB
         DataTable DT;
         string SummaryDateString = string.Empty;
 
-        if (TransactionSerial.Contains("PT"))
+        if (TransactionSerial.Contains("IP"))
         {
             SS = "SELECT P.* ,  " +
                  "       S.ServiceTypeName, " +

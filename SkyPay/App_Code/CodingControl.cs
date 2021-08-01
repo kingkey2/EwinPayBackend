@@ -192,15 +192,30 @@ public class CodingControl
             RetValue = HttpContext.Current.Request.UserHostAddress;
         }
 
-        // 濾除 port
-        if (string.IsNullOrEmpty(RetValue) == false)
+        IPAddress address;
+        if (IPAddress.TryParse(RetValue, out address))
         {
-            int tmpIndex;
-
-            tmpIndex = RetValue.IndexOf(":");
-            if (tmpIndex != -1)
+            switch (address.AddressFamily)
             {
-                RetValue = RetValue.Substring(0, tmpIndex);
+                case System.Net.Sockets.AddressFamily.InterNetwork:
+                    if (string.IsNullOrEmpty(RetValue) == false)
+                    {
+                        int tmpIndex;
+
+                        tmpIndex = RetValue.IndexOf(":");
+                        if (tmpIndex != -1)
+                        {
+                            RetValue = RetValue.Substring(0, tmpIndex);
+                        }
+                    }
+                    return RetValue;
+               
+                case System.Net.Sockets.AddressFamily.InterNetworkV6:
+                    return RetValue;
+                  
+                default:
+                    // umm... yeah... I'm going to need to take your red packet and...
+                    break;
             }
         }
 

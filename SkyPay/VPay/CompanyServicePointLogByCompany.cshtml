@@ -1204,13 +1204,13 @@ if ('@CheckLoginPermission' == 'false') {
                             //    break;
                             case 3:
                                 var OperatorType = '人工调帐';
-                                if (rowdata.TransactionOrder.includes("WT")) {
+                                if (rowdata.TransactionOrder.includes("OP")) {
                                     if (rowdata.Value > 0) {
                                         OperatorType = '冲正';
                                     }
                                 }
 
-                                if (rowdata.TransactionOrder.includes("PT")) {
+                                if (rowdata.TransactionOrder.includes("IP")) {
                                     if (rowdata.Value < 0) {
                                         OperatorType = '冲正';
                                     }
@@ -1377,13 +1377,13 @@ if ('@CheckLoginPermission' == 'false') {
                     OperatorType = '代收';
                 } else if (data.OperatorType == 3) {
                     OperatorType = '人工调帐';
-                    if (data.TransactionOrder.includes("WT")) {
+                    if (data.TransactionOrder.includes("OP")) {
                         if (data.Value > 0) {
                             OperatorType = '冲正';
                         }
                     }
 
-                    if (data.TransactionOrder.includes("PT")) {
+                    if (data.TransactionOrder.includes("IP")) {
                         if (data.Value < 0) {
                             OperatorType = '冲正';
                         }

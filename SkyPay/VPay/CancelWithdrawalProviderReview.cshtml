@@ -1008,15 +1008,15 @@
             parent.warningAlert('尚未填写单号');
             return;
         }
-        if (!(TransactionSerial.indexOf('WT') >= 0)) {
-            parent.warningAlert('订单须为 WT 开头');
+        if (!(TransactionSerial.indexOf('OP') >= 0)) {
+            parent.warningAlert('订单须为 OP 开头');
             return;
         }
 
         api.getOrderByCompanyManualHistory(TransactionSerial, function (success, obj) {
             if (success) {
                 if (obj.ResultCode == 0) {
-                    if (TransactionSerial.indexOf('PT') >= 0) {
+                    if (TransactionSerial.indexOf('IP') >= 0) {
                         var strStatus = "";
                         switch (obj.Result.ProcessStatus) {
                             case 0:
