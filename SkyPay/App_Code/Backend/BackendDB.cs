@@ -6695,7 +6695,7 @@ public class BackendDB
     {
         List<DBViewModel.CompanyServicePointVM> returnValue = null;
         string SS;
-        SqlCommand DBCmd = null;
+        SqlCommand DBCmd = null;    
         DataTable DT;
 
         SS = " SELECT " +
@@ -6737,7 +6737,7 @@ public class BackendDB
         {
             SS = " SELECT CompanyTable.CompanyName,CompanyPoint.*,CompanyServicePoint.SystemPointValue AS AutoWithdrawAmount" +
                  " FROM   CompanyPoint" +
-                 " LEFT JOIN CompanyServicePoint ON CompanyServicePoint.CompanyID=CompanyPoint.forCompanyID And CompanyServicePoint.CurrencyType=CompanyPoint.CurrencyType And CompanyServicePoint.ServiceType='OB003'" +
+                 " LEFT JOIN CompanyServicePoint ON CompanyServicePoint.CompanyID=CompanyPoint.forCompanyID And CompanyServicePoint.CurrencyType=CompanyPoint.CurrencyType And CompanyServicePoint.ServiceType='OOB02'" +
                  " LEFT JOIN CompanyTable WITH (NOLOCK) ON CompanyPoint.forCompanyID = CompanyTable.CompanyID" +
                  " WHERE CompanyPoint.forCompanyID = @CompanyID" +
                  " AND CompanyPoint.CurrencyType = @CurrencyType";
@@ -6753,7 +6753,7 @@ public class BackendDB
         {
             SS = " SELECT CompanyTable.CompanyName,CompanyPoint.*,CompanyServicePoint.SystemPointValue AS AutoWithdrawAmount" +
                  " FROM   CompanyPoint" +
-                 " LEFT JOIN CompanyServicePoint ON CompanyServicePoint.CompanyID=CompanyPoint.forCompanyID And CompanyServicePoint.CurrencyType=CompanyPoint.CurrencyType And CompanyServicePoint.ServiceType='OB003'" +
+                 " LEFT JOIN CompanyServicePoint ON CompanyServicePoint.CompanyID=CompanyPoint.forCompanyID And CompanyServicePoint.CurrencyType=CompanyPoint.CurrencyType And CompanyServicePoint.ServiceType='OOB02'" +
                  " LEFT JOIN CompanyTable WITH (NOLOCK) ON CompanyPoint.forCompanyID = CompanyTable.CompanyID" +
                  " WHERE CompanyPoint.forCompanyID = @CompanyID";
 
@@ -6799,7 +6799,7 @@ public class BackendDB
     //    {
     //        SS = " SELECT CompanyPoint.*,CompanyServicePoint.SystemPointValue AS AutoWithdrawAmount" +
     //             " FROM   CompanyPoint" +
-    //             " LEFT JOIN CompanyServicePoint ON CompanyServicePoint.CompanyID=CompanyPoint.forCompanyID And CompanyServicePoint.CurrencyType=CompanyPoint.CurrencyType And CompanyServicePoint.ServiceType='OB003'" +
+    //             " LEFT JOIN CompanyServicePoint ON CompanyServicePoint.CompanyID=CompanyPoint.forCompanyID And CompanyServicePoint.CurrencyType=CompanyPoint.CurrencyType And CompanyServicePoint.ServiceType='OOB02'" +
     //             " WHERE CompanyPoint.forCompanyID = @CompanyID" +
     //             " AND CompanyPoint.CurrencyType = @CurrencyType";
 
@@ -6814,7 +6814,7 @@ public class BackendDB
     //    {
     //        SS = " SELECT CompanyPoint.*,CompanyServicePoint.SystemPointValue AS AutoWithdrawAmount" +
     //             " FROM   CompanyPoint" +
-    //             " LEFT JOIN CompanyServicePoint ON CompanyServicePoint.CompanyID=CompanyPoint.forCompanyID And CompanyServicePoint.CurrencyType=CompanyPoint.CurrencyType And CompanyServicePoint.ServiceType='OB003'" +
+    //             " LEFT JOIN CompanyServicePoint ON CompanyServicePoint.CompanyID=CompanyPoint.forCompanyID And CompanyServicePoint.CurrencyType=CompanyPoint.CurrencyType And CompanyServicePoint.ServiceType='OOB02'" +
     //             " WHERE CompanyPoint.forCompanyID = @CompanyID";
 
     //        DBCmd = new SqlCommand();
@@ -6859,7 +6859,7 @@ public class BackendDB
         {//OB003 内充渠道
             SS = " SELECT CompanyPoint.*,CompanyServicePoint.SystemPointValue AS AutoWithdrawAmount" +
                  " FROM   CompanyPoint" +
-                 " LEFT JOIN CompanyServicePoint ON CompanyServicePoint.CompanyID=CompanyPoint.forCompanyID And CompanyServicePoint.CurrencyType=CompanyPoint.CurrencyType And CompanyServicePoint.ServiceType='OB003'" +
+                 " LEFT JOIN CompanyServicePoint ON CompanyServicePoint.CompanyID=CompanyPoint.forCompanyID And CompanyServicePoint.CurrencyType=CompanyPoint.CurrencyType And CompanyServicePoint.ServiceType='OOB02'" +
                  " WHERE CompanyPoint.forCompanyID = @CompanyID" +
                  " AND CompanyPoint.CurrencyType = @CurrencyType";
 
@@ -6874,7 +6874,7 @@ public class BackendDB
         {   //OB003 内充渠道
             SS = " SELECT CompanyPoint.*,CompanyServicePoint.SystemPointValue AS AutoWithdrawAmount" +
                  " FROM   CompanyPoint" +
-                 " LEFT JOIN CompanyServicePoint ON CompanyServicePoint.CompanyID=CompanyPoint.forCompanyID And CompanyServicePoint.CurrencyType=CompanyPoint.CurrencyType And CompanyServicePoint.ServiceType='OB003'" +
+                 " LEFT JOIN CompanyServicePoint ON CompanyServicePoint.CompanyID=CompanyPoint.forCompanyID And CompanyServicePoint.CurrencyType=CompanyPoint.CurrencyType And CompanyServicePoint.ServiceType='OOB02'" +
                  " WHERE CompanyPoint.forCompanyID = @CompanyID";
 
             DBCmd = new SqlCommand();
@@ -7716,7 +7716,7 @@ public class BackendDB
 
                 if (DistinctWithdrawalData.Contains(data))
                 {
-                    if (data.ServiceType == "OB003" && AutoWithdrawalProviderCode == "LPay2" && BackendWithdrawType == 1)
+                    if (data.ServiceType == "OOB02" && AutoWithdrawalProviderCode == "LPay2" && BackendWithdrawType == 1)
                     {
                         if (ProxyProviderModel != null && data.Amount <= ProxyProviderModel.MaxWithdrawalAmount)
                         {
@@ -7763,7 +7763,7 @@ public class BackendDB
                             returnValue += DBAccess.ExecuteDB(DBConnStr, DBCmd);
                         }
                     }
-                    else if (data.ServiceType == "OB003" && AutoWithdrawalProviderCode == "YE888" && BackendWithdrawType == 1)
+                    else if (data.ServiceType == "OOB02" && AutoWithdrawalProviderCode == "YE888" && BackendWithdrawType == 1)
                     {
                         if (ProxyProviderModel != null && data.Amount <= ProxyProviderModel.MaxWithdrawalAmount)
                         {
@@ -7905,7 +7905,7 @@ public class BackendDB
              " JOIN GPayWithdrawRelation GWR WITH(NOLOCK)  ON GWR.forCompanyID = CT.CompanyID" +
              " AND GWR.CurrencyType = 'CNY'" +
              " JOIN ProviderCode PC WITH(NOLOCK)  ON PC.ProviderCode = GWR.ProviderCode AND PC.CollectType = 1" +
-             " WHERE CT.CompanyID = @CompanyID AND CT.AutoWithdrawalServiceType = 'OB003'";
+             " WHERE CT.CompanyID = @CompanyID AND CT.AutoWithdrawalServiceType = 'OOB02'";
 
 
         DBCmd = new System.Data.SqlClient.SqlCommand();
@@ -15849,14 +15849,33 @@ public class BackendDB
     #endregion
 
     #region 案件冻结
-    public int InsertFrozenPoint(DBModel.FrozenPoint Model, int AdminID)
+    public int InsertFrozenPoint(DBModel.FrozenPoint Model,bool BoolActualProviderFrozenAmount , int AdminID)
     {
         int returnValue;
         string SS;
         System.Data.SqlClient.SqlCommand DBCmd = null;
+        decimal ActualProviderFrozenAmount = Model.ProviderFrozenAmount;
+        if (ActualProviderFrozenAmount>0) {
+            if (BoolActualProviderFrozenAmount)
+            {
+                var ProviderModel = GetProviderCodeResult(Model.forProviderCode);
+                if (ProviderModel != null)
+                {
+                    if (ProviderModel.First().CollectType == 1)
+                    {
+                        var ProxyGroupModel = GetProxyProviderGroupByGroupID(Model.forProviderCode, Model.GroupID);
+                        var CompanyServiceModel = GetSelectedCompanyService(Model.forCompanyID, Model.ServiceType, Model.CurrencyType);
+                        if (ProxyGroupModel != null) {
+                            ActualProviderFrozenAmount = (decimal)((double)Model.ProviderFrozenAmount - ((double)Model.ProviderFrozenAmount * 0.01 *((double)CompanyServiceModel.CollectRate-(double)ProxyGroupModel.PaymentRate)));
+                        }
+                    }
+                }
+            }
+        }
+     
 
-        SS = " INSERT INTO FrozenPoint (forPaymentSerial, forCompanyID, forProviderCode, CompanyFrozenAmount, ProviderFrozenAmount, Description,CurrencyType,FrozenAdminID,forPaymentID,ServiceType,GroupID,BankCard,BankCardName,BankName) " +
-             " VALUES (@forPaymentSerial, @forCompanyID, @forProviderCode, @CompanyFrozenAmount, @ProviderFrozenAmount, @Description,@CurrencyType,@FrozenAdminID,@forPaymentID,@ServiceType,@GroupID,@BankCard,@BankCardName,@BankName)";
+        SS = " INSERT INTO FrozenPoint (forPaymentSerial, forCompanyID, forProviderCode, CompanyFrozenAmount, ProviderFrozenAmount, Description,CurrencyType,FrozenAdminID,forPaymentID,ServiceType,GroupID,BankCard,BankCardName,BankName,ActualProviderFrozenAmount) " +
+             " VALUES (@forPaymentSerial, @forCompanyID, @forProviderCode, @CompanyFrozenAmount, @ProviderFrozenAmount, @Description,@CurrencyType,@FrozenAdminID,@forPaymentID,@ServiceType,@GroupID,@BankCard,@BankCardName,@BankName,@ActualProviderFrozenAmount)";
 
         DBCmd = new System.Data.SqlClient.SqlCommand();
         DBCmd.CommandText = SS;
@@ -15868,11 +15887,11 @@ public class BackendDB
         DBCmd.Parameters.Add("@CurrencyType", SqlDbType.VarChar).Value = Model.CurrencyType;
         DBCmd.Parameters.Add("@ServiceType", SqlDbType.VarChar).Value = Model.ServiceType;
         DBCmd.Parameters.Add("@CompanyFrozenAmount", SqlDbType.Decimal).Value = Model.CompanyFrozenAmount;
-        DBCmd.Parameters.Add("@ProviderFrozenAmount", SqlDbType.Decimal).Value = Model.ProviderFrozenAmount;
+        DBCmd.Parameters.Add("@ProviderFrozenAmount", SqlDbType.Decimal).Value = ActualProviderFrozenAmount;
         DBCmd.Parameters.Add("@FrozenAdminID", SqlDbType.Int).Value = AdminID;
         DBCmd.Parameters.Add("@Description", SqlDbType.NVarChar).Value = Model.Description;
         DBCmd.Parameters.Add("@GroupID", SqlDbType.Int).Value = Model.GroupID;
-
+        DBCmd.Parameters.Add("@ActualProviderFrozenAmount", SqlDbType.Decimal).Value = Model.ProviderFrozenAmount;
         DBCmd.Parameters.Add("@BankCard", SqlDbType.VarChar).Value = Model.BankCard;
         DBCmd.Parameters.Add("@BankCardName", SqlDbType.NVarChar).Value = Model.BankCardName;
         DBCmd.Parameters.Add("@BankName", SqlDbType.NVarChar).Value = Model.BankName;

@@ -6118,7 +6118,7 @@ var BackendAPI = function (BID, APIUrl) {
     //#endregion
 
     //#region 案件冻结
-    this.InsertFrozenPoint = function (PaymentSerial, CompanyID, ProviderCode, CompanyAmount, ProviderAmount, Description, CurrencyType, PaymentID, ServiceType, BankCard, BankCardName, BankName,cb) {
+    this.InsertFrozenPoint = function (PaymentSerial, CompanyID, ProviderCode, CompanyAmount, ProviderAmount, Description, CurrencyType, PaymentID, ServiceType, BankCard, BankCardName, BankName,CheckboxActualProviderFrozenAmount,cb) {
         var url = APIUrl + "/InsertFrozenPoint";
         var postData;
 
@@ -6135,7 +6135,8 @@ var BackendAPI = function (BID, APIUrl) {
             ServiceType: ServiceType,
             BankCard: BankCard,
             BankCardName: BankCardName,
-            BankName: BankName
+            BankName: BankName,
+            BoolActualProviderFrozenAmount: CheckboxActualProviderFrozenAmount
         };
 
         callServiceByPost(url, postData, function (success, text) {

@@ -1,14 +1,11 @@
 ﻿@{
-    var bc = new BackendController(); string BID = HttpContext.Current.Request.Cookies.AllKeys.Contains("BID") == true ?  HttpContext.Current.Request.Cookies["BID"].Value.ToString():"";
+    var bc = new BackendController(); string BID = HttpContext.Current.Request.Cookies.AllKeys.Contains("BID") == true ? HttpContext.Current.Request.Cookies["BID"].Value.ToString() : "";
     var result = bc.CheckLoginPermission(BID);
     string CheckPermission = "success";
-    if (result.ResultCode != BackendController.APIResult.enumResult.OK)
-    {
-        CheckPermission = "false";
-    }
+
 
     string PermissionName = Request.Path.Split('/').Last().Split('.').First();
-    result = bc.CheckPermission(BID,PermissionName);
+    result = bc.CheckPermission(BID, PermissionName);
 
     if (result.ResultCode != BackendController.APIResult.enumResult.OK)
     {
@@ -21,8 +18,8 @@
     {
         CheckLoginPermission = "false";
     }
-}
 
+}
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=Edge">
@@ -101,7 +98,9 @@
     <script src="~/VPay/assets/js/common.js"></script>
 
     <style>
-
+        .zmdi:hover {
+            cursor: pointer;
+        }
 
         ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
             color: black !important;
@@ -918,68 +917,17 @@
             font-weight: normal;
         }
     </style>
-
-    <style>
-        .imgScale_Outer {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0,0,0,0.7);
-            overflow-y: scroll;
-            z-index: 200;
-        }
-
-        .imgScale_inner {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%,-50%);
-            /* writing-mode: vertical-lr;
-        text-align: center; */
-        }
-
-            .imgScale_inner img {
-                max-width: 90vw;
-                max-height: 90vh;
-            }
-
-        .BtnClose {
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            font-size: 2.5em;
-        }
-    </style>
-    <style>
-
-        .dropdown-menu > .inner {
-            max-height: 300px !important;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-    </style>
 </head>
-
+<script src="~/VPay/assets/js/xlsx.core.min.js"></script>
 <script src="~/VPay/assets/js/moment.min.js"></script>
 <script src="~/VPay/assets/js/daterangepicker.js"></script>
 <link href="~/VPay/assets/css/daterangepicker.css" rel="stylesheet" />
+
 <body class="theme-cyan">
-    <div class="imgScale_Outer" onclick="btnClose()" id="imgScale" style="display:none;">
-        <div class="BtnClose" onclick="btnClose()"><i class="fas fa-times" style="color: #fff; float: right; padding: 10px; cursor: pointer;"></i></div>
-        <div class="imgScale_inner">
-            <img id="idImgScale_Image" alt="">
-        </div>
-    </div>
-
-
     <div class="block-header paper-wrap">
         <div class="row">
             <div class="col col-lg-3 col-md-3 col-sm-3">
-                <h2>案件凍結</h2>
+                <h2>充值单审核</h2>
             </div>
             <div class="col col-lg-9 col-md-9 col-sm-9">
                 <div class="tips">
@@ -995,96 +943,61 @@
         <div class="row clearfix">
             <div class="col-lg-12">
                 <div class="card">
-                    <div class="header">
-                        <div class="row">
-                            <div class="col-lg-7 col-md-7 col-sm-7">
+                    <div class="header"></div>
+                    <div class="body">
 
+                        <div class="row">
+                            <h6 style="margin-top: 10px;margin-right: 10px;margin-left: 15px;"> 订单号 : </h6>
+                            <div class="input-group" style="width:250px">
+                                <input type="text" id="input_OrderID" placeholder="订单号" class="form-control" style="width:70%;line-height: inherit;">
                             </div>
-                            <div class="col-lg-5 col-md-5 col-sm-5 ortherText">
-                                <button title="新增" id="btnCreate" type="button" class="btn btn-raised btn-primary btn-circle waves-effect float-right"><i class="fas fa-plus"></i></button>
+                            <div>
+                                <h6 style="margin-top: 10px;margin-right: 10px;margin-left: 15px;"> 卡号 : </h6>
+                            </div>
+                            <div style="width:250px">
+                                <div class="input-group">
+                                    <input id="input_BankDescription" type="text" class="form-control date">
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="body">
-                        <div class="row">
-                            <div class="col col-lg-6 col-md-6 col-sm-6">
-                                <div class="row" style="margin-top: 10px">
-                                    <div>
-                                        <h6 style="margin-top: 10px;margin-right: 10px;margin-left: 15px;"> 被冻结单号 : </h6>
-                                    </div>
-                                    <div class="input-group" style="width:300px">
-                                        <input type="text" id="input_PaymentSerial" placeholder="平台訂單號" class="form-control" style="line-height: inherit;">
-                                    </div>
 
-                                </div>
+                        <div id="searchfield" class="row" style="margin-bottom: 10px;">
+                            <h6 style="margin-top: 10px;margin-right: 10px;margin-left: 15px;"> 时间 : </h6>
+                            <input id="dateinput" style="width:250px;height: 41px;margin-right:5px" class="form-control" />
+                            <select id="deteselect" style="width: 110px;">
+                                <option value="0">今日</option>
+                                <option value="1">昨日</option>
+                                <option value="2">过去7日</option>
+                                <option value="3">过去30日</option>
+                                <option value="4">这个月</option>
+                                <option value="5">上个月</option>
+                                <option value="6">自定义</option>
+                            </select>
 
-                                <div class="row" style="margin-top: 10px">
-                                    <div class="row" style="margin-bottom: 10px;">
-                                        <h6 style="margin-top: 10px;margin-right: 10px;margin-left: 15px;"> 类型 : </h6>
-                                        <select class="show-tick" id="select_Type"></select>
-                                    </div>
-
-                                    <h6 style="margin-top: 10px;margin-right: 10px;margin-left: 15px;"> 366群组 : </h6>
-                                    <select class="show-tick" id="select_proxyProviderGroup"></select>
-                                </div>
-                                <div class="row" style="margin-top: 10px">
-                                    <div>
-                                        <h6 style="margin-top: 10px;margin-right: 10px;margin-left: 15px;"> 商户 : </h6>
-                                    </div>
-                                    <span style="z-index:500;">
-                                        <select class="show-tick" id="select_Company" data-live-search="true"></select>
-                                    </span>
-
-                                    <div>
-                                        <h6 style="margin-top: 10px;margin-right: 10px;margin-left: 15px;"> 渠道 : </h6>
-                                    </div>
-                                    <select class="show-tick" id="select_providercode"></select>
-
-                                </div>
-                                <div class="row" style="margin-bottom: 10px;">
-                                    <h6 style="margin-top: 10px;margin-right: 10px;margin-left: 15px;"> 时间 : </h6>
-                                    <input id="dateinput" style="width:250px;height: 41px;margin-right:5px" class="form-control" />
-                                    <select id="deteselect" style="width: 110px;">
-                                        <option value="0">今日</option>
-                                        <option value="1">昨日</option>
-                                        <option value="2">过去7日</option>
-                                        <option value="3">过去30日</option>
-                                        <option value="4">这个月</option>
-                                        <option value="5">上个月</option>
-                                        <option value="6">自定义</option>
-                                    </select>
-                                    @*<div class="col col-lg-2 col-md-4 col-sm-6">
-                        <select class="form-control show-tick" id="select_currency"></select>
-                    </div>*@
-
-                                    <div class="col col-lg-2 col-md-4 col-sm-6">
-                                        <button class="btn btn-raised btn-primary btn-round waves-effect" type="button" id="btnSearch">搜寻</button>
-                                    </div>
-
-                                </div>
-                            </div>
-                            <div class="col col-lg-6 col-md-6 col-sm-6">
-                                <span style="margin-left:5px;font-size:larger">渠道总冻结金额:</span>
-                                <span id="AllProviderValue" style="margin-left:5px;color:green"></span>
-                                <span style="margin-left:25px;font-size:larger">商户总冻结金额:</span>
-                                <span id="AllCompanyValue" style="margin-left:5px;color:green"></span>
-                                @*<i class="zmdi zmdi-refresh" style="margin-top: 7px;margin-left:5px;font-size:2em;" onclick="getProxyProviderGroup('LPay2');"></i>*@
-                                <table id="ProxyGroupTable" style="border:3px #cccccc solid;" cellpadding="10" border='1'>
-                                    <thead>
-
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-
+                            <div>
+                                <button style="margin-left: 15px;" class="btn btn-raised btn-primary btn-round waves-effect" type="button" id="btnsearch">搜寻</button>
+                                <button style="margin-left: 15px;" class="btn btn-raised btn-primary btn-round waves-effect" type="button" id="btnsearch2">待审案件</button>
+                                <button id="Excel_download" type="button" class="btn btn-raised btn-round waves-effect">汇出Excel</button>
                             </div>
 
                         </div>
                         <div class="row" style="background-color: #99FF99;line-height: 30px;">
-                            <span style="font-weight:900;color:#227700;font-size:15px;margin-left:5px"> 渠道冻结金额 : </span><span style="font-size:15px;margin-left:5px" id="count1"></span>
-                            <span style="font-weight:900;color:#227700;font-size:15px;margin-left:5px"> 商户冻结金额 : </span><span style="font-size:15px;margin-left:5px" id="count2"></span>
+                            <span style="font-weight:900;color:#227700;font-size:15px;margin-left:5px"> 总充金额 : </span><span style="font-size:15px;margin-left:5px" id="count5"></span>
+                            <span style="font-weight:900;color:#227700;font-size:15px;margin-left:5px"> 总充笔数 : </span><span style="font-size:15px;margin-left:5px" id="count4"></span>
+                            <span style="font-weight:900;color:#227700;font-size:15px;margin-left:5px"> 成功总金额 : </span><span style="font-size:15px;margin-left:5px" id="count1"></span>
+                            <span style="font-weight:900;color:#227700;font-size:15px;margin-left:5px"> 成功总笔数 : </span><span style="font-size:15px;margin-left:5px" id="count2"></span>
+                            <span style="font-weight:900;color:#227700;font-size:15px;margin-left:5px"> 总毛利 : </span><span style="font-size:15px;margin-left:5px" id="count3"></span>
                         </div>
-                        <div id="div_table">
-                            <table style="width:100%" class="table table-bordered table-striped table-hover dataTable nowrap " id="table_Table"></table>
+                        <div class="row" style="background-color:#66FFFF;line-height: 30px;">
+                            <span style="font-weight:900;color:#0000AA;font-size:15px;margin-left:5px"> 组别 : </span><span style="font-size:15px;margin-left:5px" id="count7"></span>
+                            <span style="font-weight:900;color:#0000AA;font-size:15px;margin-left:5px"> 组别总额 : </span><span style="font-size:15px;margin-left:5px" id="count8"></span>
+                            <span style="font-weight:900;color:#0000AA;font-size:15px;margin-left:5px"> 冻结金额 : </span><span style="font-size:15px;margin-left:5px" id="count9"></span>
+                            <span style="font-weight:900;color:#0000AA;font-size:15px;margin-left:5px"> 可用金额 : </span><span style="font-size:15px;margin-left:5px" id="count10"></span>
+                            <i class="zmdi zmdi-refresh" style="margin-top: 7px;margin-left: 5px;" onclick="getProxyProviderData()"></i>
+                        </div>
+
+                        <div id="div_table_PaymentTable">
+                            <table style="width:100%" class="table table-bordered table-striped table-hover dataTable nowrap " id="table_PaymentTable"></table>
                         </div>
                     </div>
                 </div>
@@ -1097,49 +1010,47 @@
 
 
 <script>
-    var selCompanyid;
+
     var Table;
     var isCreatedTable = false;
-    var isFirstSearch = false;
+    var serviceTypeData;
+    var providerTypesData;
 
     $(document).ready(function () {
         if ('@CheckLoginPermission' == 'false') {
                 location.href = "Login.cshtml";
             }
 
-               if ('@CheckPermission' == 'false') {
+        if ('@CheckPermission' == 'false') {
             parent.errorAlertCallback("权限不足", function () {
                 parent.GoPage("Home");
                 parent.CloseActivePage(window.frameElement.id.split('_')[1]);
             });
         }
-
         pageLoad();
     });
+
     function pageLoad() {
         AdminObject = parent.AdminObject;
         api = parent.api;
-        //建立下拉
-        getProviderCodeResult();
-   
-        //createCurrencySelect();
-        CreateCompanySelect();
-        createTypeSelect();
-        getProxyProviderGroup("LPay2");
-        getProxyProviderGroup2();
+
+        createPaymentTable2();
+
+
         //啟用日期
         var start = moment().hour(00).minute(00);
         var end = moment().hour(23).minute(59);
+
         $('#dateinput').daterangepicker({
             startDate: start,
             endDate: end,
-            timePicker: false,
-            timePicker24Hour: false,
+            timePicker: true,
+            timePicker24Hour: true,
             locale: {
 
                 "applyLabel": "確認",
                 "cancelLabel": "取消",
-                "format": 'YYYY/MM/DD',
+                "format": 'YYYY/MM/DD HH:mm',
                 "daysOfWeek": ["日", "一", "二", "三", "四", "五", "六"],
                 "monthNames": ["1月", "2月", "3月", "4月", "5月", "6月",
                     "7月", "8月", "9月", "10月", "11月", "12月"]
@@ -1148,222 +1059,10 @@
             $('#deteselect').val("6");
             $('#deteselect').selectpicker('refresh');
         });
-
-        //新增調帳資料
-        $("#btnCreate").on("click", function () {
-            var data = {
-                backID: window.frameElement.id.split('_')[1]
-            }
-
-            var tmpdata = {
-                type: "FrozenPointHistory_Create",
-                data: data
-            };
-            sessionStorage.setItem("TempData", JSON.stringify(tmpdata));
-            parent.GoPage("FrozenPointHistory_Create", "冻结案件新增", "FrozenPointHistory_Create.cshtml");
-
-        })
-
         parent.wrapperFadeOut();
-
     };
 
-    function showImageScale(doc) {
-        var src = $(doc).data("src");
-        var imgScale = document.getElementById("imgScale");
-        var idImgScale_Image = document.getElementById("idImgScale_Image");
-
-        idImgScale_Image.src = src;
-        imgScale.style.display = "block";
-    }
-
-    function btnClose() {
-        document.getElementById('imgScale').style.display = 'none';
-    }
-
-    function getProxyProviderGroup2() {
-        api.getProxyProviderGroupTableResultByAdmin("LPay2", function (success, obj) {//LPay2
-            if (obj.ResultCode == 0) {
-                $('#select_proxyProviderGroup').append('<option value="0">' + "未选择" + '</option>');
-                //绑定下拉选单
-            
-                for (var i = 0; i < obj.Results.length; i++) {
-                    $('#select_proxyProviderGroup').append('<option value="' + obj.Results[i].GroupID + '">' + obj.Results[i].GroupName + '</option>');
-                }
-                $('#select_proxyProviderGroup').selectpicker('refresh');
-
-            } else {
-                var message = ""
-                switch (obj.ResultCode) {
-                    case 7:
-                        parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                        break;
-                    case 5:
-
-                        break;
-                    case 4:
-                        parent.errorAlertCallback("权限不足", function () {
-                            parent.ChangePage("Home");
-                            parent.CloseActivePage(window.frameElement.id.split('_')[1]);
-                        });
-                        break;
-                    default:
-                        message = "其他错误";
-                        parent.warningAlert(message);
-                        break;
-                }
-            }
-        });
-
-    }
-
-    function pictureChange(input) {
-      
-        if (input.files && input.files[0]) {
-            if (Math.round(input.files[0].size / (1024 * 1024)) > 2) {
-                parent.warningAlert("档案大小必须小于 2 MB");
-                return false;
-            }
-
-            let reader = new FileReader();
-
-            reader.readAsDataURL(input.files[0]);
-            //將圖片轉成byte存下來供儲存用
-            reader = new FileReader();
-            reader.readAsArrayBuffer(input.files[0]);
-            reader.onload = function (e) {
-
-                var byteCurrencyPicture = e.target.result;
-                var frozenID = $(input).data('frozenid');
-                var type = $(input).data('type');
-                var imageID = $(input).data('imageid');
-                var imageData = Array.from(new Uint8Array(byteCurrencyPicture));
-                var imageName = $(input).val().split("\\").pop().split(".").pop();
-                $(input).parent().find('img').attr('src', e.target.result);
-
-                api.updateFrozenPointimg(imageData, imageName, frozenID, type, imageID, function (success, obj) {
-                    if (success) {
-                        if (obj.ResultCode == 0) {
-                            parent.successAlert(function () {
-                                getTableResult();
-
-                            });
-                        } else {
-                            switch (obj.ResultCode) {
-                                case 4:
-                                    parent.errorAlertCallback("权限不足", function () {
-                                        parent.ChangePage("Home");
-                                        parent.CloseActivePage(window.frameElement.id.split('_')[1]);
-                                    });
-                                    break;
-                                case 6:
-                                    message = "其他错误";
-                                    parent.warningAlert(message);
-                                    break;
-
-                                case 7:
-                                    parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                                    break;
-                                default:
-                                    message = "其他错误";
-                                    parent.warningAlert(message);
-                                    break;
-                            }
-                        }
-                    }
-                })
-            }
-        }
-    }
-
-    function getProxyProviderGroup(providerCode) {
-        parent.wrapperFadeIn();
-        getSumFrozenPoint();
-        api.getProxyProviderGroupFrozenPoint(providerCode, function (success, obj) {
-            if (success) {
-                parent.wrapperFadeOut();
-                $('#ProxyGroupTable>tbody').empty();
-                if (obj.ResultCode == 0) {
-
-                    proxyProviderGroupData = obj.Results;
-                    for (var i = 0; i < proxyProviderGroupData.length; i++) {
-                        if (i == 0) {
-                            var tmpTr = $('<tr></tr>');
-                            tmpTr.append(`<td style="font-size:15px;">${proxyProviderGroupData[i].GroupName}</td><td style="font-size:15px;color:red;">${toCurrency(proxyProviderGroupData[i].FrozenAmount)}</td >`)
-                        } else if (i % 3 == 0) {
-                            $('#ProxyGroupTable>tbody').append(tmpTr);
-                            tmpTr = $('<tr></tr>');
-                            tmpTr.append(`<td style="font-size:15px;">${proxyProviderGroupData[i].GroupName}</td><td style="font-size:15px;color:red;">${toCurrency(proxyProviderGroupData[i].FrozenAmount)}</td >`)
-                        } else {
-                            tmpTr.append(`<td style="font-size:15px;">${proxyProviderGroupData[i].GroupName}</td><td style="font-size:15px;color:red;">${toCurrency(proxyProviderGroupData[i].FrozenAmount)}</td >`)
-                        }
-
-                        if (i == proxyProviderGroupData.length - 1) {
-                            $('#ProxyGroupTable>tbody').append(tmpTr);
-                        }
-                    }
-                }
-                else {
-                    var message = ""
-                    switch (obj.ResultCode) {
-                        case 7:
-                            parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                            break;
-                        case 5:
-
-                            break;
-                        case 7:
-                            parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                            break;
-                        default:
-                            message = "其他错误";
-                            parent.warningAlert(message);
-                            break;
-                    }
-                }
-            } else {
-                parent.warningAlert("网路异常");
-                parent.wrapperFadeOut();
-            }
-
-        });
-
-    }
-
-    function getSumFrozenPoint() {
-      
-        api.getSumFrozenPoint("LPay2",function (success, obj) {
-            if (success) {
-                if (obj.ResultCode == 0) {
-
-                    $('#AllProviderValue').text(toCurrency(obj.Results.ProviderFrozenAmount));
-                    $('#AllCompanyValue').text(toCurrency(obj.Results.CompanyFrozenAmount));
-                }
-                else {
-                    var message = ""
-                    switch (obj.ResultCode) {
-                        case 7:
-                            parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                            break;
-                        case 5:
-
-                            break;
-                        default:
-                            message = "其他错误";
-                            parent.warningAlert(message);
-                            break;
-                    }
-                    parent.wrapperFadeOut();
-
-                }
-
-            }
-
-        });
-
-    }
-
-    $('#deteselect').change(function () {
+     $('#deteselect').change(function () {
 
         switch ($(this).val()) {
             case "0"://今日
@@ -1396,268 +1095,344 @@
         $('#dateinput').data('daterangepicker').setEndDate(end);
 
     })
+    function createPaymentTable2() {
 
-    function getTableResult() {
-        var dateinputval = $('#dateinput').val().split('-');
-        var startDate = dateinputval[0];
-        var endDate = dateinputval[1];
-        var Status = $('#select_Type').val();
-        var providercode = $('#select_providercode').val();
-        var CompanyID = $('#select_Company').val();
-        var PaymentSerial = $("#input_PaymentSerial").val();
-        var groupID = $('#select_proxyProviderGroup').val();
-
-        api.getFrozenPointHistory(startDate, endDate, PaymentSerial, CompanyID, providercode, Status, groupID, function (success, obj) {
-            if (isCreatedTable) {
-                Table.clear().draw();
-            }
-
-            if (obj.ResultCode == 0) {
-                var companyFrozenAmount = 0;
-                var providerFrozenAmount = 0;
-                var frozendata = obj.Results;
-                for (var i = 0; i < frozendata.length; i++) {
-                    if (frozendata[i].Status == 0) {
-                        companyFrozenAmount += frozendata[i].CompanyFrozenAmount;
-                        providerFrozenAmount += frozendata[i].ProviderFrozenAmount;
-                    }
-                }
-                $('#count1').text(toCurrency(providerFrozenAmount));
-                $('#count2').text(toCurrency(companyFrozenAmount));
-        
-                if (!isCreatedTable) {
-                    isCreatedTable = true;
-                    createTable(frozendata);
-                } else {
-                    Table.rows.add(frozendata).draw();
-                }
-                parent.wrapperFadeOut();
-            } else {
-                switch (obj.ResultCode) {
-                    case 7:
-                        parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                        break;
-                    case 5:
-
-                        parent.warningAlert("查无资料");
-                        break;
-                    default:
-                        //warningAlert("其他錯誤");
-                        break;
-                }
-                parent.wrapperFadeOut();
-            }
-        });
-    }
-
-    function createTable(data) {
-
-        Table = $('#table_Table').DataTable({
-            data: data,
+        var tmp_Table = $("#table_PaymentTable").DataTable({
             columns: [
+                { "title": "订单号", "data": "PaymentSerial" },
                 {
-                    "title": "被冻结单号", "data": "forPaymentSerial"
-                },
-                {
-                    "title": "商户", "data": "CompanyName"
-                },
-                {
-                    "title": "渠道", "data": "ProviderName",
-                    "render": function (data, display, rowdata) {
-
-                        if (rowdata.GroupName != null) {
-                            return `${data}/${rowdata.GroupName}`
-                        }
-                        return data;
-                    }
-                },
-                {
-                    "title": "银行卡资讯", "data": "BankCard",
-                    "render": function (data, display, rowdata) {
-                        var html = "";
-                        if (!(rowdata.BankName == null || rowdata.BankName == "")) {
-                            html += rowdata.BankName + "</br>";
-                        }
-                        if (!(rowdata.BankCard == null || rowdata.BankCard == "")) {
-                            html += rowdata.BankCard + "</br>";
-                        }
-                        if (!(rowdata.BankCardName == null || rowdata.BankCardName == "")) {
-                            html += rowdata.BankCardName + "</br>";
-                        }
-
-                        if (html != "") {
-                            html = html.substring(0, html.length -5);
-                        }
-
-
-                        return "<span>" + html+ "</span>";
-                    }
-                },
-                {
-                    "title": "商户冻结金额", "data": "CompanyFrozenAmount",
-                    "render": function (data, display, rowdata) {
-                        return toCurrency(data);
-                    }
-                },
-                {
-                    "title": "渠道冻结金额", "data": "ProviderFrozenAmount",
-                    "render": function (data, display, rowdata) {
-                        return toCurrency(data);
-                    }
-                },
-                {
-                    "title": "计算前金额", "data": "ActualProviderFrozenAmount",
-                    "render": function (data, display, rowdata) {
-                        return toCurrency(data);
-                    }
-                },
-                {
-                    "title": "状态", "data": "Status",
-                    "render": function (data, display, rowdata) {
+                    "title": "状态", "data": "ProcessStatus",
+                    "render": function (data, display, rowdata) {//0=新建(準備 PaymentSerial)/1=尚未提交/2=交易成功，尚未通知商戶/3=交易失敗/4=交易成功，通知商戶成功/5=供應商資料不一致/6=系統問題
                         switch (data) {
                             case 0:
-                                return '冻结';
+                                return '<span style="color:orange;font-weight:900">未处理</span>';
                                 break;
                             case 1:
-                                return '解冻';
+                                return '<span style="color:orange;font-weight:900">未处理</span>';
+                                break;
+                            case 2:
+                                return '<span style="color:orange;font-weight:900">交易成功，未返回</span>';
+                                break;
+                            case 3:
+                                return '<span style="color:red;font-weight:900">失败</span>';
+                                break;
+                            case 4:
+                                return '<span style="color:green;font-weight:900">成功</span>';
+                                break;
+                            case 6:
+                                return '<span style="color:red;font-weight:900">系统失败单</span>';
+                                break;
+                            case 8:
+                                return '<button onclick="confirmManualPayment(this,4)" style="background-color:green">成功</button><button onclick="confirmManualPayment(this,3)" style="background-color:red">失败</button>';
+                                break;
+                            default:
+                                return '';
                                 break;
                         }
                     }
                 },
                 {
-                    "title": "备注", "data": "Description"
-                },
-                {
-
-                    "title": "图片", "data": "ImageName", render: function (data, display, rowdata) {
-                        if (rowdata.ImageName != null) {
-                            var tmpHtml = '';
-                            var imageNames = rowdata.ImageName.split(",").sort(function (a, b) {
-                                var a_arr = a.split("_");
-                                var a_date = a_arr[a_arr.length - 1];
-                                var b_arr = b.split("_");
-                                var b_date = b_arr[b_arr.length - 1];
-                                return new Date(b_date) - new Date(a_date)
-                            });
-                            for (var i = 0; i < imageNames.length; i++) {
-                                var imageName_arr = imageNames[i].split("_");
-                                ImageID = imageName_arr[0];
-                                ImageName = imageName_arr[1];
-                                CreateDate = imageName_arr[2];
-
-                                if (i == 0) {
-                                    tmpHtml += '<i data-imageid="' + ImageID + '" data-frozenid="' + rowdata.FrozenID + '" class="zmdi zmdi-plus" style="margin-top: 7px;margin-right: 5px;" onclick="addImage(this)"></i><input data-type="update" onchange="pictureChange(this)"  data-imageid="' + ImageID + '"  data-frozenid="' + rowdata.FrozenID + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><div><span class="span_CreateDate" style="margin-right:10px;">' + CreateDate + '</span><button onclick="showImageScale(this)"  data-src="/Backend/GetFileFromSharedFolder.cshtml?FileType=FrozenPoint&FileName=' + ImageName + '">显示图片</button><button style="margin-left:10px;" data-imageid="' + ImageID + '" onclick="deleteImage(this)">删除</button></div>';
-                                } else {
-                                    tmpHtml += '<br/><input data-type="update" onchange="pictureChange(this)" data-imageid="' + ImageID + '"  data-frozenid="' + rowdata.FrozenID + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><div><span class="span_CreateDate" style="margin-right:10px">' + CreateDate + '</span><button onclick="showImageScale(this)"  data-src="/Backend/GetFileFromSharedFolder.cshtml?FileType=FrozenPoint&FileName=' + ImageName + '">显示图片</button><button style="margin-left:10px;" data-imageid="' + ImageID + '" onclick="deleteImage(this)">删除</button></div>';
-                                }
-                            }
-                            return tmpHtml;
-                        } else {
-                            return '<i class="zmdi zmdi-plus" style="margin-top: 7px;margin-right: 5px;"  onclick="addImage(this)"></i><input  data-type="create" onchange="pictureChange(this)" data-frozenid="' + rowdata.FrozenID + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><div><button src ="" style="margin-top:5px;">未上传</button></div>';
-                        }
-                    }
-                },
-                {
-                    "title": "操作时间", "data": "CreateDate2",
+                    "title": "卡号", "data": "PatchDescription",
                     "render": function (data, display, rowdata) {
-                        if (data != '0001-01-01T00:00:00') {
-                            return data.replace(' ', '<br/>');
+                        if (data != null) {
+                            return data + "<button onclick='showModifyBankCrad(this)' style='margin-left:5px;'>修改</button></br><input style='display:none;margin-top:5px;width:80px' class='detailtext' /><button class='btn_confirm' onclick='confirmModifyBankCrad(this)' style='display:none;margin-top:5px' data-paymentserial='" + rowdata.PaymentSerial + "'>确认</button>";
                         } else {
                             return '';
                         }
                     }
                 },
                 {
-                    "title": "冻结者", "data": "FrozenAdminName"
-                },
-              
-                {
-                    "title": "解冻时间", "data": "UnFrozenDate",
+                    "title": "申请金额", "data": "OrderAmount",
                     "render": function (data, display, rowdata) {
-                        if (data != '0001-01-01T00:00:00') {
-                            return data.replace('T', '<br/>');
+                        return toCurrency(data);
+                    }
+                },
+                {
+                    "title": "费率", "data": "PaymentRate"
+                },
+                {
+                    "title": "毛利", "data": "PartialOrderAmount",
+                    "render": function (data, display, rowdata) {
+                        if (data != 0) {
+                            return toCurrency(rowdata.PartialOrderAmount * rowdata.PaymentRate * 0.01);
                         } else {
-                            return '';
+                            return data;
                         }
                     }
                 },
                 {
-                    "title": "解冻者", "data": "UnFrozenAdminName"
+                    "title": "审核人", "data": "RealName"
                 },
                 {
-                    "title": "操作",
-                    "data": "FrozenID",
-                    "render": function (data, display, rowdata) {
-
-                        let retValue;
-                        if (rowdata.Status == 0)
-                            retValue = '<button type="button" data-frozenid=' + rowdata.FrozenID + ' data-companyname=' + rowdata.CompanyName + ' data-providername=' + rowdata.ProviderName + ' data-companyfrozenamount=' + rowdata.CompanyFrozenAmount + ' data-paymentserial=' + rowdata.forPaymentSerial +' onclick="ThawPoint(this)" >解冻</button>';
-                        else
-                            retValue = '';
-                        return retValue;
-                    }
+                    "title": "提交时间", "data": "CreateDate2"
                 }
             ],
             rowCallback: function (row, data) { },
-            filter: true,         //右上搜尋
+            filter: true,
             info: false,
-            ordering: true, //排序
+            ordering: true,
             processing: true,
             retrieve: true,
-            paging: true,    //分頁
+            selected: true,
+            order: [[5, "desc"]],
             scrollX: true,
             autoWidth: false,
             language: chineseTableLang
         });
     }
 
-    $('#btnSearch').click(function () {
-        getProxyProviderGroup('LPay2');
-        getTableResult();
-    })
+    function createPaymentTable(data) {
 
-    function addImage(obj) {
-        var id = $(obj).data('frozenid');
-        $(obj).parent().append('<br/><input  data-type="create" onchange="pictureChange(this)" data-frozenid="' + id + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><div><span class="span_CreateDate" style="margin-right:5px"></span><button style="margin-top:5px;" src= "">未上传</button></div>');
+        Table = $("#table_PaymentTable").DataTable({
+            data: data,
+            columns: [
+                { "title": "订单号", "data": "PaymentSerial" },
+                {
+                    "title": "状态", "data": "ProcessStatus",
+                    "render": function (data, display, rowdata) {//0=新建(準備 PaymentSerial)/1=尚未提交/2=交易成功，尚未通知商戶/3=交易失敗/4=交易成功，通知商戶成功/5=供應商資料不一致/6=系統問題
+                        switch (data) {
+                            case 0:
+                                return '<span style="color:orange;font-weight:900">未处理</span>';
+                                break;
+                            case 1:
+                                return '<span style="color:orange;font-weight:900">未处理</span>';
+                                break;
+                            case 2:
+                                return '<span style="color:orange;font-weight:900">交易成功，未返回</span>';
+                                break;
+                            case 3:
+                                return '<span style="color:red;font-weight:900">失败</span>';
+                                break;
+                            case 4:
+                                return '<span style="color:green;font-weight:900">成功</span>';
+                                break;
+                            case 6:
+                                return '<span style="color:red;font-weight:900">系统失败单</span>';
+                                break;
+                            case 8:
+                                return '收款卡号末四码</br><input class="detailtext" /></br><button onclick="confirmManualPayment(this,4)" style="background-color:green;margin-top: 10px;width: 70px;">成功</button><button onclick="confirmManualPayment(this,3)" style="background-color:red;margin-left: 20px;margin-top: 10px;width: 70px;">失败</button>';
+                                break;
+                            default:
+                                return '';
+                                break;
+                        }
+                    }
+                },
+                {
+                    "title": "卡号", "data": "PatchDescription",
+                    "render": function (data, display, rowdata) {
+                        if (data!="") {
+                            return data + "<button onclick='showModifyBankCrad(this)' style='margin-left:5px;'>修改</button></br><input style='display:none;margin-top:5px;width:80px' class='detailtext' /><button class='btn_confirm' onclick='confirmModifyBankCrad(this)' style='display:none;margin-top:5px' data-paymentserial='" + rowdata.PaymentSerial + "'>确认</button>";
+                        } else {
+                            return '';
+                        }
+                    }
+                },
+                {
+                    "title": "申请金额", "data": "OrderAmount",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
+                    }
+                },
+                {
+                    "title": "费率", "data": "PaymentRate"
+                },
+                {
+                    "title": "毛利", "data": "PartialOrderAmount",
+                    "render": function (data, display, rowdata) {
+                        if (data != 0) {
+                            return toCurrency(rowdata.PartialOrderAmount * rowdata.PaymentRate * 0.01);
+                        } else {
+                            return data;
+                        }
+                    }
+                },
+                {
+                    "title": "审核人", "data": "RealName"
+                },
+                {
+                    "title": "提交时间", "data": "CreateDate2"
+                }
+            ],
+            rowCallback: function (row, data) { },
+            filter: true,
+            info: false,
+            ordering: true,
+            processing: true,
+            retrieve: true,
+            order: [[7, "desc"]],
+            selected: true,
+            scrollX: true,
+            autoWidth: false,
+            language: chineseTableLang
+        });
+
+        Table.on('page.dt', function () {
+            Table.columns.adjust();
+        });
+
+
     }
 
-    function deleteImage(doc) {
-        var ImageID = $(doc).data('imageid');
+    function showModifyBankCrad(objbtn) {
 
-        swal({
-            title: "是否要删除图片?",
-            type: "warning",
-            showCancelButton: true,
-            closeOnConfirm: true,
-            confirmButtonText: "确定",
-            cancelButtonText: "取消",
-            confirmButtonColor: "#DD6B55",
-        },
-            function (isConfirm) {
-                if (isConfirm) {
+        var td = $(objbtn).parent();
+        $(td).find('.detailtext').show();
+        $(td).find('.btn_confirm').show();
+    }
 
-                    if (!ImageID) {
-                        parent.successAlert(function () {
-                            getTableResult();
+    function confirmModifyBankCrad(btndoc) {
+
+        var paymentserial = $(btndoc).data('paymentserial');
+        var detail = $(btndoc).parent().find('.detailtext').val().trim();
+        if (detail == "") {
+            parent.warningAlert("卡号不得为空");
+            return;
+        }
+
+        api.confirmModifyBankCradByPayment(paymentserial, detail, function (success, obj) {
+            if (obj.ResultCode == 0) {
+
+                parent.successAlert();
+                modifyRowValueConfirm(paymentserial, obj.PatmentResult.PaymentData);
+
+            } else {
+                switch (obj.ResultCode) {
+                    case 4:
+                        parent.errorAlertCallback("权限不足", function () {
+                            parent.ChangePage("Home");
+                            parent.CloseActivePage(window.frameElement.id.split('_')[1]);
                         });
-                    } else {
-                        api.deleteImage(ImageID, function (success, obj) {
-                            parent.wrapperFadeIn();
+                    case 6:
+                        parent.warningAlert("修改订单失败");
+                        break;
+                    case 7:
+                        parent.errorAlert("您已断线请重新登入", "Login.cshtml");
+                        break;
+                    default:
+                        parent.warningAlert("修改订单失败");
+                        break;
+                }
+            }
+        });
+
+    }
+
+    function modifyRowValueConfirm(paymentSerial, paymentdata) {
+        var index = -1;
+        var row = Table.row(function (idx, data, node) {
+            if (data.PaymentSerial == paymentSerial) {
+                index = idx;
+                return this;
+            }
+        });
+        if (index != -1) {
+
+            Table.row(row).data(paymentdata);
+
+            Table.row(row).data(Table.row(row).data()).draw(false);
+
+        }
+
+    }
+
+
+    function getProxyProviderData() {
+        //companyid , providercode, WithdrawLimitType,由於是要取得供應商資料,所以companyid帶入0, WithdrawLimitType帶入0 (0=Provider/1=Company)
+        api.getProxyProviderData(function (success, obj) {
+
+            if (success) {
+
+                if (obj.ResultCode == 0) {
+                    $('#count7').text(obj.ProxyProviderGroup.GroupName);
+                    $('#count8').text(toCurrency(obj.ProxyProviderGroup.CanUsePoint));
+                    $('#count9').text(toCurrency(obj.FrozenPoint));
+                    $('#count10').text(toCurrency(obj.ProxyProviderGroup.CanUsePoint - obj.FrozenPoint));
+
+                } else {
+                    $('#count7').text('');
+                    $('#count8').text('');
+                    $('#count9').text('');
+                    $('#count10').text('');
+                }
+            } else {
+                parent.warningAlert(obj + ",其他錯誤(剩余额度)");
+            }
+        });
+    }
+
+    function confirmManualPayment(objbtn, status) {
+        var rowdata = $(objbtn).parent().parent();
+        var paymentSerial = rowdata.find('td').eq(0).html();
+        var amount = rowdata.find('td').eq(3).html();
+        var detail = $(objbtn).parent().find('.detailtext').val().trim();
+        var status = status;
+
+        if (detail == "") {
+            parent.warningAlert("卡号不得为空");
+            return;
+        }
+
+        if (status == 3) {
+
+            swal({
+                title: "失敗",
+                text: "订单号:" + paymentSerial + "<br>申请金额:" + amount ,
+                type: "warning",
+                showCancelButton: true,
+                closeOnConfirm: false,
+                confirmButtonText: "确定",
+                cancelButtonText: "取消",
+                confirmButtonColor: "#DD6B55",
+                html: true
+            },
+                function (isConfirm) {
+                    if (isConfirm) {
+                        confirmGoogleKey(paymentSerial, status, detail);
+                    }
+                });
+        }
+        else {
+
+            swal({
+                title: "成功",
+                text: "订单号:" + paymentSerial + "<br>申请金额:" + amount,
+                type: "success",
+                showCancelButton: true,
+                closeOnConfirm: true,
+                confirmButtonText: "确定",
+                cancelButtonText: "取消",
+                confirmButtonColor: "#DD6B55",
+                html: true
+            },
+                function (isConfirm) {
+                    if (isConfirm) {
+                        api.confirmManualProviderPayment(paymentSerial, status, detail,"", function (success, obj) {
                             if (success) {
+
                                 parent.wrapperFadeOut();
                                 if (obj.ResultCode == 0) {
-                                    parent.successAlert(function () {
-                                        getTableResult();
+                                    modifyRowValueConfirm(paymentSerial, obj.PatmentResult.PaymentData);
+                                    swal({
+                                        title: "审核完成",
+                                        type: "success",
+                                        confirmButtonText: "确认",
+                                        closeOnConfirm: true
                                     });
-                                } else {
-                                    var message = ""
+                                    statisticsAmount(Table.rows().data());
+                                    getProxyProviderData();
+
+                                }
+                                else {
                                     switch (obj.ResultCode) {
-                                        case 6:
-                                            message = "删除失败";
-                                            parent.warningAlert(message);
-                                            break;
                                         case 7:
                                             parent.errorAlert("您已断线请重新登入", "Login.cshtml");
+                                            break;
+                                        case 4:
+                                            parent.errorAlert("没有权限", "Login.cshtml");
+                                            break;
+                                        case 6:
+                                            parent.warningAlert(obj.WithdrawalResult.Message);
                                             break;
                                         default:
                                             message = "其他错误";
@@ -1665,128 +1440,354 @@
                                             break;
                                     }
                                 }
-
                             } else {
+                                parent.warningAlert("网路异常");
                                 parent.wrapperFadeOut();
-                                parent.warningAlert("系统有误");
                             }
 
                         });
                     }
+                });
+
+
+
+        }
+    }
+
+    function confirmGoogleKey(paymentSerial, status, detail) {
+        swal({
+            title: "请输入 Google 验证码：",
+            text: "",
+            type: "input",
+            showCancelButton: true,
+            closeOnConfirm: false,
+            confirmButtonText: "确认",
+            cancelButtonText: "取消",
+            animation: "slide-from-top",
+            inputPlaceholder: "Google 验证码"
+        },
+            function (inputValue) {
+                if (inputValue === false) return false;
+
+                if (inputValue === "") {
+                    swal.showInputError("尚未输入 Google 验证码");
+                    return false
                 }
+                $('.sweet-alert').find('.confirm').attr("disabled", true);
+
+                api.confirmManualProviderPayment(paymentSerial, status, detail, inputValue, function (success, obj) {
+                    if (success) {
+
+                        parent.wrapperFadeOut();
+                        if (obj.ResultCode == 0) {
+                            modifyRowValueConfirm(paymentSerial, obj.PatmentResult.PaymentData);
+                            swal({
+                                title: "审核完成",
+                                type: "success",
+                                confirmButtonText: "确认",
+                                closeOnConfirm: true
+                            });
+                            statisticsAmount(Table.rows().data());
+                            getProxyProviderData();
+
+                        }
+                        else {
+                            switch (obj.ResultCode) {
+                                case 7:
+                                    parent.errorAlert("您已断线请重新登入", "Login.cshtml");
+                                    break;
+                                case 4:
+                                    parent.errorAlert("没有权限", "Login.cshtml");
+                                    break;
+                                case 6:
+                                    parent.warningAlert(obj.WithdrawalResult.Message);
+                                    break;
+                                case 14:
+                                    parent.warningAlert(obj.Message);
+                                    break;
+                                default:
+                                    message = "其他错误";
+                                    parent.warningAlert(message);
+                                    break;
+                            }
+                        }
+                        $('.sweet-alert').find('.confirm').attr("disabled", false);
+                    } else {
+                        $('.sweet-alert').find('.confirm').attr("disabled", false);
+                        parent.warningAlert("网路异常");
+                        parent.wrapperFadeOut();
+                    }
+
+                });
+
             });
     }
 
-    function getProviderCodeResult() {
-        api.getProviderCodeResultByShowType(function (success, obj) {
+    function getPaymentTableResult() {
+
+        var dateinputval = $('#dateinput').val().split('-');
+        var startDate = dateinputval[0];
+        var endDate = dateinputval[1]+":59.999";
+        var orderID = $('#input_OrderID').val().trim();
+        var bankDescription = $('#input_BankDescription').val().trim();
+        api.getPaymentProviderReportReviewResult(startDate, endDate, orderID, bankDescription, function (success, obj) {
+            if (isCreatedTable) {
+                Table.clear().draw();
+            }
+
             if (obj.ResultCode == 0) {
-                createProviderSelect(obj.ProviderTypes);
-                parent.wrapperFadeOut();
-                //getTableResult();
-            } else {
+                if (!isCreatedTable) {
+                    isCreatedTable = true;
+                    //建立資料顯示Table
+
+                    $("#div_table_PaymentTable").empty();
+                    $("#div_table_PaymentTable").append('<table style="width:100%" class="table table-bordered table-striped table-hover dataTable nowrap" id="table_PaymentTable"></table>');
+                    createPaymentTable(obj.PaymentTableResults);
+
+                } else {
+                    Table.rows.add(obj.PaymentTableResults).draw(); // Add new data
+                }
+                getProxyProviderData();
+                statisticsAmount(obj.PaymentTableResults);
+                Table.columns.adjust();
+            }
+            else {
                 var message = ""
                 switch (obj.ResultCode) {
+                    case 5:
+                        message = "没有资料";
+                        parent.warningAlert(message);
+                        break;
                     case 7:
                         parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                        break;
-                    case 5:
-
                         break;
                     default:
                         message = "其他错误";
                         parent.warningAlert(message);
                         break;
                 }
-                parent.wrapperFadeOut();
-
+                $('#count1').text('');
+                $('#count2').text('');
+                $('#count3').text('');
+                $('#count4').text('');
+                $('#count5').text('');
             }
         });
     }
 
-    function createProviderSelect(providerdata) {
+    function statisticsAmount(data) {
+        var count1 = 0;
+        var count2 = 0;
+        var count3 = 0;
+        var count4 = 0;
+        var count5 = 0;
+        if (data.length > 0) {
+            for (var i = 0; i < data.length; i++) {
+                count4++;
+                count5 += data[i].OrderAmount;
+                if (data[i].ProcessStatus == 4) {
+                    count1 += data[i].OrderAmount;
+                    count2++;
+                    count3 += data[i].PartialOrderAmount * data[i].PaymentRate * 0.01;
 
-        if (providerdata) {
-            $("#select_providercode").append('<option value="-99">全部</option>');
-            $.each(providerdata, function (i, item) {
-                $("#select_providercode").append('<option value="' + providerdata[i].ProviderCode + '">' + providerdata[i].ProviderName + '</option>');
-            })
+                }
+            }
 
-            $('#select_providercode').selectpicker('refresh');
+            $('#count1').text(toCurrency(count1));
+            $('#count2').text(count2);
+            $('#count3').text(toCurrency(count3));
+            $('#count5').text(toCurrency(count5));
+            $('#count4').text(count4);
         }
+
     }
 
-    function CreateCompanySelect() {
-        api.getCompanyTableResult(function (success, obj) {
-            if (obj.ResultCode == 0) {
-                if (obj.CompanyResults.length > 0) {
-                    $("#select_Company").children().remove();
-                    $("#select_Company").append('<option value="0">全部</option>');
-                    $.each(obj.CompanyResults, function (i, item) {
-                        $("#select_Company").append('<option value="' + obj.CompanyResults[i].CompanyID + '">' + obj.CompanyResults[i].CompanyName + '</option>');
-                    })
+    function getPaymentTableResultByWaitReview() {
+        var processStatus = [8];
+        api.getProviderPaymentTableResultByWaitReview(processStatus, function (success, obj) {
+            if (isCreatedTable) {
+                Table.clear().draw();
+            }
 
-                    $('#select_Company').selectpicker('refresh');
+            if (obj.ResultCode == 0) {
+                if (!isCreatedTable) {
+                    isCreatedTable = true;
+                    //建立資料顯示Table
+
+                    $("#div_table_PaymentTable").empty();
+                    $("#div_table_PaymentTable").append('<table style="width:100%" class="table table-bordered table-striped table-hover dataTable nowrap" id="table_PaymentTable"></table>');
+                    createPaymentTable(obj.PaymentTableResults);
+
+                } else {
+                    Table.rows.add(obj.PaymentTableResults).draw(); // Add new data
                 }
-                parent.wrapperFadeOut();
-            } else {
+                getProxyProviderData();
+                statisticsAmount(obj.PaymentTableResults);
+                Table.columns.adjust();
+            }
+            else {
                 var message = ""
                 switch (obj.ResultCode) {
+                    case 5:
+                        message = "没有资料";
+                        parent.warningAlert(message);
+                        break;
                     case 7:
                         parent.errorAlert("您已断线请重新登入", "Login.cshtml");
                         break;
+                    default:
+                        message = "其他错误";
+                        parent.warningAlert(message);
+                        break;
                 }
-                parent.wrapperFadeOut();
+                $('#count1').text('');
+                $('#count2').text('');
+                $('#count3').text('');
+                $('#count4').text('');
+                $('#count5').text('');
             }
         });
     }
 
-    function createTypeSelect() {
-        //0=代收/1=代付/2=提現/3=後台加扣
-        $("#select_Type").append('<option value="99">' + '所有' + '</option>');
-        $("#select_Type").append('<option value="0">' + '冻结' + '</option>');
-        $("#select_Type").append('<option value="1">' + '解冻' + '</option>');
-        $('#select_Type').selectpicker('refresh');
-    }
-    
-    function ThawPoint(e) {
+    $('#btnsearch').click(function () {
+        getPaymentTableResult();
+    })
 
-        var forPaymentSerial = $(e).data("paymentserial");
-        var CompanyFrozenAmount = $(e).data("companyfrozenamount");
-        var ProviderName = $(e).data("providername");
-        var CompanyName = $(e).data("companyname");
-        var FrozenID = $(e).data("frozenid");
-        swal({
-            title: "案件解冻",
-            text: `冻结单号:${forPaymentSerial}<br/>商户:${CompanyName}<br/>渠道:${ProviderName}<br/>商户冻结金额:${CompanyFrozenAmount}`,
-            type: "warning",
-            html: true,
-            showCancelButton: true,
-            closeOnConfirm: true,
-            confirmButtonText: "确定",
-            cancelButtonText: "取消",
-            confirmButtonColor: "#DD6B55",
-        },
-            function (isConfirm) {
-                if (isConfirm) {
-                    api.ThawPoint(FrozenID, function (success, obj) {
-                        if (obj.ResultCode == 0) {
-                            getProxyProviderGroup('LPay2');
-                            parent.warningAlert("解冻成功");
-                            getTableResult();
-                        } else {
-                            var message = ""
-                            parent.warningAlert("解冻失败！失败代码:" + obj.ResultCode);
-                            getTableResult();
-                        }
-                    });
+    $('#btnsearch2').click(function () {
+        getPaymentTableResultByWaitReview();
+    })
+
+    //選擇供應商事件
+    $('#btn_selectCompany').click(function () {
+        parent.showSelectCompany_menu($('#companyLabel'));
+    });
+
+    $('#Excel_download').click(function () {
+        CreateExcel();
+    })
+
+    function CreateExcel() {
+        if (Table == null) {
+            parent.warningAlert("没有汇出资料");
+            return;
+        }
+
+        if (Table.rows().data().length > 0) {
+            var exceldata = [['订单号', '状态', '卡号', '申请金额', '费率', '毛利', '审核人', '提交时间']];
+            var TableData = Table.rows().data();
+            for (var i = 0; i < TableData.length; i++) {
+                var data = TableData[i];
+                var ReceiveStatus = '';
+                var ProcessStatus = '';
+                var PartialOrderAmount = 0;
+                switch (data.ProcessStatus) {
+                    case 0:
+                        ProcessStatus= '未处理';
+                        break;
+                    case 1:
+                        ProcessStatus = '未处理';
+                        break;
+                    case 2:
+                        ProcessStatus = '交易成功，未返回';
+                        break;
+                    case 3:
+                        ProcessStatus = '失败';
+                        break;
+                    case 4:
+                        ProcessStatus = '成功';
+                        break;
+                    case 6:
+                        ProcessStatus = '系统失败单';
+                        break;
+                    case 8:
+                        ProcessStatus = '审核中';
+                        break;
+
+                    default:
+                        break;
                 }
-            });
-        //swal({
-        //    title: "代付渠道供应商",
-        //    text: strswaltext,
-        //    html: true,
-        //    confirmButtonText: "确认"
-        //});
 
+                if (data.PartialOrderAmount != 0) {
+                    PartialOrderAmount = data.PartialOrderAmount * data.PaymentRate * 0.01;
+                }
+
+
+                if (data.ReceiveStatus == 0) {
+                    ReceiveStatus = '未结算';
+                } else {
+                    ReceiveStatus = '已结算';
+                }
+
+                var tmpArray = new Array(data.PaymentSerial, ProcessStatus, data.PatchDescription, data.OrderAmount, data.PaymentRate, PartialOrderAmount, data.RealName, data.CreateDate2);
+                exceldata.push(tmpArray);
+            }
+
+            var sheet = XLSX.utils.aoa_to_sheet(exceldata);
+            openDownloadDialog(sheet2blob(sheet), dateTimeStr() + '.xlsx');
+        } else {
+            parent.warningAlert("没有汇出资料");
+        }
     }
+
+    function dateTimeStr() {
+        var dateTime = new Date();
+        var year = dateTime.getFullYear();
+        var month = dateTime.getMonth() + 1;//js從0開始取
+        var date = dateTime.getDate();
+
+
+        if (month < 10) {
+            month = "0" + month;
+        }
+        if (date < 10) {
+            date = "0" + date;
+        }
+
+
+
+        return "GPayPayment_" + year + "-" + month + "-" + date + " ";
+    }
+
+    function openDownloadDialog(url, saveName) {
+        if (typeof url == 'object' && url instanceof Blob) {
+            url = URL.createObjectURL(url); // 创建blob地址
+        }
+        var aLink = document.createElement('a');
+        aLink.href = url;
+        aLink.download = saveName || ''; // HTML5新增的属性，指定保存文件名，可以不要后缀，注意，file:///模式下不会生效
+        var event;
+        if (window.MouseEvent) event = new MouseEvent('click');
+        else {
+            event = document.createEvent('MouseEvents');
+            event.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+        }
+        aLink.dispatchEvent(event);
+    }
+
+    function sheet2blob(sheet, sheetName) {
+        sheetName = sheetName || 'sheet1';
+        var workbook = {
+            SheetNames: [sheetName],
+            Sheets: {}
+        };
+        workbook.Sheets[sheetName] = sheet;
+        // 生成excel的配置项
+        var wopts = {
+            bookType: 'xlsx', // 要生成的文件类型
+            bookSST: false, // 是否生成Shared String Table，官方解释是，如果开启生成速度会下降，但在低版本IOS设备上有更好的兼容性
+            type: 'binary'
+        };
+        var wbout = XLSX.write(workbook, wopts);
+        var blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
+        // 字符串转ArrayBuffer
+        function s2ab(s) {
+            var buf = new ArrayBuffer(s.length);
+            var view = new Uint8Array(buf);
+            for (var i = 0; i != s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+            return buf;
+        }
+        return blob;
+    }
+
+
 </script>

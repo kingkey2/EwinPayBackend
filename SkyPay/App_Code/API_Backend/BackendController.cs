@@ -1963,7 +1963,7 @@ public class BackendController : ApiController
             return retValue;
         }
 
-        var ProviderDatas = backendDB.GetProviderServiceResult(fromBody.GroupData.First().forProviderCode, "OB003", "CNY");
+        var ProviderDatas = backendDB.GetProviderServiceResult(fromBody.GroupData.First().forProviderCode, "OOB02", "CNY");
 
         if (ProviderDatas == null)
         {
@@ -12345,8 +12345,7 @@ public class BackendController : ApiController
         int GroupID = 0;
         //驗證權限
         RedisCache.BIDContext.BIDInfo AdminData;
-
-
+ 
         if (!RedisCache.BIDContext.CheckBIDExist(Model.BID))
         {
             retValue.ResultCode = APIResult.enumResult.SessionError;
@@ -12385,7 +12384,7 @@ public class BackendController : ApiController
 
         GroupID = backendDB.GetProxyProviderPaymentGroupID(Model.forPaymentSerial);
         Model.GroupID = GroupID;
-        if (backendDB.InsertFrozenPoint(Model, AdminData.AdminID) == 1)
+        if (backendDB.InsertFrozenPoint(Model, Model.BoolActualProviderFrozenAmount, AdminData.AdminID) == 1)
         {
             string strCompanyName = "";
             string strProviderName = "";

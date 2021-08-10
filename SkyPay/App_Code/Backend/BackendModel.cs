@@ -1048,6 +1048,7 @@ public class DBModel {
         public string BankCardName { get; set; }
         public string BankName { get; set; }
         public int GroupID { get; set; }
+        public decimal ActualProviderFrozenAmount { get; set; }
     }
 
     public class ProxyProviderGroupFrozenPointHistory {
@@ -1075,7 +1076,8 @@ public class DBModel {
         public string ImageName { get; set; }
         public string BankCard { get; set; }
         public string BankCardName { get; set; }
-        public string BankName { get; set; }
+        public string BankName { get; set; }  
+        public decimal ActualProviderFrozenAmount { get; set; }
 
     }
 
@@ -1196,6 +1198,7 @@ public class FromBody {
 
     public class FrozenPoint : DBModel.FrozenPoint {
         public string BID { get; set; }
+        public bool BoolActualProviderFrozenAmount { get; set; }
     }
 
     public class BlackList : DBModel.BlackList {

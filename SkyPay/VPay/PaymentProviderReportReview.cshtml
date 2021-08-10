@@ -1,11 +1,11 @@
 ﻿@{
-    var bc = new BackendController(); string BID = HttpContext.Current.Request.Cookies.AllKeys.Contains("BID") == true ?  HttpContext.Current.Request.Cookies["BID"].Value.ToString():"";
+    var bc = new BackendController(); string BID = HttpContext.Current.Request.Cookies.AllKeys.Contains("BID") == true ? HttpContext.Current.Request.Cookies["BID"].Value.ToString() : "";
     var result = bc.CheckLoginPermission(BID);
     string CheckPermission = "success";
 
 
     string PermissionName = Request.Path.Split('/').Last().Split('.').First();
-    result = bc.CheckPermission(BID,PermissionName);
+    result = bc.CheckPermission(BID, PermissionName);
 
     if (result.ResultCode != BackendController.APIResult.enumResult.OK)
     {
@@ -99,7 +99,7 @@
 
     <style>
         .zmdi:hover {
-          cursor:pointer;
+            cursor: pointer;
         }
 
         ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
@@ -986,7 +986,7 @@
                             <span style="font-weight:900;color:#227700;font-size:15px;margin-left:5px"> 总充笔数 : </span><span style="font-size:15px;margin-left:5px" id="count4"></span>
                             <span style="font-weight:900;color:#227700;font-size:15px;margin-left:5px"> 成功总金额 : </span><span style="font-size:15px;margin-left:5px" id="count1"></span>
                             <span style="font-weight:900;color:#227700;font-size:15px;margin-left:5px"> 成功总笔数 : </span><span style="font-size:15px;margin-left:5px" id="count2"></span>
-                            <span style="font-weight:900;color:#227700;font-size:15px;margin-left:5px"> 总毛利 : </span><span style="font-size:15px;margin-left:5px" id="count3"></span>
+
                         </div>
                         <div class="row" style="background-color:#66FFFF;line-height: 30px;">
                             <span style="font-weight:900;color:#0000AA;font-size:15px;margin-left:5px"> 组别 : </span><span style="font-size:15px;margin-left:5px" id="count7"></span>
@@ -1033,7 +1033,7 @@
     function pageLoad() {
         AdminObject = parent.AdminObject;
         api = parent.api;
- 
+
         createPaymentTable2();
 
 
@@ -1148,7 +1148,8 @@
                     }
                 },
                 {
-                    "title": "费率", "data": "PaymentRate"
+                    "title": "费率", "data": "PaymentRate",
+                    'visible': false
                 },
                 {
                     "title": "毛利", "data": "PartialOrderAmount",
@@ -1158,7 +1159,8 @@
                         } else {
                             return data;
                         }
-                    }
+                    },
+                    'visible': false
                 },
                 {
                     "title": "审核人", "data": "RealName"
@@ -1235,7 +1237,8 @@
                     }
                 },
                 {
-                    "title": "费率", "data": "PaymentRate"
+                    "title": "费率", "data": "PaymentRate",
+                    'visible': false
                 },
                 {
                     "title": "毛利", "data": "PartialOrderAmount",
@@ -1245,7 +1248,8 @@
                         } else {
                             return data;
                         }
-                    }
+                    },
+                    'visible': false
                 },
                 {
                     "title": "审核人", "data": "RealName"
@@ -1360,7 +1364,7 @@
             }
         });
     }
-    
+
     function confirmManualPayment(objbtn, status) {
         var rowdata = $(objbtn).parent().parent();
         var paymentSerial = rowdata.find('td').eq(0).html();
@@ -1592,7 +1596,7 @@
 
                 }
             }
- 
+
             $('#count1').text(toCurrency(count1));
             $('#count2').text(count2);
             $('#count3').text(toCurrency(count3));
@@ -1617,7 +1621,7 @@
                     $("#div_table_PaymentTable").empty();
                     $("#div_table_PaymentTable").append('<table style="width:100%" class="table table-bordered table-striped table-hover dataTable nowrap" id="table_PaymentTable"></table>');
                     createPaymentTable(obj.PaymentTableResults);
-                 
+
                 } else {
                     Table.rows.add(obj.PaymentTableResults).draw(); // Add new data
                 }
@@ -1673,8 +1677,8 @@
         }
 
         if (Table.rows().data().length > 0) {
-            var exceldata = [['订单号', '状态', '卡号', '申请金额', '费率', '毛利', '审核人', '提交时间']];
-            var TableData = Table.rows().data();  
+            var exceldata = [['订单号', '状态', '卡号', '申请金额', '审核人', '提交时间']];
+            var TableData = Table.rows().data();
             for (var i = 0; i < TableData.length; i++) {
                 var data = TableData[i];
                 var ReceiveStatus = '';
@@ -1702,23 +1706,23 @@
                     case 8:
                         ProcessStatus = '审核中';
                         break;
-               
+
                     default:
                         break;
                 }
 
                 if (data.PartialOrderAmount != 0) {
                     PartialOrderAmount = data.PartialOrderAmount * data.PaymentRate * 0.01;
-                } 
+                }
 
-          
+
                 if (data.ReceiveStatus == 0) {
                     ReceiveStatus = '未结算';
                 } else {
                     ReceiveStatus = '已结算';
                 }
 
-                var tmpArray = new Array(data.PaymentSerial, ProcessStatus, data.PatchDescription, data.OrderAmount, data.PaymentRate, PartialOrderAmount, data.RealName, data.CreateDate2);
+                var tmpArray = new Array(data.PaymentSerial, ProcessStatus, data.PatchDescription, data.OrderAmount, data.RealName, data.CreateDate2);
                 exceldata.push(tmpArray);
             }
 

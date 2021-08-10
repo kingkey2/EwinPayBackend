@@ -1506,6 +1506,12 @@
                     }
                 },
                 {
+                    "title": "计算前金额", "data": "ActualProviderFrozenAmount",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
+                    }
+                },
+                {
                     "title": "状态", "data": "Status",
                     "render": function (data, display, rowdata) {
                         switch (data) {
