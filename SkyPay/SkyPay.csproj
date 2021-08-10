@@ -706,6 +706,7 @@
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
     <Content Include="VPay\XForwarded.cshtml" />
     <Content Include="VPay\Result.cshtml" />
+    <Content Include="VPay\PaymentProviderReportReviewV2.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
