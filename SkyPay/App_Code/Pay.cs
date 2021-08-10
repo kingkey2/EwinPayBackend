@@ -26,7 +26,7 @@ public static class Pay
     /// </summary>
     /// <param name="CompanyID"></param>
     /// <remarks></remarks>
-    /// 
+
     public static string testPay()
     {
         return "1234";

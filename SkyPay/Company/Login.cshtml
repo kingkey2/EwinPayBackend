@@ -1,0 +1,212 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta charset="utf-8" />
+    <title>VPay 后台登入</title>
+
+    <meta name="description" content="User login page" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+
+    <!-- bootstrap & fontawesome -->
+    <link rel="stylesheet" href="/Company/assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/Company/assets/font-awesome/4.5.0/css/font-awesome.min.css" />
+    <link href="/VPay/assets/plugins/sweetalert/sweetalert.css" rel="stylesheet" />
+    <!-- text fonts -->
+    <link rel="stylesheet" href="/Company/assets/css/fonts.googleapis.com.css" />
+
+    <!-- ace styles -->
+    <link rel="stylesheet" href="/Company/assets/css/ace.min.css" />
+
+    <!--[if lte IE 9]>
+        <link rel="stylesheet" href="assets/css/ace-part2.min.css" />
+    <![endif]-->
+    <link rel="stylesheet" href="/Company/assets/css/ace-rtl.min.css" />
+
+    <script src="/VPay/assets/js/BackendJS/BackendAPI.js?20210129"></script>
+    <script src="/Company/assets/js/jquery-2.1.4.min.js"></script>
+    <!-- sweetalert Plugin Js -->
+    <script src="/VPay/assets/plugins/sweetalert/sweetalert.min.js"></script>
+    <script src="/VPay/assets/js/hashes.min.js"></script>
+
+    <script>
+
+        var apiURL = "/api/Backend";
+        var api;
+        // Get the input field
+        var MD5 = new Hashes.MD5
+        // new SHA256 instance
+        var SHA256 = new Hashes.SHA256
+
+
+        function init() {
+            api = new BackendAPI("", apiURL);
+        }
+
+        function Login() {
+            var loginAccount = $('#accountInput').val().trim();
+            var password = $('#passwordInput').val().trim();
+            var userKey = $('#googleInput').val().trim();
+
+            password = SHA256.hex((MD5.b64(password) + userKey));
+            if (loginAccount == "") {
+
+                swal({
+                    title: "尚未输入账号",
+                    type: "warning",
+                    confirmButtonText: "确认",
+                    closeOnConfirm: true
+                });
+                return false;
+            }
+
+            if (password == "") {
+
+                swal({
+                    title: "尚未输入密码",
+                    type: "warning",
+                    confirmButtonText: "确认",
+                    closeOnConfirm: true
+                });
+                return false;
+            }
+
+            //if (userKey == "") {
+
+            //    swal({
+            //        title: "尚未输入谷歌验证码",
+            //        type: "warning",
+            //        confirmButtonText: "确认",
+            //        closeOnConfirm: false
+            //    });
+            //    return false;
+            //}
+
+
+            api.userLoginByGoogle(loginAccount, password, userKey, function (success, obj) {
+                if (obj.ResultCode == 0) {
+                    location.href = "Index.cshtml";        
+                } else {
+                    var message = ""
+                    switch (obj.ResultCode) {
+                        case 14:
+                            message = "谷歌验证码有误";
+                            break;
+                        case 13:
+                            location.href = "Index.cshtml";
+                            break;
+                        case 4:
+                            message = "帐号或密码错误";
+                            break;
+                        case 6:
+                            message = "非法操作";
+                            break;
+                        default:
+                            message = "其他错误";
+                            break;
+                    }
+
+                    swal({
+                        title: message,
+                        type: "warning",
+                        confirmButtonText: "确认",
+                        closeOnConfirm: true
+                    });
+                }
+            });
+        }
+
+
+        function enterlogin() {
+            if (event.keyCode == 13) {
+                event.preventDefault();
+                Login();
+            }
+        }
+
+        window.onload = init;
+    </script>
+</head>
+
+<body class="login-layout blur-login" onkeydown="enterlogin()">
+    <div class="main-container">
+        <div class="main-content">
+            <div class="row">
+                <div class="col-sm-10 col-sm-offset-1">
+                    <div class="login-container">
+                        <div class="center">
+                            <h1>
+                                <i class="ace-icon fa fa-fighter-jet green"></i>
+
+                                <span class="white" id="id-text2">VPay</span>
+                            </h1>
+
+                        </div>
+
+                        <div class="space-6"></div>
+
+                        <div class="position-relative">
+                            <div id="login-box" class="login-box visible widget-box no-border">
+                                <div class="widget-body">
+                                    <div class="widget-main">
+
+
+                                        <div class="space-6"></div>
+
+                                        <form>
+                                            <fieldset>
+                                                <label class="block clearfix">
+                                                    <span class="block input-icon input-icon-right">
+                                                        <input id="accountInput" type="text" class="form-control" placeholder="请输入帐号" />
+                                                        <i class="ace-icon fa fa-user"></i>
+                                                    </span>
+                                                </label>
+
+                                                <label class="block clearfix">
+                                                    <span class="block input-icon input-icon-right">
+                                                        <input id="passwordInput" type="password" class="form-control" placeholder="请输入密码" />
+                                                        <i class="ace-icon fa fa-lock"></i>
+                                                    </span>
+                                                </label>
+
+                                                <label class="block clearfix">
+                                                    <span class="block input-icon input-icon-right">
+                                                        <input id="googleInput" type="text" class="form-control" placeholder="请输入谷歌验证码" />
+                                                        <i class="ace-icon fa fa-google"></i>
+                                                    </span>
+                                                </label>
+
+                                                <div class="space"></div>
+
+                                                <div class="clearfix">
+
+
+                                                    <button id="userLogin" onclick="Login()" type="button" class="width-35 pull-right btn btn-sm btn-primary">
+                                                        <i class="ace-icon fa fa-key"></i>
+                                                        <span class="bigger-110">登入</span>
+                                                    </button>
+                                                </div>
+
+                                                <div class="space-4"></div>
+                                            </fieldset>
+                                        </form>
+
+
+                                    </div><!-- /.widget-main -->
+
+                                    <div class="toolbar clearfix" style="height:20px">
+
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

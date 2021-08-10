@@ -83,7 +83,6 @@ using System.Web;
         }
         #endregion
 
-
         public static DBModel.Admin GetAdminByLoginAccount(string LoginAccount) {
             DBModel.Admin returnValue = null;
             String SS = String.Empty;
