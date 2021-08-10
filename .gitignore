@@ -120,3 +120,7 @@ UpgradeLog*.XML
 /SkyPay/VPay/Index - 複製.cshtml
 /.vscode/settings.json
 /SkyPay/VPay/Result.html
+/SkyPay/.vs/SkyPay/v15/Server/sqlite3/storage.ide-wal
+/SkyPay/.vs/SkyPay/v15/Server/sqlite3/storage.ide-shm
+/SkyPay/.vs/SkyPay/v15/Server/sqlite3/storage.ide
+/SkyPay/.vs/SkyPay/v15/Server/sqlite3/db.lock

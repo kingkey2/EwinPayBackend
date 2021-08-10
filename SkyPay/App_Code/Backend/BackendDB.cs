@@ -2905,7 +2905,6 @@ public class BackendDB
         return returnValue;
     }
 
-
     public List<DBModel.ProxyProviderGroup> GetProxyProviderGroupOnWithdrawalAmountResultByAdmin(string ProviderCode)
     {
         List<DBModel.ProxyProviderGroup> returnValue = null;
@@ -3205,37 +3204,6 @@ public class BackendDB
 
         return returnValue;
     }
-
-    //public List<DBModel.ProxyProviderGroupWithdrawingCount> GetProxyProviderGroupByStateWithWithdrawingCount(string ProviderCode, int State) {
-    //    List<DBModel.ProxyProviderGroupWithdrawingCount> returnValue = null;
-    //    String SS = String.Empty;
-    //    SqlCommand DBCmd;
-    //    DataTable DT;
-
-    //    SS = " SELECT *,CanWithdrawingCount, " +
-    //         " (SELECT ISNULL(COUNT(*), 0) FROM Withdrawal W WITH(NOLOCK)" +
-    //         " JOIN ProxyProviderOrder PPO WITH(NOLOCK)" +
-    //         " ON PPO.forOrderSerial = W.WithdrawSerial" +
-    //         " AND PPO.Type = 1 AND W.Status = 1" +
-    //         " WHERE ProxyProviderGroup.GroupID = PPO.GroupID ) as WithdrawingCount" +
-    //         " FROM ProxyProviderGroup WITH (NOLOCK) " +
-    //         " WHERE ProxyProviderGroup.forProviderCode = @forProviderCode And State=@State";
-
-    //    DBCmd = new System.Data.SqlClient.SqlCommand();
-    //    DBCmd.CommandText = SS;
-    //    DBCmd.CommandType = CommandType.Text;
-    //    DBCmd.Parameters.Add("@forProviderCode", SqlDbType.VarChar).Value = ProviderCode;
-    //    DBCmd.Parameters.Add("@State", SqlDbType.Int).Value = State;
-    //    DT = DBAccess.GetDB(DBConnStr, DBCmd);
-
-    //    if (DT != null) {
-    //        if (DT.Rows.Count > 0) {
-    //            returnValue = DataTableExtensions.ToList<DBModel.ProxyProviderGroupWithdrawingCount>(DT).ToList();
-    //        }
-    //    }
-
-    //    return returnValue;
-    //}
 
     public int InsertProxyProviderGroup(string ProviderCode, string GroupName, decimal MinAmount, decimal MaxAmount)
     {
@@ -3873,7 +3841,7 @@ public class BackendDB
         int returnValue = -1;
         string SS;
         System.Data.SqlClient.SqlCommand DBCmd = null;
-        string CompanyCode = GetCompanyCodeByCompanyID(CompanyID); ;
+        string CompanyCode = GetCompanyCodeByCompanyID(CompanyID);
         if (!string.IsNullOrEmpty(CompanyCode))
         {
             SS = " DELETE FROM  BackendLoginIP " +
@@ -4052,7 +4020,7 @@ public class BackendDB
         string returnStr = "";
         string SS;
         System.Data.SqlClient.SqlCommand DBCmd = null;
-        string CompanyCode = GetCompanyCodeByCompanyID(CompanyID); ;
+        string CompanyCode = GetCompanyCodeByCompanyID(CompanyID);
         string ImageName = CompanyCode + "_" + IP + "." + _ImageName;
         if (!string.IsNullOrEmpty(CompanyCode))
         {
@@ -4083,7 +4051,7 @@ public class BackendDB
         int returnValue = -1;
         string SS;
         System.Data.SqlClient.SqlCommand DBCmd = null;
-        string CompanyCode = GetCompanyCodeByCompanyID(CompanyID); ;
+        string CompanyCode = GetCompanyCodeByCompanyID(CompanyID);
         if (!string.IsNullOrEmpty(CompanyCode))
         {
             SS = " DELETE FROM  BackendWithdrawalIP " +
@@ -14980,57 +14948,6 @@ public class BackendDB
         return returnValue;
     }
 
-    //public APIResult ReSendPayment(string PaymentSerial,int CompanyID)
-    //{
-    //    string GPayApiUrl = System.Configuration.ConfigurationManager.AppSettings["GPayApiUrl"];
-    //    string GPayBackendKey = System.Configuration.ConfigurationManager.AppSettings["GPayBackendKey"];
-    //    APIResult objReturnValue = new APIResult();
-    //    var PaymentModel= GetPaymentReportByPaymentSerial(PaymentSerial);
-
-    //    if (PaymentModel == null)
-    //    {
-    //        objReturnValue.Status = ResultStatus.ERR;
-    //        objReturnValue.Message = "查询不到此订单";
-    //        return objReturnValue;
-    //    }
-
-    //    if (CompanyID != 1) {
-    //        if (PaymentModel.forCompanyID != CompanyID) {
-    //            objReturnValue.Status = ResultStatus.ERR;
-    //            objReturnValue.Message = "查询不到此订单";
-    //            return objReturnValue;
-    //        }
-    //    }
-
-    //    #region SignCheck
-    //    string strSign;
-    //    string sign;
-    //    //APIResult objReturnValue = null;
-    //    strSign = string.Format("PaymentSerial={0}&GPayBackendKey={1}"
-    //                              , PaymentSerial
-    //                              , GPayBackendKey
-    //                              );
-
-    //    sign = CodingControl.GetSHA256(strSign);
-    //    objReturnValue.Message = "sign";
-    //    objReturnValue.Status = ResultStatus.ERR;
-    //    #endregion
-    //    var _ReSendPayment = new DBModel.ReSendPaymentSet();
-
-    //    _ReSendPayment.PaymentSerial = PaymentSerial;
-    //    _ReSendPayment.Sign = sign;
-
-    //    var returnValue = CodingControl.RequestJsonAPI(GPayApiUrl + "ReSendPayment", JsonConvert.SerializeObject(_ReSendPayment));
-
-
-    //    if (!string.IsNullOrEmpty(returnValue))
-    //    {
-    //        objReturnValue = JsonConvert.DeserializeObject<APIResult>(returnValue);
-    //    }
-
-    //    return objReturnValue;
-    //}
-
     public APIResult ReSendPayment(string PaymentSerial, int CompanyID)
     {
         string GPayApiUrl = System.Configuration.ConfigurationManager.AppSettings["GPayApiUrl"];
@@ -15068,6 +14985,7 @@ public class BackendDB
         objReturnValue.Message = "sign";
         objReturnValue.Status = ResultStatus.ERR;
         #endregion
+
         var _ReSendPayment = new DBModel.ReSendPaymentSet();
 
         _ReSendPayment.PaymentSerial = PaymentSerial;
@@ -15136,7 +15054,6 @@ public class BackendDB
         _ReSendPayment.Sign = sign;
 
         var returnValue = CodingControl.RequestJsonAPI(GPayApiUrl + "ReSendPaymentByManualPayment", JsonConvert.SerializeObject(_ReSendPayment));
-
 
         if (!string.IsNullOrEmpty(returnValue))
         {
@@ -15218,112 +15135,6 @@ public class BackendDB
 
         return objReturnValue;
     }
-
-    //public APIResult ReSendWithdrawal(string WithdrawSerial, bool isReSendWithdraw)
-    //{
-    //    APIResult Ret = new APIResult();
-    //    DBModel.Withdrawal withdrawalModel = GetWithdrawalByWithdrawSerial2(WithdrawSerial);
-    //    DBModel.GPayReturnByWithdraw gpayReturn = new DBModel.GPayReturnByWithdraw() { GPayRetunData = new DBModel.GPayRetunDataByWithdraw() };
-    //    DBModel.WithdrawResultStatus WithdrawResultStatus;
-    //    #region 單號檢查
-
-    //    if (!(withdrawalModel != null && withdrawalModel.WithdrawID != 0))
-    //    {
-    //        Ret.Status = ResultStatus.Invalidate;
-    //        Ret.Message = "查無此單";
-
-    //        return Ret;
-    //    }
-
-    //    #endregion
-
-    //    #region 單號狀態檢查
-
-    //    if (withdrawalModel.FloatType == 0)
-    //    {
-    //        Ret.Status = ResultStatus.Invalidate;
-    //        Ret.Message = "此單為後台提現單,無法發送API";
-
-    //        return Ret;
-    //    }
-
-    //    #endregion
-    //    switch (withdrawalModel.Status)
-    //    {
-    //        case 2:
-    //            WithdrawResultStatus = DBModel.WithdrawResultStatus.Successs;
-    //            break;
-    //        case 3:
-    //            WithdrawResultStatus = DBModel.WithdrawResultStatus.Failure;
-    //            break;
-    //        case 14:
-    //            WithdrawResultStatus = DBModel.WithdrawResultStatus.ProblemWithdraw;
-    //            break;
-    //        default:
-    //            WithdrawResultStatus = DBModel.WithdrawResultStatus.WithdrawProgress;
-    //            break;
-    //    }
-    //    gpayReturn.SetByWithdraw(withdrawalModel, WithdrawResultStatus);
-
-    //    var CompanyModel = GetCompanyByID(withdrawalModel.forCompanyID);
-    //    if (CompanyModel == null)
-    //    {
-    //        Ret.Status = ResultStatus.ERR;
-    //        Ret.Message = "找不到此商户资讯";
-
-    //        return Ret;
-    //    }
-
-
-
-    //    if (isReSendWithdraw)
-    //    {
-
-    //        //经过代理server 回调
-    //        if (CompanyModel.IsProxyCallBack == 0)
-    //        {
-    //            //發送一次回調 補單用
-    //            if (GatewayCommon.ReturnCompanyByWithdraw3(30, gpayReturn, withdrawalModel.ProviderCode))
-    //            {
-    //                //修改下游狀態
-    //                PayDB.UpdateWithdrawSerialByStatus(2, withdrawalModel.WithdrawID);
-    //            }
-    //        }
-    //        else
-    //        {
-    //            //發送一次回調 補單用
-    //            if (GatewayCommon.ReturnCompanyByWithdraw2(30, gpayReturn, withdrawalModel.ProviderCode))
-    //            {
-    //                //修改下游狀態
-    //                PayDB.UpdateWithdrawSerialByStatus(2, withdrawalModel.WithdrawID);
-    //            }
-    //        }
-    //    }
-    //    else
-    //    {
-    //        //發送三次回調(後台手動發款後用)
-    //        if (CompanyModel.IsProxyCallBack == 0)
-    //        {
-    //            //發送一次回調 補單用
-    //            if (GatewayCommon.ReturnCompanyByWithdraw4(30, gpayReturn, withdrawalModel.ProviderCode))
-    //            {
-    //                //修改下游狀態
-    //                PayDB.UpdateWithdrawSerialByStatus(2, withdrawalModel.WithdrawID);
-    //            }
-    //        }
-    //        else
-    //        {
-    //            //發送一次回調 補單用
-    //            if (GatewayCommon.ReturnCompanyByWithdraw(30, gpayReturn, withdrawalModel.ProviderCode))
-    //            {
-    //                //修改下游狀態
-    //                PayDB.UpdateWithdrawSerialByStatus(2, withdrawalModel.WithdrawID);
-    //            }
-    //        }
-    //    }
-
-    //    return Ret;
-    //}
 
     public List<DBModel.CompanyPointHistory> WithdrawalRecord(string WithdrawalSerial)
     {
@@ -15488,7 +15299,7 @@ public class BackendDB
         System.Data.SqlClient.SqlCommand DBCmd = null;
 
         SS = "INSERT INTO AdminOPLog (forCompanyID,forAdminID,Type,Description,IP) " +
-         "                          VALUES (@forCompanyID,@forAdminID,@Type,@Description,@IP) SELECT @@IDENTITY;";
+         "                    VALUES (@forCompanyID,@forAdminID,@Type,@Description,@IP) SELECT @@IDENTITY;";
 
         DBCmd = new System.Data.SqlClient.SqlCommand();
         DBCmd.CommandText = SS;
@@ -16544,49 +16355,6 @@ public class BackendDB
     }
     #endregion
 
-    //#region 在線清單
-    //public List<DBModel.ASPStateTempSessions> GetOnlineList() {
-
-    //    string SS;
-    //    System.Data.SqlClient.SqlCommand DBCmd;
-    //    List<DBModel.ASPStateTempSessions> returnValue = null;
-    //    DataTable DT;
-    //    //System.Collections.Generic.Dictionary<int, string> SummaryDict = new Dictionary<int, string>();
-    //    DBCmd = new System.Data.SqlClient.SqlCommand();
-    //    SS = " SELECT * FROM ASPStateTempSessions ";
-
-    //    DBCmd.CommandText = SS;
-    //    DBCmd.CommandType = System.Data.CommandType.Text;
-
-    //    DT = DBAccess.GetDB(SessionDBConnStr, DBCmd);
-
-    //    if (DT != null) {
-    //        if (DT.Rows.Count > 0) {
-    //            returnValue = DataTableExtensions.ToList<DBModel.ASPStateTempSessions>(DT).ToList();
-    //        }
-    //    }
-    //    return returnValue;
-    //}
-
-    //public int KickBackendUser(string SID) {
-
-    //    string SS;
-    //    System.Data.SqlClient.SqlCommand DBCmd;
-    //    int returnValue;
-    //    //System.Collections.Generic.Dictionary<int, string> SummaryDict = new Dictionary<int, string>();
-    //    DBCmd = new System.Data.SqlClient.SqlCommand();
-    //    SS = " DELETE ASPStateTempSessions WHERE SessionId like '%' + @SID + '%' ";
-
-    //    DBCmd.CommandText = SS;
-    //    DBCmd.CommandType = System.Data.CommandType.Text;
-    //    DBCmd.Parameters.Add("@SID", System.Data.SqlDbType.VarChar).Value = SID;
-
-    //    returnValue = DBAccess.ExecuteDB(SessionDBConnStr, DBCmd);
-
-    //    return returnValue;
-    //}
-    //#endregion
-
     #region 系統警示通知
     public void InsertBotSendLog(string CompanyCode, string MsgContent)
     {
@@ -16606,8 +16374,6 @@ public class BackendDB
     }
 
     #endregion
-
-
 
     public string GetUserIP2()
     {

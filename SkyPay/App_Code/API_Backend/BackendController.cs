@@ -319,16 +319,6 @@ public class BackendController : ApiController
             return _LayoutLeftSideBarResult;
         }
 
-        //if (!CodingControl.CheckXForwardedFor())
-        //{
-        //    var layoutLeftSideBarResult = new LayoutLeftSideBarResult();
-        //    RedisCache.BIDContext.ClearBID(BID);
-        //    layoutLeftSideBarResult.ResultCode = APIResult.enumResult.VerificationError;
-        //    _LayoutLeftSideBarResult.Add(layoutLeftSideBarResult);
-        //    return _LayoutLeftSideBarResult;
-        //}
-
-
         RedisCache.BIDContext.BIDInfo AdminData = RedisCache.BIDContext.GetBIDInfo(BID);
 
         List<DBViewModel.LayoutLeftSideBarResult> layoutleftsidebars = backendDB.GetPermissionTableResultbyAdminID(AdminData.AdminID);
@@ -357,63 +347,6 @@ public class BackendController : ApiController
     }
 
     #region 公司相關
-
-    //[HttpPost]
-    //[ActionName("GetCompanyKey")]
-    //public APIResult GetCompanyKey([FromBody] FromBody.RemoveGoogleQrCode fromBody)
-    //{
-    //    APIResult retValue = new APIResult();
-    //    BackendDB backendDB = new BackendDB();
-
-    //    //驗證權限
-    //    RedisCache.BIDContext.BIDInfo AdminData;
-    //    if (!RedisCache.BIDContext.CheckBIDExist(BID))
-    //    {
-    //        retValue.ResultCode = APIResult.enumResult.SessionError;
-    //        return retValue;
-    //    }
-    //    else
-    //    {
-    //        AdminData =  RedisCache.BIDContext.GetBIDInfo(BID);
-    //    }
-
-    //    if (AdminData.CompanyType != 0)
-    //    {
-    //        retValue.ResultCode = APIResult.enumResult.VerificationError;
-    //        return retValue;
-    //    }
-
-
-    //    BackendFunction backendFunction = new BackendFunction();
-    //    var AdminModel = backendDB.GetAdminByLoginAccount(AdminData.AdminAccount);
-
-    //    if (!backendFunction.CheckGoogleKey(AdminModel.GoogleKey, fromBody.Password))
-    //    {
-    //        retValue.ResultCode = APIResult.enumResult.GoogleKeyError;
-    //        return retValue;
-    //    }
-
-    //    string CompanyKey = backendDB.GetCompanyKeyByCompanyID(fromBody.CompanyID);
-    //    string CompanyName = backendDB.GetCompanyNameByCompanyID(fromBody.CompanyID);
-    //    if (!string.IsNullOrEmpty(CompanyKey))
-    //    {
-
-    //        string IP = backendFunction.CheckIPInTW(CodingControl.GetUserIP());
-
-    //        int AdminOP =   backendDB.InsertAdminOPLog(AdminData.forCompanyID, AdminData.AdminID, 3, "查看商户密钥,商户:" + CompanyName, IP);
-    //        string XForwardIP = CodingControl.GetXForwardedFor();
-    //        CodingControl.WriteXFowardForIP(AdminOP);
-    //        retValue.ResultCode = APIResult.enumResult.OK;
-    //        retValue.Message = CompanyKey;
-    //    }
-    //    else
-    //    {
-    //        retValue.ResultCode = APIResult.enumResult.Error;
-    //    }
-
-    //    return retValue;
-    //}
-
 
     [HttpGet]
     [HttpPost]
@@ -853,6 +786,7 @@ public class BackendController : ApiController
         {
             _CompanyTableResult.ResultCode = APIResult.enumResult.Error;
         }
+
         return _CompanyTableResult;
     }
 
@@ -12748,100 +12682,7 @@ public class BackendController : ApiController
     }
 
     #endregion
-
-
-    //#region 在線清單
-
-    //[HttpGet]
-    //[HttpPost]
-    //[ActionName("GetOnlineList")]
-    //public OnlineListResult GetOnlineListResult([FromBody] GetOnlineList GOL) {
-    //    OnlineListResult _OnlineListResult = new OnlineListResult();
-    //    List<OnlineList> OnlineList = new List<OnlineList>();
-    //    BackendDB backendDB = new BackendDB();
-
-    //    if (!RedisCache.BIDContext.CheckBIDExist(GOL.BID)) {
-    //        _OnlineListResult.ResultCode = APIResult.enumResult.SessionError;
-    //        return _OnlineListResult;
-    //    }
-    //    DeleteSIDListInRedis();
-    //    List<DBModel.ASPStateTempSessions> Lists = backendDB.GetOnlineList();
-    //    dynamic LoginList = RedisCache.UserAccount.GetSIDList();
-
-    //    if (Lists != null && LoginList != null) {
-    //        foreach (DBModel.ASPStateTempSessions data in Lists) {
-    //            foreach (string str in LoginList) {
-    //                string[] splitstr = str.Split(':');
-    //                if (data.SessionId.IndexOf(splitstr[1]) > -1) {
-    //                    OnlineList loginaccount = new OnlineList();
-    //                    DBModel.Admin AdminData = backendDB.GetAdminByLoginAccount(splitstr[0]);
-    //                    loginaccount.LoginAccount = AdminData.CompanyName+"_"+AdminData.LoginAccount;
-    //                    loginaccount.UserIP = AdminData.UserIP;
-    //                    loginaccount.LoginDate = data.Created.AddHours(8).ToString("yyyy-MM-dd HH:mm:ss");
-    //                    loginaccount.SessionID = splitstr[1];
-    //                    OnlineList.Add(loginaccount);
-    //                    break;
-    //                }
-    //            }
-    //        }
-    //    }
-
-
-    //    if (OnlineList != null) {
-    //        _OnlineListResult.ResultCode = APIResult.enumResult.OK;
-    //        _OnlineListResult.OnlineResults = OnlineList;
-    //    }
-    //    else {
-    //        _OnlineListResult.ResultCode = APIResult.enumResult.NoData;
-    //    }
-    //    return _OnlineListResult;
-    //}
-
-    //[HttpGet]
-    //[HttpPost]
-    //[ActionName("KickBackendUser")]
-    //public APIResult KickBackendUser([FromBody] KickBackendUserSID S) {
-    //    APIResult RetValue = new APIResult();
-
-    //    BackendDB backendDB = new BackendDB();
-
-    //    if (!RedisCache.BIDContext.CheckBIDExist(S.BID)) {
-    //        RetValue.ResultCode = APIResult.enumResult.SessionError;
-    //        return RetValue;
-    //    }
-
-    //    int result = backendDB.KickBackendUser(S.SessionID);
-
-    //    if (result > 0)
-    //        RetValue.ResultCode = APIResult.enumResult.OK;
-    //    else
-    //        RetValue.ResultCode = APIResult.enumResult.Error;
-    //    return RetValue;
-    //}
-
-    //public void DeleteSIDListInRedis() {
-    //    OnlineListResult _OnlineListResult = new OnlineListResult();
-    //    List<OnlineList> OnlineList = new List<OnlineList>();
-    //    BackendDB backendDB = new BackendDB();
-
-    //    List<DBModel.ASPStateTempSessions> Lists = backendDB.GetOnlineList();
-    //    dynamic LoginList = RedisCache.UserAccount.GetSIDList();
-
-    //    if (Lists != null && LoginList != null) {
-    //        foreach (string str in LoginList) {
-    //            string[] splitstr = str.Split(':');
-    //            int count = 0;
-    //            count = Lists.Where(x => x.SessionId.IndexOf(splitstr[1]) > -1).Count();
-
-    //            if (count==0)
-    //                RedisCache.UserAccount.RemoveSIDByID(splitstr[0], splitstr[1]);
-    //        }
-    //    }
-
-    //}
-
-    //#endregion
-
+    
     [HttpGet]
     [HttpPost]
     [ActionName("GetAgentPointResult")]
@@ -13270,12 +13111,10 @@ public class BackendController : ApiController
         public List<DBModel.Provider> ProviderTypes;
     }
 
-
     public class TestPageCompanyServiceResult : APIResult
     {
         public List<DBViewModel.TestPageCompanyService> ServiceTypes;
     }
-
 
     public class CreatePatchPaymentResults : APIResult
     {
@@ -13350,10 +13189,6 @@ public class BackendController : ApiController
         public DBModel.ProviderOrderCount Results;
     }
 
-
-
-
-
     public class UpdateWithdrawalTableResult : APIResult
     {
         public DBModel.Withdrawal WithdrawalResult;
@@ -13365,8 +13200,7 @@ public class BackendController : ApiController
         public int SuccessCount;
         public int FailCount;
     }
-
-
+    
     public class UpdateWithdrawalResultsByAdminCheckModel : APIResult
     {
         public DBModel.UpdateWithdrawalResultsByAdminCheck WithdrawalResult;

@@ -93,8 +93,6 @@
     <script src="~/VPay/assets/js/common.js"></script>
 
     <style>
-
-
         ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
             color: black !important;
             opacity: 1; /* Firefox */
@@ -978,8 +976,7 @@
                 return;
             }
 
-            //if (ParentCompanyID == 0) {
-                if ($("#divGPayRelationDetail input[class='RelationModel_checkbox']:checked").length > 0) {
+            if ($("#divGPayRelationDetail input[class='RelationModel_checkbox']:checked").length > 0) {
                     var Charge = 0;
                     var MinLimit = 0;
                     var MaxLimit = 0;
@@ -1023,32 +1020,6 @@
                     }
 
                 }
-            //} else {
-            //    var parentWithdrawLimit = tmpParentWithdrawLimits.find(data => data.CurrencyType == $('#select_CurrencyType').val());
-
-            //    if (parentWithdrawLimit) {
-            //        if (parentWithdrawLimit.Charge > $("#input_Charge").val().trim()) {
-            //            warningAlert("单笔手续费 需超过或等于上线额");
-            //            return;
-            //        }
-
-            //        if (toNumber($("#input_MinLimit").val()) < parentWithdrawLimit.MinLimit) {
-            //            warningAlert("单笔交易最低金额 需超过或等于上线额");
-            //            return;
-            //        }
-
-            //        if (toNumber($("#input_MaxLimit").val()) > parentWithdrawLimit.MaxLimit) {
-            //            warningAlert("单笔交易最高金额 不可超过上线额");
-            //            return;
-            //        }
-            //    } else {
-            //        warningAlert("请先设定上线代付限额");
-            //        return;
-            //    }
-               
-
-         
-            //}
           
             var lstProviderCode = [];
             for (var i = 0; i < $("#divGPayRelationDetail input[class='RelationModel_checkbox']:checked").length; i++) {
@@ -1113,6 +1084,7 @@
             parent.CloseActivePage(window.frameElement.name);
         })
     }
+
     function getApiWithdrawLimit() {
         $('#providerServiceSet').show();
         $("#divGPayRelationDetail").html("&nbsp;&nbsp;&nbsp;&nbsp;尚未设定供应商");
@@ -1307,8 +1279,6 @@
                     <div class="header"></div>
                     <div class="body">
                         <form>
-
-
                             <label>币别 : </label>
                             <select class="form-control show-tick" id="select_CurrencyType"></select>
 
@@ -1324,7 +1294,6 @@
                                     </div>
                                 </div>
                             </div>
-
 
                             <label for="input_Charge">手续费: </label><label id="notifyCharge" style="color:red;margin:5px"></label>
                             <div class="form-group">
