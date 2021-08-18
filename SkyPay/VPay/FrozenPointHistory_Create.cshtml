@@ -953,8 +953,17 @@
                             <div class="form-group">
                                 <input type="number" id="CompanyAmount" class="form-control thousand-symbols">
                             </div>
-                            <label for="ProviderAmount">冻结渠道金额 : </label>
+                            <label for="ProviderAmount">
+                                冻结渠道金额 :
+
+                            </label>   <div class="checkbox" style="display:inline-block">
+                                <input id="checkboxActualProviderFrozenAmount" type="checkbox"  checked="checked">
+                                <label for="checkboxActualProviderFrozenAmount">
+                                   不扣利润
+                                </label>
+                            </div>
                             <div class="form-group">
+
                                 <input type="number" id="ProviderAmount" class="form-control thousand-symbols">
                             </div>
                             <label for="BankName">银行 : </label>
@@ -1154,6 +1163,7 @@ if ('@CheckLoginPermission' == 'false') {
         var BankCard = $("#BankCard").val().trim();
         var BankCardName = $("#BankCardName").val().trim();
         var BankName = $("#BankName").val().trim();
+        var CheckboxActualProviderFrozenAmount = $('#checkboxActualProviderFrozenAmount').prop("checked");
         Description = $("#Description").val().trim().replaceAll('\n','<br />');
         if (BankCard != "") {
             if (isNaN(BankCard)) {
@@ -1162,7 +1172,7 @@ if ('@CheckLoginPermission' == 'false') {
             }
         }
    
-        api.InsertFrozenPoint(PaymentSerial, CompanyID, ProviderCode, CompanyAmount, ProviderAmount, Description, CurrencyType, FroznePaymentID, ServiceType, BankCard, BankCardName, BankName, function (success, obj) {
+        api.InsertFrozenPoint(PaymentSerial, CompanyID, ProviderCode, CompanyAmount, ProviderAmount, Description, CurrencyType, FroznePaymentID, ServiceType, BankCard, BankCardName, BankName, CheckboxActualProviderFrozenAmount, function (success, obj) {
             if (success) {
                 if (obj.ResultCode == 0) {
                     parent.successAlert(function () {

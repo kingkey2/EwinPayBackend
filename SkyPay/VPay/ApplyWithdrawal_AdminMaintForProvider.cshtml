@@ -1019,7 +1019,6 @@
                         <div class="row" style="background-color:#66FFFF;line-height: 30px;">
                             <span style="font-weight:900;color:#0000AA;font-size:15px;margin-left:5px"> 组别 : </span><span style="font-size:15px;margin-left:5px" id="count7"></span>
                             <span style="font-weight:900;color:#0000AA;font-size:15px;margin-left:5px"> 组别总额 : </span><span style="font-size:15px;margin-left:5px" id="count8"></span>
-                            <span style="font-weight:900;color:#0000AA;font-size:15px;margin-left:5px"> 冻结金额 : </span><span style="font-size:15px;margin-left:5px" id="count9"></span>
                             <span style="font-weight:900;color:#0000AA;font-size:15px;margin-left:5px"> 可用金额 : </span><span style="font-size:15px;margin-left:5px" id="count10"></span>
                             <i class="zmdi zmdi-refresh" style="margin-top: 7px;margin-left: 5px;" onclick="getProxyProviderData()"></i>
                         </div>
@@ -1853,13 +1852,11 @@
                 if (obj.ResultCode == 0) {
                     $('#count7').text(obj.ProxyProviderGroup.GroupName);
                     $('#count8').text(toCurrency(obj.ProxyProviderGroup.CanUsePoint));
-                    $('#count9').text(toCurrency(obj.FrozenPoint));
                     $('#count10').text(toCurrency(obj.ProxyProviderGroup.CanUsePoint-obj.FrozenPoint));
 
                 } else {
                     $('#count7').text('');
                     $('#count8').text('');
-                    $('#count9').text('');
                     $('#count10').text('');
                 }
             } else {
