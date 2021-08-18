@@ -305,7 +305,6 @@
     <Content Include="Company\assets\js\tree.min.js" />
     <Content Include="Company\assets\js\wizard.min.js" />
     <Content Include="Company\assets\swf\flashExport.swf" />
-    <Content Include="Company\top-menu.html" />
     <Content Include="VPay\assets\background\bg.jpg" />
     <Content Include="VPay\assets\background\nav_bg.jpg" />
     <Content Include="VPay\assets\bundles\datatablescripts.bundle.js" />
@@ -710,6 +709,18 @@
     <Content Include="Company\Index.cshtml" />
     <Content Include="Company\Login.cshtml" />
     <Content Include="Company\Home.cshtml" />
+    <Content Include="Company\LoginPasswordChange.cshtml" />
+    <Content Include="Company\GoogleDoubleCheck.cshtml" />
+    <Content Include="Company\PaymentReport2.cshtml" />
+    <Content Include="Company\CompanyFrozenPointHistory.cshtml" />
+    <Content Include="Company\CompanyServicePointLogByCompany.cshtml" />
+    <Content Include="Company\ApplyWithdrawal_Create2.cshtml" />
+    <Content Include="Company\ApplyWithdrawal_Maint.cshtml" />
+    <Content Include="Company\BankCard_Maint.cshtml" />
+    <Content Include="Company\BankCard_Update.cshtml" />
+    <Content Include="Company\BankCard_Create.cshtml" />
+    <Content Include="Company\CreatePayment.cshtml" />
+    <Content Include="Company\WithdrawReport.cshtml" />
     <None Include="Scripts\jquery-1.6.4-vsdoc.js" />
     <Content Include="Scripts\jquery-1.6.4.js" />
     <Content Include="Scripts\jquery-1.6.4.min.js" />
@@ -847,6 +858,7 @@
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
     <Content Include="VPay\XForwarded.cshtml" />
     <Content Include="VPay\Result.cshtml" />
+    <Content Include="VPay\CompanyFrozenPointHistory.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

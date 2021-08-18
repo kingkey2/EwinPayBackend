@@ -1,0 +1,142 @@
+﻿@{
+    var bc = new BackendController(); string BID = HttpContext.Current.Request.Cookies.AllKeys.Contains("BID") == true ?  HttpContext.Current.Request.Cookies["BID"].Value.ToString():"";
+
+    string CheckPermission = "success";
+
+    string PermissionName = Request.Path.Split('/').Last().Split('.').First();
+    var result = bc.CheckPermission(BID,PermissionName);
+
+    if (result.ResultCode != BackendController.APIResult.enumResult.OK)
+    {
+        CheckPermission = "false";
+    }
+
+    var resultCheckLoginIP = bc.CheckLoginIPByCompany(BID);
+    string CheckLoginPermission = "success";
+    if (resultCheckLoginIP.ResultCode != BackendController.APIResult.enumResult.OK)
+    {
+        CheckLoginPermission = "false";
+    }
+}
+
+<script>
+
+    $(document).ready(function () {
+        if ('@CheckLoginPermission' == 'false') {
+                location.href = "Login.cshtml";
+            }
+
+           if ('@CheckPermission' == 'false') {
+            parent.errorAlertCallback("权限不足", function () {
+                loadHomePage();
+            });
+        }
+
+        pageLoad();
+    });
+
+    function pageLoad() {
+  
+        new AutoNumeric.multiple('.thousand-symbols', 'floatPos', { allowDecimalPadding: false, decimalPlaces: 4, modifyValueOnWheel: false });
+
+     
+        parent.wrapperFadeOut();
+  
+        $('#btnPaymentSave').on('click', function () {
+
+            $('#btnPaymentSave').attr('disabled', true);
+  
+            var amount = $('#input_Amount').val().trim();
+            var description= $('#input_Description').val().trim();;
+            var companyid = AdminObject.forCompanyID;
+            if (amount=="") {
+                parent.warningAlert("金额不得为空");
+                $('#btnPaymentSave').attr('disabled', false);
+                return;
+            }
+
+            if (Number(amount) <= 0) {
+                parent.warningAlert("金额不得小于等于0");
+                $('#btnPaymentSave').attr('disabled', false);
+                return;
+            }
+
+            parent.wrapperFadeIn();
+            api.createPayment(amount, companyid, description, function (success, obj) {
+                if (success) {
+                    $('#btnPaymentSave').attr('disabled', false);
+                    parent.wrapperFadeOut();
+                    if (obj.ResultCode == 0) {
+                        $('#input_Amount').val("");
+                        $('#input_Description').val("");
+                        parent.successAlert(function () {
+                            reloadPage();
+                        });
+                    }
+                    else {
+                        $('#btnPaymentSave').attr('disabled', false);
+                        var message = ""
+                        switch (obj.ResultCode) {
+                            case 99:
+                                message = obj.Message;
+                                break;
+                            case 7:
+                                parent.errorAlert("您已斷線請重新登入", "Login.cshtml");
+                                break;
+                            case 8:
+                                message = "登入帳號重複!";
+                                break;
+                            default:
+                                message = "其他錯誤";
+                                break;
+                        }
+
+                        parent.warningAlert(message);
+                    }
+                } else {
+                    $('#btnPaymentSave').attr('disabled', false);
+                    parent.wrapperFadeOut();
+                    parent.warningAlert("网路错误");
+                }
+               
+            });
+
+        })
+    }
+
+
+</script>
+
+<div class="row">
+    <div class="col-xs-12">
+        <form class="form-horizontal" role="form">
+            <div class="form-group">
+                <label class="col-sm-3 control-label no-padding-right" for="input_Amount">  申请金额 : </label>
+
+                <div class="col-sm-9">
+                    <input type="text" id="input_Amount" placeholder="申请金额" class="col-xs-10 col-sm-5 thousand-symbols">
+                </div>
+            </div>
+      
+            <div class="form-group">
+                <label class="col-sm-3 control-label no-padding-right" for="input_Description">  备注 : </label>
+
+                <div class="col-sm-4">
+                        <textarea class="form-control " id="input_Description" placeholder="备注"></textarea>   
+                </div>
+            </div>
+
+            <div class="clearfix form-actions">
+                <div class="center">
+                    <button class="btn btn-info" type="button" id="btnPaymentSave">
+                        <i class="ace-icon fa fa-check bigger-110"></i>
+                        储存
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+

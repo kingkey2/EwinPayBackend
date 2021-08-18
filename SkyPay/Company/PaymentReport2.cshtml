@@ -1,0 +1,676 @@
+﻿@{
+    var bc = new BackendController(); string BID = HttpContext.Current.Request.Cookies.AllKeys.Contains("BID") == true ? HttpContext.Current.Request.Cookies["BID"].Value.ToString() : "";
+
+    string CheckPermission = "success";
+
+    string PermissionName = Request.Path.Split('/').Last().Split('.').First();
+    var result = bc.CheckPermission(BID, PermissionName);
+
+    if (result.ResultCode != BackendController.APIResult.enumResult.OK)
+    {
+        CheckPermission = "false";
+    }
+
+    var resultCheckLoginIP = bc.CheckLoginIPByCompany(BID);
+    string CheckLoginPermission = "success";
+    if (resultCheckLoginIP.ResultCode != BackendController.APIResult.enumResult.OK)
+    {
+        CheckLoginPermission = "false";
+    }
+}
+
+<div class="row">
+    <div class="col-xs-12">
+        <form class="form-horizontal" role="form">
+            <div class="form-group">
+                <div class="col-xs-9 no-padding-right">
+                    <input id="dateinput" class="form-control" />
+
+                </div>
+                <div class="col-xs-3">
+                    <select id="deteselect" class="col-xs-10 col-sm-5">
+                        <option value="0">今日</option>
+                        <option value="1">昨日</option>
+                        <option value="2">过去7日</option>
+                        <option value="3">过去30日</option>
+                        <option value="4">这个月</option>
+                        <option value="5">上个月</option>
+                        <option value="6">自定义</option>
+                    </select>
+                </div>
+
+            </div>
+            <div class="form-group">
+                <div class="col-xs-4">
+                    <input type="text" id="input_PaymentSerial" placeholder="平台订单号" class="form-control" style="line-height: inherit;">
+                </div>
+                <div class="col-xs-4">
+                    <input type="text" id="input_OrderID" placeholder="商户订单号" class="form-control" style="line-height: inherit;">
+                </div>
+                <div class="col-xs-4">
+                    <select id="select_processStatus" style="float:left;"></select>
+                </div>
+            </div>
+
+            <div class="clearfix form-actions">
+                <div>
+                    <button class="btn btn-info" type="button" id="btnSearch">
+             
+                        搜寻
+                    </button>
+                    <button class="btn" type="button" id="Excel_download">
+        
+                        汇出Excel
+                    </button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="row" style="background-color: #23c6c8;line-height: 30px;">
+                        <span style="color:white;font-size:15px;margin-left:5px"> 交易总金额 : </span><span style="font-size:15px;margin-left:5px" id="count1"></span>
+                        <span style="color:white;font-size:15px;margin-left:5px"> 成功总金额(不含手续费) : </span><span style="font-size:15px;margin-left:5px" id="count2"></span>
+                        <span style="color:white;font-size:15px;margin-left:5px"> 交易总笔数 : </span><span style="font-size:15px;margin-left:5px" id="count3"></span>
+                        <span style="color:white;font-size:15px;margin-left:5px"> 成功总笔数 : </span><span style="font-size:15px;margin-left:5px" id="count4"></span>
+                        <span style="color:white;font-size:15px;margin-left:5px"> 手续费总金额 : </span><span style="font-size:15px;margin-left:5px" id="count5"></span>
+                        <span style="color:white;font-size:15px;margin-left:5px"> 成功总金额(含手续费) : </span><span style="font-size:15px;margin-left:5px" id="count6"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-xs-12">
+                    <div id="div_table_PaymentTable">
+                        <table style="width:100%" class="table table-bordered table-striped table-hover dataTable nowrap " id="table_PaymentTable"></table>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script>
+
+    var Table;
+    var isCreatedTable = false;
+    var isFirstSearch = false;
+
+    $(document).ready(function () {
+
+if ('@CheckLoginPermission' == 'false') {
+                location.href = "Login.cshtml";
+            }
+
+             if ('@CheckPermission' == 'false') {
+            parent.errorAlertCallback("权限不足", function () {
+                loadHomePage();
+            });
+        }
+
+        pageLoad();
+    });
+
+    function pageLoad() {
+     
+        createPaymentTable2();
+        createProcessStatus();
+
+        //啟用日期
+        var start = moment().hour(00).minute(00);
+        var end = moment().hour(23).minute(59);
+
+        $('#dateinput').daterangepicker({
+            startDate: start,
+            endDate: end,
+            timePicker: false,
+            timePicker24Hour: false,
+            locale: {
+
+                "applyLabel": "確認",
+                "cancelLabel": "取消",
+                "format": 'YYYY/MM/DD',
+                "daysOfWeek": ["日", "一", "二", "三", "四", "五", "六"],
+                "monthNames": ["1月", "2月", "3月", "4月", "5月", "6月",
+                    "7月", "8月", "9月", "10月", "11月", "12月"]
+            }
+        }, function (start, end, label) {
+            $('#deteselect').val("6");
+          
+        });
+
+        //getPaymentTableResult();
+        parent.wrapperFadeOut();
+
+    };
+
+    $('#deteselect').change(function () {
+
+        switch ($(this).val()) {
+            case "0"://今日
+                var start = moment().hour(00).minute(00);
+                var end = moment().hour(23).minute(59);
+                break;
+            case "1"://昨日
+                var start = moment().subtract(1, 'days').hour(00).minute(00);
+                var end = moment().subtract(1, 'days').hour(23).minute(59);
+                break;
+            case "2"://过去7日
+                var start = moment().subtract(6, 'days').hour(00).minute(00);
+                var end = moment().hour(23).minute(59);
+                break;
+            case "3"://过去30日
+                var start = moment().subtract(29, 'days').hour(00).minute(00);
+                var end = moment().hour(23).minute(59);
+                break;
+            case "4"://这个月
+                var start = moment().startOf('month').hour(00).minute(00);
+                var end = moment().endOf('month').hour(23).minute(59);
+                break;
+            case "5"://上个月
+                var start = moment().subtract(1, 'month').startOf('month').hour(00).minute(00);
+                var end = moment().subtract(1, 'month').endOf('month').hour(23).minute(59);
+                break;
+            default:
+        }
+        $('#dateinput').data('daterangepicker').setStartDate(start);
+        $('#dateinput').data('daterangepicker').setEndDate(end);
+
+    })
+    function createPaymentTable2() {
+
+        var tmp_Table = $("#table_PaymentTable").DataTable({
+
+            columns: [
+                {
+                    "title": "平台订单号", "data": "PaymentSerial"
+                },
+                {
+                    "title": "商户订单号", "data": "OrderID"
+                },
+
+                {
+                    "title": "交易金额", "data": "OrderAmount",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
+                    }
+                },
+                {
+                    "title": "手续费", "data": "PartialOrderAmount",
+                    "render": function (data, display, rowdata) {
+                        if (data != 0) {
+                            return (rowdata.PartialOrderAmount * rowdata.CollectRate * 0.01) + rowdata.CollectCharge;
+                        } else {
+                            return data;
+                        }
+                    }
+                },
+                {
+                    "title": "实际金额", "data": "PaymentAmount",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
+                    }
+                },
+                {
+                    "title": "提交时间", "data": "CreateDate2"
+                },
+                {
+                    "title": "完成日期", "data": "FinishDate2"
+                },
+                { "title": "支付通道", "data": "ServiceTypeName" },
+                {
+                    "title": "状态", "data": "ProcessStatus",
+                    "render": function (data) {//0=新建(準備 PaymentSerial)/1=尚未提交/2=交易成功，尚未通知商戶/3=交易失敗/4=交易成功，通知商戶成功/5=供應商資料不一致/6=系統問題
+                        switch (data) {
+                            case 0:
+                                return '<span style="color:red;font-weight:900">未处理</span>';
+                                break;
+                            case 1:
+                                return '<span style="color:red;font-weight:900">未处理</span>';
+                                break;
+                            case 2:
+                                return '<span style="color:orange;font-weight:900">交易成功，未返回</span>';
+                                break;
+                            case 3:
+                                return '交易失败';
+                                break;
+                            case 4:
+                                return '<span style="color:green;font-weight:900">交易成功，已返回</span>';
+                                break;
+                            case 5:
+                                return '交易失败';
+                                break;
+                            case 6:
+                                return '交易失败';
+                                break;
+                            case 7:
+                                return '补单';
+                                break;
+                            default:
+                                return '';
+                                break;
+                        }
+                    }
+                },
+                {
+                    "title": "功能", "data": "ProcessStatus",
+                    "render": function (data) {
+                        switch (data) {
+                            case 2:
+                                return '<button onclick="reSendPayment(this)">补单</button>';
+                                break;
+                            default:
+                                return '';
+                                break;
+                        }
+                    }
+                }
+
+            ],
+            rowCallback: function (row, data) { },
+            filter: true,
+            info: false,
+            ordering: true,
+            processing: true,
+            retrieve: true,
+            selected: true,
+            order: [[5, "desc"]],
+            scrollX: true,
+            autoWidth: false,
+            language: chineseTableLang
+        });
+    }
+
+    function createPaymentTable(data) {
+
+        Table = $("#table_PaymentTable").DataTable({
+            data: data,
+            columns: [
+                {
+                    "title": "平台订单号", "data": "PaymentSerial"
+                },
+                {
+                    "title": "商户订单号", "data": "OrderID"
+                },
+
+                {
+                    "title": "交易金额", "data": "OrderAmount",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
+                    }
+                },
+                {
+                    "title": "手续费", "data": "PartialOrderAmount",
+                    "render": function (data, display, rowdata) {
+                        if (data != 0) {
+                            return toCurrency((rowdata.PartialOrderAmount * rowdata.CollectRate * 0.01) + rowdata.CollectCharge);
+                        } else {
+                            return data;
+                        }
+                    }
+                },
+                {
+                    "title": "实际金额", "data": "PaymentAmount",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
+                    }
+                },
+                {
+                    "title": "提交时间", "data": "CreateDate2"
+                },
+                {
+                    "title": "完成日期", "data": "FinishDate2"
+                },
+                { "title": "支付通道", "data": "ServiceTypeName" },
+                {
+                    "title": "状态", "data": "ProcessStatus",
+                    "render": function (data) {//0=新建(準備 PaymentSerial)/1=尚未提交/2=交易成功，尚未通知商戶/3=交易失敗/4=交易成功，通知商戶成功/5=供應商資料不一致/6=系統問題
+                        switch (data) {
+                            case 0:
+                                return '<span style="color:red;font-weight:900">未处理</span>';
+                                break;
+                            case 1:
+                                return '<span style="color:red;font-weight:900">未处理</span>';
+                                break;
+                            case 2:
+                                return '<span style="color:orange;font-weight:900">交易成功，未返回</span>';
+                                break;
+                            case 3:
+                                return '交易失败';
+                                break;
+                            case 4:
+                                return '<span style="color:green;font-weight:900">交易成功，已返回</span>';
+                                break;
+                            case 5:
+                                return '交易失败';
+                                break;
+                            case 6:
+                                return '交易失败';
+                                break;
+                            case 7:
+                                return '补单';
+                                break;
+                            case 8:
+                                return '<span style="color:red;font-weight:900">未处理</span>';
+                                break;
+                            default:
+                                return '';
+                                break;
+                        }
+                    }
+                },
+                { "title": "备注", "data": "Description" },
+                {
+                    "title": "功能", "data": "ProcessStatus",
+                    "render": function (data) {
+                        switch (data) {
+                            case 2:
+                                return '<button onclick="reSendPayment(this)">补单</button>';
+                                break;
+                            default:
+                                return '';
+                                break;
+                        }
+                    }
+                }
+
+            ],
+            rowCallback: function (row, data) { },
+            filter: true,
+            info: false,
+            ordering: true,
+            processing: true,
+            retrieve: true,
+            order: [[5, "desc"]],
+            selected: true,
+            scrollX: true,
+            autoWidth: false,
+            language: chineseTableLang
+        });
+
+    }
+    function reSendPayment(objbtn) {
+        var paymentSerial = $($(objbtn).parent().parent().find('td')[0]).html();
+
+        parent.wrapperFadeIn();
+        api.reSendPayment(paymentSerial, function (success, obj) {
+            wrapperFadeOut();
+            if (success) {
+                if (obj.ResultCode == 0) {
+                    swal({
+                        title: "已成功发送",
+                        type: "success",
+                        confirmButtonText: "确认",
+                        closeOnConfirm: true
+                    }, function () {
+                        getPaymentTableResult();
+                    })
+
+                } else {
+                    var message = ""
+                    switch (obj.ResultCode) {
+                        case 7:
+                            errorAlert("您已断线请重新登入", "Login.cshtml");
+                            break;
+                        default:
+                            warningAlert(obj.Message);
+                            break;
+                    }
+                }
+            } else {
+                warningAlert("网路异常");
+            }
+
+        });
+    }
+
+    function statisticsAmount(data) {
+        var count1 = 0;
+        var count2 = 0;
+        var count3 = 0;
+        var count4 = 0;
+        var count5 = 0;
+        var count6 = 0;
+        if (data.length > 0) {
+            for (var i = 0; i < data.length; i++) {
+                count1 += data[i].OrderAmount;
+                count2 += data[i].PaymentAmount;
+                if (data[i].ProcessStatus == 4) {
+                    count4++;
+                }
+                //手續費總額
+                if (data[i].PartialOrderAmount != 0) {
+                    count5 = count5 + (data[i].PartialOrderAmount * data[i].CollectRate * 0.01) + data[i].CollectCharge;
+                }
+
+                count6 = count2 + count5;
+            }
+            count3 = data.length;
+
+            $('#count1').text(toCurrency(count1));
+            $('#count2').text(toCurrency(count2));
+            $('#count3').text(count3);
+            $('#count4').text(count4);
+            $('#count5').text(toCurrency(count5));
+            $('#count6').text(toCurrency(count6));
+
+
+        }
+
+    }
+
+    function getPaymentTableResult() {
+        var dateinputval = $('#dateinput').val().split('-');
+        var startDate = dateinputval[0];
+        var endDate = dateinputval[1];
+        var paymentSerial = $('#input_PaymentSerial').val().trim();
+        var orderID = $('#input_OrderID').val().trim();
+        var processStatus = $('#select_processStatus').val().split(",");
+        api.getPaymentTableResult2(startDate, endDate, paymentSerial, orderID, processStatus, function (success, obj) {
+            if (isCreatedTable) {
+                Table.clear().draw();
+            }
+
+            if (obj.ResultCode == 0) {
+                isFirstSearch = true;
+                if (!isCreatedTable) {
+                    isCreatedTable = true;
+                    //建立資料顯示Table
+
+                    $("#div_table_PaymentTable").empty();
+                    $("#div_table_PaymentTable").append('<table style="width:100%" class="table table-bordered table-striped table-hover dataTable nowrap" id="table_PaymentTable"></table>');
+                    createPaymentTable(obj.PaymentTableResults);
+
+                } else {
+                    Table.rows.add(obj.PaymentTableResults).draw(); // Add new data
+                }
+                statisticsAmount(obj.PaymentTableResults);
+                Table.columns.adjust();
+            }
+            else {
+                if (isFirstSearch) {
+                    var message = ""
+                    switch (obj.ResultCode) {
+                        case 5:
+                            message = "没有资料";
+                            warningAlert(message);
+                            break;
+                        case 7:
+                            errorAlert("您已断线请重新登入", "Login.cshtml");
+                            break;
+                        default:
+                            message = "其他错误";
+                            warningAlert(message);
+                            break;
+                    }
+
+                }
+                isFirstSearch = true;
+                $('#count1').text('');
+                $('#count2').text('');
+                $('#count3').text('');
+                $('#count4').text('');
+                $('#count5').text('');
+                $('#count6').text('');
+            }
+        });
+    }
+
+    $('#btnSearch').click(function () {
+        getPaymentTableResult();
+    })
+
+    function createProcessStatus() {
+     
+        //0=新建(準備 PaymentSerial)/1=尚未提交/2=交易成功，尚未通知商戶/3=交易失敗/4=交易成功，通知商戶成功/5=供應商資料不一致/6=系統問題/7=補單
+        $("#select_processStatus").append('<option value="99">' + "全部状态" + '</option>');
+        $("#select_processStatus").append('<option value="0,1,8">' + "未处理" + '</option>');
+        $("#select_processStatus").append('<option value="2">' + "交易成功，未返回" + '</option>');
+        $("#select_processStatus").append('<option value="4">' + "交易成功，已返回" + '</option>');
+        $("#select_processStatus").append('<option value="3,5,6">' + "交易失败" + '</option>');
+        $("#select_processStatus").append('<option value="7">' + "补单" + '</option>');
+
+    }
+
+    function setSelectDateText() {
+        moment.locale('zh-tw', {
+            months: '1月_2月_3月_4月_5月_6月_7月_8月_9月_10月_11月_12月'.split('_'),
+            monthsShort: '1月_2月_3月_4月_5月_6月_7月_8月_9月_10月_11月_12月'.split('_'),
+            weekdays: '星期日_星期一_星期二_星期三_星期四_星期五_星期六'.split('_'),
+            weekdaysShort: '日_一_二_三_四_五_六'.split('_'),
+            weekdaysMin: '日_一_二_三_四_五_六'.split('_')
+        });
+    }
+
+    $('#Excel_download').click(function () {
+        CreateExcel();
+    })
+
+    function CreateExcel() {
+        if (Table == null) {
+            warningAlert("没有汇出资料");
+            return;
+        }
+
+
+        if (Table.rows().data().length > 0) {
+            var exceldata = [
+                ['平台订单号', '商户订单号',  '交易金额', '手续费', '实际金额', '提交时间', '完成日期', '支付通道', '状态','备注']
+            ];
+            var TableData = Table.rows().data();
+            for (var i = 0; i < TableData.length; i++) {
+                var data = TableData[i];
+                var PartialOrderAmount = 0;
+                var PaymentSerial = "";
+                var CreateDate = data.CreateDate2;
+                var FinishDate = "";
+                var ProcessStatus = "";
+                if (data.FinishDate2 != null) {
+                    FinishDate = data.FinishDate2;
+                }
+                if (data.PartialOrderAmount != 0) {
+                    PartialOrderAmount = (data.PartialOrderAmount * data.CollectRate * 0.01) + data.CollectCharge;
+                }
+
+
+                PaymentSerial = data.PaymentSerial;
+
+                switch (data.ProcessStatus) {
+                    case 0:
+                        ProcessStatus = '未处理';
+                        break;
+                    case 1:
+                        ProcessStatus = '未处理';
+                        break;
+                    case 2:
+                        ProcessStatus = '交易成功，未返回';
+                        break;
+                    case 3:
+                        ProcessStatus = '交易失败';
+                        break;
+                    case 4:
+                        ProcessStatus = '交易成功，已返回';
+                        break;
+                    case 5:
+                        ProcessStatus = '交易失败';
+                        break;
+                    case 6:
+                        ProcessStatus = '交易失败';
+                        break;
+                    case 7:
+                        ProcessStatus = '补单';
+                        break;
+                    default:
+                        return '';
+                        break;
+                }
+
+                var tmpArray = new Array(PaymentSerial, data.OrderID, data.OrderAmount, PartialOrderAmount, data.PaymentAmount, CreateDate, FinishDate, data.ServiceTypeName, ProcessStatus, data.Description);
+                exceldata.push(tmpArray);
+            }
+
+            var sheet = XLSX.utils.aoa_to_sheet(exceldata);
+            openDownloadDialog(sheet2blob(sheet), dateTimeStr() + '.xlsx');
+        } else {
+            warningAlert("没有汇出资料");
+        }
+    }
+
+    function dateTimeStr() {
+        var dateTime = new Date();
+        var year = dateTime.getFullYear();
+        var month = dateTime.getMonth() + 1;//js從0開始取
+        var date = dateTime.getDate();
+
+
+        if (month < 10) {
+            month = "0" + month;
+        }
+        if (date < 10) {
+            date = "0" + date;
+        }
+
+
+
+        return "VPay_" + year + "-" + month + "-" + date + " ";
+    }
+
+    function openDownloadDialog(url, saveName) {
+        if (typeof url == 'object' && url instanceof Blob) {
+            url = URL.createObjectURL(url); // 创建blob地址
+        }
+        var aLink = document.createElement('a');
+        aLink.href = url;
+        aLink.download = saveName || ''; // HTML5新增的属性，指定保存文件名，可以不要后缀，注意，file:///模式下不会生效
+        var event;
+        if (window.MouseEvent) event = new MouseEvent('click');
+        else {
+            event = document.createEvent('MouseEvents');
+            event.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+        }
+        aLink.dispatchEvent(event);
+    }
+
+    function sheet2blob(sheet, sheetName) {
+        sheetName = sheetName || 'sheet1';
+        var workbook = {
+            SheetNames: [sheetName],
+            Sheets: {}
+        };
+        workbook.Sheets[sheetName] = sheet;
+        // 生成excel的配置项
+        var wopts = {
+            bookType: 'xlsx', // 要生成的文件类型
+            bookSST: false, // 是否生成Shared String Table，官方解释是，如果开启生成速度会下降，但在低版本IOS设备上有更好的兼容性
+            type: 'binary'
+        };
+        var wbout = XLSX.write(workbook, wopts);
+        var blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
+        // 字符串转ArrayBuffer
+        function s2ab(s) {
+            var buf = new ArrayBuffer(s.length);
+            var view = new Uint8Array(buf);
+            for (var i = 0; i != s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+            return buf;
+        }
+        return blob;
+    }
+</script>

@@ -84,13 +84,14 @@
     <script src="~/VPay/assets/plugins/bootstrap-notify/bootstrap-notify.min.js"></script>
     <script src="~/VPay/assets/plugins/jquery-inputmask/jquery.inputmask.bundle.js"></script>
     <!-- basic-form-elements Js -->
-    @*<script src="assets/js/pages/forms/basic-form-elements.js"></script>*@
+    @*
+    <script src="assets/js/pages/forms/basic-form-elements.js"></script>*@
     <!-- datetimepicker Js -->
     <script src="~/VPay/assets/plugins/bootstrap-material-datetimepicker/js/bootstrap-material-datetimepicker.js"></script>
     <!-- sweetalert Plugin Js -->
     <script src="~/VPay/assets/plugins/sweetalert/sweetalert.min.js"></script>
     <script src="~/VPay/assets/plugins/jquery-spinner/js/jquery.spinner.js"></script>
-    <script src="~/VPay/assets/js/BackendJS/BackendAPI.js?20210209"></script>
+    <script src="~/VPay/assets/js/BackendJS/BackendAPI.js?20210811"></script>
     <script src="~/VPay/assets/js/AutoNumeric.js"></script>
     <script src="~/VPay/assets/js/ion.sound.min.js"></script>
     <!-- JQuery 頁籤 Js -->
@@ -100,7 +101,7 @@
     <script src="~/VPay/assets/js/ui.tabs.closable.js"></script>
     <script src="~/VPay/assets/js/common.js"></script>
     <link href="/VPay/assets/css/Index.css" rel="stylesheet" />
-   
+
     <script>
         var us_timeOut;
         var tw_timeOut;
@@ -146,7 +147,7 @@
             $("#menuContent").innerHeight(window.innerHeight - 150);
 
             //setInterval("protectTimeOut()", 30000);
-            api = new BackendAPI(BID,apiURL);
+            api = new BackendAPI(BID, apiURL);
 
             //#region 檢查Session
             if (AdminJsonData != "") {
@@ -459,15 +460,15 @@
         //#region 取得可選擇供應商列表
         //isProxy:是否只顯示身分為代理的商户
         //showAllCompanyBtn:是否有所有商户的選項
-        function layout_getCompanyTableResult(isProxy,showAllCompanyBtn) {
+        function layout_getCompanyTableResult(isProxy, showAllCompanyBtn) {
 
             api.getCompanyTableResult(function (success, obj) {
 
                 if (obj.ResultCode == 0) {
                     if (isProxy) {
-                        obj.CompanyResults= $.grep(obj.CompanyResults, function (data) {
+                        obj.CompanyResults = $.grep(obj.CompanyResults, function (data) {
                             return data.CompanyType != 1;
-                            });
+                        });
                     }
                     updateSortable(obj.CompanyResults, "CompanyName", "CompanyID", "ParentCompanyID", showAllCompanyBtn);
                 } else {
@@ -488,14 +489,14 @@
         //#endregion
 
         function TableAdjust() {
-                Table.columns.adjust();
+            Table.columns.adjust();
         }
 
         //#region 重整供應商查詢列表資料
         function updateSortable(sortData, showName, dataId, parentId, showAllCompanyBtn) {
             $('.dd > .dd-list').remove();
             if (showAllCompanyBtn) {
-                $('.dd').append('<ol class="dd-list"><li class="dd-item" data-id="' + "-99" + '" ><div class="dd-handle">'+"所有商户"+'</div></li></ol>');
+                $('.dd').append('<ol class="dd-list"><li class="dd-item" data-id="' + "-99" + '" ><div class="dd-handle">' + "所有商户" + '</div></li></ol>');
             } else {
                 $('.dd').append('<ol class="dd-list"></ol>');
             }
@@ -527,12 +528,12 @@
                 if (parentli.length > 0) {
                     if (parentli.find('.dd-list').length == 0) {
                         parentli.append('<ol class="dd-list"></ol>');
-                        parentli.find('.dd-list').append('<li class="dd-item" data-id="' + sortData[i][dataId] + '" ><div class="dd-handle" style="line-height:20px">' + icon + "<span>" + sortData[i][showName]  + '</span><span>' + childcount+'</span></div></li>');
+                        parentli.find('.dd-list').append('<li class="dd-item" data-id="' + sortData[i][dataId] + '" ><div class="dd-handle" style="line-height:20px">' + icon + "<span>" + sortData[i][showName] + '</span><span>' + childcount + '</span></div></li>');
                     } else {
-                        parentli.find('.dd-list').eq(0).append('<li class="dd-item" data-id="' + sortData[i][dataId] + '" ><div class="dd-handle" style="line-height:20px">' + icon + "<span>" + sortData[i][showName]  + '</span><span>' + childcount+'</span></div></li>');
+                        parentli.find('.dd-list').eq(0).append('<li class="dd-item" data-id="' + sortData[i][dataId] + '" ><div class="dd-handle" style="line-height:20px">' + icon + "<span>" + sortData[i][showName] + '</span><span>' + childcount + '</span></div></li>');
                     }
                 } else {
-                    $('.dd > .dd-list').append('<li class="dd-item" data-id="' + sortData[i][dataId] + '"><div class="dd-handle" style="line-height:20px">' + icon + "<span>" + sortData[i][showName]  + '</span><span>' + childcount+'</span></div></li>');
+                    $('.dd > .dd-list').append('<li class="dd-item" data-id="' + sortData[i][dataId] + '"><div class="dd-handle" style="line-height:20px">' + icon + "<span>" + sortData[i][showName] + '</span><span>' + childcount + '</span></div></li>');
                 }
             }
 
@@ -589,7 +590,7 @@
         function pageLogout() {
             $(".page-loader-wrapper").fadeOut();
 
-                sessionStorage.clear();
+            sessionStorage.clear();
             location.href = "/VPay/Login.cshtml";
         }
         //#endregion
@@ -625,7 +626,7 @@
 
                     $('#selectCompany_menu').hide();
                     docChangeCompanyLabel.attr("data-id", $('.selectedItem').closest("li").attr("data-id"));
-                    if ($('.selectedItem').closest("li").attr("data-id")== "-99") {
+                    if ($('.selectedItem').closest("li").attr("data-id") == "-99") {
                         docChangeCompanyLabel.text("所有商户");
                     } else {
                         docChangeCompanyLabel.text($('.selectedItem').find('span').eq(0).text());
@@ -675,7 +676,7 @@
 
 
 
-        function showNotify(title,message) {
+        function showNotify(title, message) {
             $.notify({
                 title: title,
                 message: message
@@ -705,10 +706,10 @@
                             case 0:
                                 try {
                                     var showdata = JSON.parse(data.Data);
-                                             var DataStr =
-                                                 "供应商 : " + showdata.ProviderName + "\n" +
-                                                 "渠道 : " + showdata.ServiceTypeName + "\n" +
-                                                 "停用者 : " + showdata.RealName + "\n";
+                                    var DataStr =
+                                        "供应商 : " + showdata.ProviderName + "\n" +
+                                        "渠道 : " + showdata.ServiceTypeName + "\n" +
+                                        "停用者 : " + showdata.RealName + "\n";
                                     if (showdata.CompanyNames != "") {
                                         DataStr += "需停用服务商户 : " + showdata.CompanyNames;
                                     }
@@ -719,7 +720,7 @@
 
                                 break;
                             case 1:
-                                showNotify("商户申请提现", "商戶 : " + data.CompanyName + "\n"  + data.Data);
+                                showNotify("商户申请提现", "商戶 : " + data.CompanyName + "\n" + data.Data);
                                 break;
                             case 2:
                                 showNotify("储值问题", "商戶 : " + data.CompanyName + "\n" + "讯息:" + data.Data);
@@ -775,7 +776,7 @@
             })
         }
 
-        function successAlert2(url,title) {
+        function successAlert2(url, title) {
             swal({
                 title: title,
                 type: "success",
@@ -786,7 +787,7 @@
             })
         }
 
-        function successAlert3(title,cb) {
+        function successAlert3(title, cb) {
             swal({
                 title: title,
                 type: "success",
@@ -830,7 +831,7 @@
             })
         }
 
-        function errorAlertAndtoOtrherPage(title, url, pageID,pageName) {
+        function errorAlertAndtoOtrherPage(title, url, pageID, pageName) {
             $(".page-loader-wrapper").fadeOut();
 
             swal({
@@ -844,7 +845,7 @@
         }
 
 
-        function errorAlertCallback(title,cb) {
+        function errorAlertCallback(title, cb) {
             $(".page-loader-wrapper").fadeOut();
             swal({
                 title: title,
@@ -869,7 +870,7 @@
             });
         }
 
-        function warningAlertByHtml(title,html) {
+        function warningAlertByHtml(title, html) {
 
             swal({
                 title: title,
@@ -911,7 +912,7 @@
             displayTimeZone();
         }
 
-        function timeDate2Click(){
+        function timeDate2Click() {
             timeDate2();
             displayTimeZone();
         }
@@ -960,7 +961,7 @@
 
                     $('#spanWithdrawProviderConfirmCount').text("提现案件:" + obj.Results.WithdrawCount);
                     $('#spanPaymentProviderConfirmCount').text("充值案件:" + obj.Results.PaymentCount);
-                    if (obj.Results.WithdrawCount > 0 || obj.Results.PaymentCount>0) {
+                    if (obj.Results.WithdrawCount > 0 || obj.Results.PaymentCount > 0) {
                         if (getCookie("openProviderOrderMusic") == "true") {
                             playSound("sounds-942");
                         }
@@ -968,7 +969,7 @@
 
                     if (obj.Results.WithdrawCountByTimeEnd > 0) {
                         if (getCookie("openProviderOrderMusic") == "true") {
-                        playSound("googlesound");
+                            playSound("googlesound");
                         }
                     }
 
@@ -1003,7 +1004,7 @@
                     $('#soundIcon2').show();
                     riskControlData = obj.Results;
                     if (getCookie("openRiskControlMusic") == "true") {
-                            playSound("sounds-942");
+                        playSound("sounds-942");
                     }
 
                 } else {
@@ -1014,7 +1015,7 @@
                         case 5:
                             $('#soundIcon2').hide();
                             $('#divRiskControlByPaymentSuccessCount').parent().hide();
-                           // warningAlert("沒有資料");
+                            // warningAlert("沒有資料");
                             break;
                         case 7:
                             errorAlert("您已斷線請重新登入", "Login.cshtml");
@@ -1090,7 +1091,7 @@
 
         //撥放聲音
         function playSound(mainFilename) {
-           ion.sound.play(mainFilename);
+            ion.sound.play(mainFilename);
         }
 
         function setCookie(cname, cvalue) {
@@ -1142,38 +1143,38 @@
             ////去掉Home頁籤的叉叉
             //$("#tab_Home").next().remove();
 
-                if (PageID == "Home") {
-                    $("#menuTab").append("<li><a href='#" + PageID + "' class='closable' id='tab_" + PageID + "' style='font-size:15px !important'>" + PageID + "</a></li>");
-                    $("#menuContent").append("<div style='height:100%;padding:0 !important' id='" + PageID + "'><iframe id='iframe_" + PageID + "' name='" + PageID + "' style='width:100%;height:100%;border:white' src='" + PageID + ".cshtml'></iframe></div>");
-                    $(".tabpanel").tabs("refresh");
-                } else {
-                    if (!AdminObject.CheckGoogleKeySuccess) {
+            if (PageID == "Home") {
+                $("#menuTab").append("<li><a href='#" + PageID + "' class='closable' id='tab_" + PageID + "' style='font-size:15px !important'>" + PageID + "</a></li>");
+                $("#menuContent").append("<div style='height:100%;padding:0 !important' id='" + PageID + "'><iframe id='iframe_" + PageID + "' name='" + PageID + "' style='width:100%;height:100%;border:white' src='" + PageID + ".cshtml'></iframe></div>");
+                $(".tabpanel").tabs("refresh");
+            } else {
+                if (!AdminObject.CheckGoogleKeySuccess) {
 
-                        PageID = $('a[data-url="GoogleDoubleCheck.cshtml"]').data("pageid");
-                        TitleName = $('a[data-url="GoogleDoubleCheck.cshtml"]').data("pagename");
-                        PageURL = $('a[data-url="GoogleDoubleCheck.cshtml"]').data("url");
-                    }
-                    if ($("#tab_" + PageID).length == 0) {
-                        $("#menuTab").append("<li><a href='#" + PageID + "' class='closable' id='tab_" + PageID + "' style='font-size:15px !important'>" + TitleName + "</a></li>");
-                        $("#menuContent").append("<div style='height:100%;padding:0 !important' id='" + PageID + "'><iframe id='iframe_" + PageID + "' name='" + PageID + "' style='width:100%;height:100%;border:white' src='" + PageURL +"'></iframe></div>");
-                        $(".tabpanel").tabs("refresh");
-
-                        //tabs click event
-                        $("#tab_" + PageID).click(function () {
-                            if (typeof document.getElementById('iframe_' + PageID).contentWindow.$ != "undefined") {
-                                document.getElementById('iframe_' + PageID).contentWindow.$.fn.dataTable.tables({ visible: true, api: true }).columns.adjust().draw();
-                            }
-
-                        })
-                    } else {
-                        document.getElementById('iframe_' + PageID).contentDocument.location.reload(true);
-                    }
+                    PageID = $('a[data-url="GoogleDoubleCheck.cshtml"]').data("pageid");
+                    TitleName = $('a[data-url="GoogleDoubleCheck.cshtml"]').data("pagename");
+                    PageURL = $('a[data-url="GoogleDoubleCheck.cshtml"]').data("url");
                 }
+                if ($("#tab_" + PageID).length == 0) {
+                    $("#menuTab").append("<li><a href='#" + PageID + "' class='closable' id='tab_" + PageID + "' style='font-size:15px !important'>" + TitleName + "</a></li>");
+                    $("#menuContent").append("<div style='height:100%;padding:0 !important' id='" + PageID + "'><iframe id='iframe_" + PageID + "' name='" + PageID + "' style='width:100%;height:100%;border:white' src='" + PageURL + "'></iframe></div>");
+                    $(".tabpanel").tabs("refresh");
 
-                //跳到新建的頁面
-                $("#tab_" + PageID).click();
-                //去掉Home頁籤的叉叉
-                $("#tab_Home").next().remove();
+                    //tabs click event
+                    $("#tab_" + PageID).click(function () {
+                        if (typeof document.getElementById('iframe_' + PageID).contentWindow.$ != "undefined") {
+                            document.getElementById('iframe_' + PageID).contentWindow.$.fn.dataTable.tables({ visible: true, api: true }).columns.adjust().draw();
+                        }
+
+                    })
+                } else {
+                    document.getElementById('iframe_' + PageID).contentDocument.location.reload(true);
+                }
+            }
+
+            //跳到新建的頁面
+            $("#tab_" + PageID).click();
+            //去掉Home頁籤的叉叉
+            $("#tab_Home").next().remove();
         }
 
         function GoPageByUrl(url) {
@@ -1276,7 +1277,7 @@
                 })
             }
         }
-  //#endregion
+        //#endregion
     </script>
 </head>
 <body class="theme-violet">
@@ -1303,7 +1304,7 @@
                 </li>
                 <li>
                     <a href="javascript:void(0);" class="menu-sm" data-close="true" onclick="TableAdjust()">
-                        <i class="fas fa-bars" ></i>
+                        <i class="fas fa-bars"></i>
                         <!-- <i class="zmdi zmdi-arrow-left"></i>
                         <i class="zmdi zmdi-arrow-right"></i> -->
                     </a>
@@ -1370,39 +1371,39 @@
                 </li>
                 <!-- refresh -->
                 <li class="divided">
-                    <a class="page-refresh"><i  class="zmdi zmdi-home" onclick="ChangePage('Home')"></i></a>
+                    <a class="page-refresh"><i class="zmdi zmdi-home" onclick="ChangePage('Home')"></i></a>
                 </li>
                 <!-- home -->
                 <li class="divided">
-                    <a href="javascript:void(0);"><i  class="zmdi zmdi-refresh" onclick="RefreshActiveIframe()"></i></a>
+                    <a href="javascript:void(0);"><i class="zmdi zmdi-refresh" onclick="RefreshActiveIframe()"></i></a>
                 </li>
                 <!-- logout -->
                 <li class="divided">
-                    <a id="btnLogout" class="mega-menu" style="height: 30px;"><i  class="zmdi zmdi-power"></i></a>
+                    <a id="btnLogout" class="mega-menu" style="height: 30px;"><i class="zmdi zmdi-power"></i></a>
                 </li>
             </div>
         </ul>
     </nav>
 
     @*<nav class="navbar">
-            <ul class="nav navbar-nav navbar-left">
-                <li style="line-height:65px;">
-                    <div class="navbar-header">
-                        <a href="javascript:void(0);" class="bars"></a>
-                        <a class="navbar-brand"><img src="~/VPay/assets/images/logo.svg" width="30"><span class="m-l-10">GPay</span></a>
+        <ul class="nav navbar-nav navbar-left">
+            <li style="line-height:65px;">
+                <div class="navbar-header">
+                    <a href="javascript:void(0);" class="bars"></a>
+                    <a class="navbar-brand"><img src="~/VPay/assets/images/logo.svg" width="30"><span class="m-l-10">GPay</span></a>
 
-                    </div>
-                </li>
-                <li style="line-height:65px">
-                    <a href="javascript:void(0);" class="menu-sm" data-close="true">
-                        <i class="zmdi zmdi-arrow-left"></i>
-                        <i class="zmdi zmdi-arrow-right"></i>
-                    </a>
-                    <a href="javascript:void(0);" class="hovericon"><i class="zmdi zmdi-home" onclick="GoPage('Index.cshtml')"></i></a>
-                    <a href="javascript:void(0);" class="hovericon"><i class="zmdi zmdi-refresh" onclick="window.location.reload()"></i></a>
-                </li>
-            </ul>
-        </nav>*@
+                </div>
+            </li>
+            <li style="line-height:65px">
+                <a href="javascript:void(0);" class="menu-sm" data-close="true">
+                    <i class="zmdi zmdi-arrow-left"></i>
+                    <i class="zmdi zmdi-arrow-right"></i>
+                </a>
+                <a href="javascript:void(0);" class="hovericon"><i class="zmdi zmdi-home" onclick="GoPage('Index.cshtml')"></i></a>
+                <a href="javascript:void(0);" class="hovericon"><i class="zmdi zmdi-refresh" onclick="window.location.reload()"></i></a>
+            </li>
+        </ul>
+    </nav>*@
     <!-- Left Sidebar -->
     <aside id="leftsidebar" class="sidebar">
 
@@ -1420,7 +1421,7 @@
     </aside>
     <!-- Main Content -->
     <section class="content home" id="MainContent">
-        <div class="container-fluid" >
+        <div class="container-fluid">
             <div class="row" style="padding-top:0px;">
                 <div class="col-md-12">
                     <div class="tab-content">
@@ -1436,7 +1437,7 @@
         </div>
         <footer class="footer">
             @*<p>version 1.23.456.789</p>
-                <p>Copyright © 2020 KingKey All rights reserved.</p>*@
+            <p>Copyright © 2020 KingKey All rights reserved.</p>*@
         </footer>
     </section>
     <!-- CompanySelect Menu -->

@@ -1,10 +1,10 @@
 ﻿@{
-    var bc = new BackendController(); string BID = HttpContext.Current.Request.Cookies.AllKeys.Contains("BID") == true ?  HttpContext.Current.Request.Cookies["BID"].Value.ToString():"";
-    var result = bc.CheckLoginPermission(BID);
+    var bc = new BackendController(); string BID = HttpContext.Current.Request.Cookies.AllKeys.Contains("BID") == true ? HttpContext.Current.Request.Cookies["BID"].Value.ToString() : "";
+
     string CheckPermission = "success";
-  
+
     string PermissionName = Request.Path.Split('/').Last().Split('.').First();
-    result = bc.CheckPermission(BID,PermissionName);
+    var result = bc.CheckPermission(BID, PermissionName);
 
     if (result.ResultCode != BackendController.APIResult.enumResult.OK)
     {
@@ -19,6 +19,7 @@
     }
 
 }
+
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=Edge">
@@ -85,7 +86,7 @@
     <!-- sweetalert Plugin Js -->
     <script src="~/VPay/assets/plugins/sweetalert/sweetalert.min.js"></script>
     <script src="~/VPay/assets/plugins/jquery-spinner/js/jquery.spinner.js"></script>
-    <script src="~/VPay/assets/js/BackendJS/BackendAPI.js?20200326"></script>
+    <script src="~/VPay/assets/js/BackendJS/BackendAPI.js?20210811-1"></script>
     <script src="~/VPay/assets/js/AutoNumeric.js"></script>
     <script src="~/VPay/assets/js/ion.sound.min.js"></script>
     <!-- JQuery 頁籤 Js -->
@@ -914,22 +915,68 @@
             font-weight: normal;
         }
     </style>
+
+    <style>
+        .imgScale_Outer {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.7);
+            overflow-y: scroll;
+            z-index: 200;
+        }
+
+        .imgScale_inner {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%,-50%);
+            /* writing-mode: vertical-lr;
+        text-align: center; */
+        }
+
+            .imgScale_inner img {
+                max-width: 90vw;
+                max-height: 90vh;
+            }
+
+        .BtnClose {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 2.5em;
+        }
+    </style>
+    <style>
+
+        .dropdown-menu > .inner {
+            max-height: 300px !important;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
 </head>
-<style>
-    .dropdown-menu {
-        max-height: 300px !important;
-    }
-</style>
-<script src="~/VPay/assets/js/xlsx.core.min.js"></script>
+
 <script src="~/VPay/assets/js/moment.min.js"></script>
 <script src="~/VPay/assets/js/daterangepicker.js"></script>
 <link href="~/VPay/assets/css/daterangepicker.css" rel="stylesheet" />
-
 <body class="theme-cyan">
+    <div class="imgScale_Outer" onclick="btnClose()" id="imgScale" style="display:none;">
+        <div class="BtnClose" onclick="btnClose()"><i class="fas fa-times" style="color: #fff; float: right; padding: 10px; cursor: pointer;"></i></div>
+        <div class="imgScale_inner">
+            <img id="idImgScale_Image" alt="">
+        </div>
+    </div>
+
+
     <div class="block-header paper-wrap">
         <div class="row">
             <div class="col col-lg-3 col-md-3 col-sm-3">
-                <h2>下层商户充值统计</h2>
+                <h2>商户冻结查询</h2>
             </div>
             <div class="col col-lg-9 col-md-9 col-sm-9">
                 <div class="tips">
@@ -943,76 +990,67 @@
     <div class="container-fluid">
         <!-- Basic Examples -->
         <div class="row clearfix">
-            <div class="col-lg-12 col-md-12 col-sm-12">
+            <div class="col-lg-12">
                 <div class="card">
-                    <div class="header"></div>
-                    <div class="body">
-                        <div class="row clearfix">
+                    <div class="header">
+                        <div class="row">
+                            <div class="col-lg-7 col-md-7 col-sm-7">
 
-                            <div class="col-lg-12" id="divCompanyData">
-
-                              
-
-                                <div class="row">
-                                
-                                    <h6 style="margin-top: 10px;margin-right: 10px;margin-left: 15px;"> 支付通道 : </h6>
-                                    <div class="row" style="display:inline-block;margin-bottom: 10px;">
-                                        <select class="show-tick" id="select_ServiceType"></select>
-                                    </div>
-
-                                </div>
-
-                                <div class="row" style="margin-bottom: 10px;">
-                                    <h6 style="margin-top: 10px;margin-right: 10px;margin-left: 15px;"> 时间 : </h6>
-                                    <input id="dateinput" style="width:250px;height: 41px;margin-right:5px" class="form-control" />
-                                    <select id="deteselect" style="width: 110px;">
-                                        <option value="0">今日</option>
-                                        <option value="1">昨日</option>
-                                        <option value="2">过去7日</option>
-                                        <option value="3">过去30日</option>
-                                        <option value="4">这个月</option>
-                                        <option value="5">上个月</option>
-                                        <option value="6">自定义</option>
-                                    </select>
-                                    <div>
-                                        <button style="margin-left: 15px;" class="btn btn-raised btn-primary btn-round waves-effect" type="button" id="btnCompanySearch">搜寻</button>
-                                        <button id="Excel_download" type="button" class="btn btn-raised btn-round waves-effect">汇出Excel</button>
-                                    </div>
-                                </div>
-
-                                <div class="row" style="background-color: #99FF99;line-height: 30px;">
-
-                                    <span style="font-weight:900;color:#227700;font-size:15px;margin-left:5px"> 总冲金额: </span><span style="font-size:15px;margin-left:5px" id="lab_TotalAgentAmount"></span>
-
-                                </div>
-                              
-                                <div id="div_table_SummaryCompanyByDateTable">
-                                    <table class="table table-bordered table-striped table-hover dataTable nowrap" id="table_SummaryCompanyByDateTable" style="width:100%"></table>
-                                </div>
                             </div>
+                            <div class="col-lg-5 col-md-5 col-sm-5 ortherText">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="body">
+                        <div class="row">
+                            <div class="col col-lg-6 col-md-6 col-sm-6">
+                                <div class="row" style="margin-top: 10px">
+                                    <div>
+                                        <h6 style="margin-top: 10px;margin-right: 10px;margin-left: 15px;"> 被冻结单号 : </h6>
+                                    </div>
+                                    <div class="input-group" style="width:300px">
+                                        <input type="text" id="input_PaymentSerial" placeholder="被冻结单号" class="form-control" style="line-height: inherit;">
+
+                                    </div>
+                                    <div class="row" style="margin-bottom: 10px;">
+                                        <h6 style="margin-top: 10px;margin-right: 10px;margin-left: 15px;"> 类型 : </h6>
+                                        <select class="show-tick" id="select_Type"></select>
+                                        <button class="btn btn-raised btn-primary btn-round waves-effect" type="button" id="btnSearch" style="margin-left:5px;">搜寻</button>
+                                    </div>
+                                    
+                                </div>
+
+                              
+                               
+                            </div>
+                        </div>
+                        <div class="row" style="background-color: #99FF99;line-height: 30px;">
+                            <span style="font-weight:900;color:#227700;font-size:15px;margin-left:5px"> 总冻结金额 : </span><span style="font-size:15px;margin-left:5px" id="count2"></span>
+                        </div>
+                        <div id="div_table">
+                            <table style="width:100%" class="table table-bordered table-striped table-hover dataTable nowrap " id="table_Table"></table>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         <!-- #END# Basic Examples -->
+
     </div>
 </body>
 
 
 <script>
     var Table;
-    var CData;
-    var CSeleData;
     var isCreatedTable = false;
-    var CompanyID;
+    var isFirstSearch = false;
 
     $(document).ready(function () {
         if ('@CheckLoginPermission' == 'false') {
                 location.href = "Login.cshtml";
             }
 
-        if ('@CheckPermission' == 'false') {
+               if ('@CheckPermission' == 'false') {
             parent.errorAlertCallback("权限不足", function () {
                 parent.GoPage("Home");
                 parent.CloseActivePage(window.frameElement.id.split('_')[1]);
@@ -1024,325 +1062,136 @@
     function pageLoad() {
         AdminObject = parent.AdminObject;
         api = parent.api;
-       
-        createSummaryCompanyByDateTable2();
-
-        getServiceType();
-  
-        //啟用日期
-        var start = moment().hour(00).minute(00);
-        var end = moment().hour(23).minute(59);
-
-        $('#dateinput').daterangepicker({
-            startDate: start,
-            endDate: end,
-            timePicker: true,
-            timePicker24Hour: true,
-            locale: {
-
-                "applyLabel": "確認",
-                "cancelLabel": "取消",
-                "format": 'YYYY/MM/DD HH:mm',
-                "daysOfWeek": ["日", "一", "二", "三", "四", "五", "六"],
-                "monthNames": ["1月", "2月", "3月", "4月", "5月", "6月",
-                    "7月", "8月", "9月", "10月", "11月", "12月"]
-            }
-        }, function (start, end, label) {
-            $('#deteselect').val("6");
-            $('#deteselect').selectpicker('refresh');
-        });
+ 
+        createTypeSelect();
+     
         parent.wrapperFadeOut();
-    }
 
-    $('#deteselect').change(function () {
+    };
 
-        switch ($(this).val()) {
-            case "0"://今日
-                var start = moment().hour(00).minute(00);
-                var end = moment().hour(23).minute(59);
-                break;
-            case "1"://昨日
-                var start = moment().subtract(1, 'days').hour(00).minute(00);
-                var end = moment().subtract(1, 'days').hour(23).minute(59);
-                break;
-            case "2"://过去7日
-                var start = moment().subtract(6, 'days').hour(00).minute(00);
-                var end = moment().hour(23).minute(59);
-                break;
-            case "3"://过去30日
-                var start = moment().subtract(29, 'days').hour(00).minute(00);
-                var end = moment().hour(23).minute(59);
-                break;
-            case "4"://这个月
-                var start = moment().startOf('month').hour(00).minute(00);
-                var end = moment().endOf('month').hour(23).minute(59);
-                break;
-            case "5"://上个月
-                var start = moment().subtract(1, 'month').startOf('month').hour(00).minute(00);
-                var end = moment().subtract(1, 'month').endOf('month').hour(23).minute(59);
-                break;
-            default:
-        }
-        $('#dateinput').data('daterangepicker').setStartDate(start);
-        $('#dateinput').data('daterangepicker').setEndDate(end);
+    function getTableResult() {
 
-    })
+        var Status = $('#select_Type').val();
+        var PaymentSerial = $("#input_PaymentSerial").val();
 
-
-    function getServiceType() {
-        api.getServiceType(AdminObject.forCompanyID, function (success, obj) {
-            if (obj.ResultCode == 0) {
-                if (obj.ServiceTypes.length > 0) {
-                    checkServiceTypeData = obj.ServiceTypes;
-                    var groupName = "";
-                    $("#select_ServiceType").children().remove();
-                    $("#select_ServiceType").append('<option value="0_CNY">  全部  </option>');
-                    var optgroup;
-                    $.each(obj.ServiceTypes, function (i, item) {
-                        if (groupName != obj.ServiceTypes[i].CurrencyType) {
-                            groupName = obj.ServiceTypes[i].CurrencyType;
-                            optgroup = $('<optgroup label="' + groupName + '">');
-                            $("#select_ServiceType").append(optgroup);
-                        }
-                        optgroup.append('<option value="' + obj.ServiceTypes[i].ServiceType + "_" + obj.ServiceTypes[i].CurrencyType + '">' + obj.ServiceTypes[i].ServiceTypeName + '</option>');
-                    })
-                    $('#select_ServiceType').selectpicker('refresh');
-                } else {
-                    parent.warningAlert("尚未设定对应渠道");
-                }
-            } else {
-                var message = ""
-                switch (obj.ResultCode) {
-                    case 4:
-                        parent.errorAlertCallback("权限不足", function () {
-                            parent.ChangePage("Home");
-                            parent.CloseActivePage(window.frameElement.id.split('_')[1]);
-                        });
-                        break;
-                    case 5:  
-                        parent.warningAlert("尚未设定供应商对应渠道");
-                        break;
-                    case 7:
-                        parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                        break;
-                    default:
-                        parent.warningAlert("其他错误");
-                        break;
-                }
-            }
-        });
-    }
-
-    //#region 建立報表
-    function createSummaryCompanyByDateTable2() {
-        $("#table_SummaryCompanyByDateTable").DataTable({
-            columns: [
-                { "title": "日期", "data": "SummaryDate2" },
-                { "title": "商户", "data": "CompanyName" },
-                { "title": "支付通道", "data": "ServiceTypeName" },
-                {
-                    "title": "充值金额", "data": "SummaryAmount",
-                    "render": function (data, display, rowdata) {
-                        return toCurrency(data);
-                    }
-                }
-            ],
-            rowCallback: function (row, data) { },
-            filter: true,
-            info: false,
-            ordering: true,
-            processing: true,
-            retrieve: true,
-            selected: true,
-            scrollX: true,
-            autoWidth: false,
-            language: chineseTableLang
-        });
-    }
-
-    function createSummaryCompanyByDateTable(data) {
-        isCreatedTable = true;
-        Table = $("#table_SummaryCompanyByDateTable").DataTable({
-            data: data,
-            columns: [
-                { "title": "日期", "data": "SummaryDate2" },
-                { "title": "商户", "data": "CompanyName" },
-                { "title": "支付通道", "data": "ServiceTypeName" },
-                {
-                    "title": "充值金额", "data": "SummaryAmount",
-                    "render": function (data, display, rowdata) {
-                        return toCurrency(data);
-                    }
-                }
-            ],
-            rowCallback: function (row, data) { },
-            filter: true,
-            info: false,
-            ordering: true,
-            order: [[0, "desc"]],
-            processing: true,
-            retrieve: true,
-            selected: true,
-            scrollX: true,
-            autoWidth: false,
-            language: chineseTableLang
-        });
-    }
-
-    function getSummaryCompanyByDateTableResult(searchData) {
-        api.getSummaryCompanyByAgentDownCompany(searchData, function (success, obj) {
+        api.getCompanyFrozenPointHistory(PaymentSerial, Status, function (success, obj) {
             if (isCreatedTable) {
                 Table.clear().draw();
             }
+
             if (obj.ResultCode == 0) {
-                if (!isCreatedTable) {
-                    $("#div_table_SummaryCompanyByDateTable").empty();
-                    $("#div_table_SummaryCompanyByDateTable").append('<table style="width:100%" class="table table-bordered table-striped table-hover dataTable nowrap" id="table_SummaryCompanyByDateTable"></table>');
-                    createSummaryCompanyByDateTable(obj.SummaryCompanyByDates);
-                } else {
-                    Table.rows.add(obj.SummaryCompanyByDates).draw(); // Add new data
+                var companyFrozenAmount = 0;
+                var providerFrozenAmount = 0;
+                var frozendata = obj.Results;
+                for (var i = 0; i < frozendata.length; i++) {
+                    if (frozendata[i].Status == 0) {
+                        companyFrozenAmount += frozendata[i].CompanyFrozenAmount;
+                        providerFrozenAmount += frozendata[i].ProviderFrozenAmount;
+                    }
                 }
-                statisticsAmount(obj);
+                $('#count1').text(toCurrency(providerFrozenAmount));
+                $('#count2').text(toCurrency(companyFrozenAmount));
+
+                if (!isCreatedTable) {
+                    isCreatedTable = true;
+                    createTable(frozendata);
+                } else {
+                    Table.rows.add(frozendata).draw();
+                }
+                parent.wrapperFadeOut();
             } else {
                 switch (obj.ResultCode) {
-                    case 4:
-                        parent.errorAlertCallback("权限不足", function () {
-                            parent.ChangePage("Home");
-                            parent.CloseActivePage(window.frameElement.id.split('_')[1]);
-                        });
-                        break;
-                    case 5:
-                        parent.warningAlert("没有资料");
-                        break;
                     case 7:
                         parent.errorAlert("您已断线请重新登入", "Login.cshtml");
                         break;
+                    case 5:
+
+                        parent.warningAlert("查无资料");
+                        break;
                     default:
-                        parent.warningAlert("其他错误");
+                        //warningAlert("其他錯誤");
                         break;
                 }
-                $('#count1').text('');
-                $('#count2').text('');
-
+                parent.wrapperFadeOut();
             }
         });
     }
-    //#endregion
 
-    //搜尋
-    $("#btnCompanySearch").on("click", function () {
-        //#region 驗證
+    function createTable(data) {
 
-        var dateinputval = $('#dateinput').val().split('-');
-        var startDate = dateinputval[0];
-        var endDate = dateinputval[1];
-        //#endregion
-        var serviceType = $("#select_ServiceType").val().split("_")[0];
-        var currencyType = $("#select_ServiceType").val().split("_")[1];
+        Table = $('#table_Table').DataTable({
+            data: data,
+            columns: [
+                {
+                    "title": "被冻结单号", "data": "forPaymentSerial"
+                },
+                {
+                    "title": "银行卡资讯", "data": "BankCard",
+                    "render": function (data, display, rowdata) {
+                        var html = "";
+                        if (!(rowdata.BankName == null || rowdata.BankName == "")) {
+                            html += rowdata.BankName + "</br>";
+                        }
+                        if (!(rowdata.BankCard == null || rowdata.BankCard == "")) {
+                            html += rowdata.BankCard + "</br>";
+                        }
+                        if (!(rowdata.BankCardName == null || rowdata.BankCardName == "")) {
+                            html += rowdata.BankCardName + "</br>";
+                        }
 
-        var data = {
-            CompanyID: $('#select_Company').val(),
-            StartDate: startDate,
-            EndDate: endDate,
-            CurrencyType: currencyType,
-            ServiceType: serviceType
-        }
+                        if (html != "") {
+                            html = html.substring(0, html.length -5);
+                        }
 
-        getSummaryCompanyByDateTableResult(data);
+
+                        return "<span>" + html+ "</span>";
+                    }
+                },
+                {
+                    "title": "冻结金额", "data": "CompanyFrozenAmount",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
+                    }
+                },
+               
+                {
+                    "title": "状态", "data": "Status",
+                    "render": function (data, display, rowdata) {
+                        switch (data) {
+                            case 0:
+                                return '冻结';
+                                break;
+                            case 1:
+                                return '解冻';
+                                break;
+                        }
+                    }
+                }
+            ],
+            rowCallback: function (row, data) { },
+            filter: true,         //右上搜尋
+            info: false,
+            ordering: true, //排序
+            processing: true,
+            retrieve: true,
+            paging: true,    //分頁
+            scrollX: true,
+            autoWidth: false,
+            language: chineseTableLang
+        });
+    }
+
+    $('#btnSearch').click(function () {
+        getTableResult();
     })
 
-    //選擇供應商事件
-    $('#btn_selectCompany').click(function () {
-        parent.showSelectCompany_menu($('#companyLabel'), window.frameElement.id);
-    });
 
-    function statisticsAmount(data) {
-        $('#lab_TotalAgentAmount').text(toCurrency(data.TotalAgentAmount));
+    function createTypeSelect() {
+        //0=代收/1=代付/2=提現/3=後台加扣
+        $("#select_Type").append('<option value="99">' + '所有' + '</option>');
+        $("#select_Type").append('<option value="0">' + '冻结' + '</option>');
+        $("#select_Type").append('<option value="1">' + '解冻' + '</option>');
+        $('#select_Type').selectpicker('refresh');
     }
 
-
-    $('#Excel_download').click(function () {
-        CreateExcel();
-    })
-
-    function CreateExcel() {
-        if (Table == null) {
-            parent.warningAlert("没有汇出资料");
-            return;
-        }
-
-        if (Table.rows().data().length > 0) {
-            var exceldata = [
-                ['日期','商户' ,'支付通道', '充值金额']
-            ];
-            var TableData = Table.rows().data();  
-            for (var i = 0; i < TableData.length; i++) {
-                var data = TableData[i];
-                var tmpArray = new Array(data.SummaryDate2, data.CompanyName, data.ServiceTypeName, data.SummaryAmount);
-                exceldata.push(tmpArray);
-            }
-
-            var sheet = XLSX.utils.aoa_to_sheet(exceldata);
-            openDownloadDialog(sheet2blob(sheet), dateTimeStr() + '.xlsx');
-        } else {
-            parent.warningAlert("没有汇出资料");
-        }
-    }
-
-    function dateTimeStr() {
-        var dateTime = new Date();
-        var year = dateTime.getFullYear();
-        var month = dateTime.getMonth() + 1;//js從0開始取
-        var date = dateTime.getDate();
-
-        if (month < 10) {
-            month = "0" + month;
-        }
-        if (date < 10) {
-            date = "0" + date;
-        }
-
-        return "VPay_CompanySummaryAgentDownCompany_" + year + "-" + month + "-" + date + " ";
-    }
-
-    function openDownloadDialog(url, saveName) {
-        if (typeof url == 'object' && url instanceof Blob) {
-            url = URL.createObjectURL(url); // 创建blob地址
-        }
-        var aLink = document.createElement('a');
-        aLink.href = url;
-        aLink.download = saveName || ''; // HTML5新增的属性，指定保存文件名，可以不要后缀，注意，file:///模式下不会生效
-        var event;
-        if (window.MouseEvent) event = new MouseEvent('click');
-        else {
-            event = document.createEvent('MouseEvents');
-            event.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-        }
-        aLink.dispatchEvent(event);
-    }
-
-    function sheet2blob(sheet, sheetName) {
-        sheetName = sheetName || 'sheet1';
-        var workbook = {
-            SheetNames: [sheetName],
-            Sheets: {}
-        };
-        workbook.Sheets[sheetName] = sheet;
-        // 生成excel的配置项
-        var wopts = {
-            bookType: 'xlsx', // 要生成的文件类型
-            bookSST: false, // 是否生成Shared String Table，官方解释是，如果开启生成速度会下降，但在低版本IOS设备上有更好的兼容性
-            type: 'binary'
-        };
-        var wbout = XLSX.write(workbook, wopts);
-        var blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
-        // 字符串转ArrayBuffer
-        function s2ab(s) {
-            var buf = new ArrayBuffer(s.length);
-            var view = new Uint8Array(buf);
-            for (var i = 0; i != s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
-            return buf;
-        }
-        return blob;
-    }
 </script>

@@ -12404,6 +12404,41 @@ public class BackendController : ApiController
         return retValue;
     }
 
+
+    [HttpPost]
+    [ActionName("GetCompanyFrozenPointHistory")]
+    public FrozenPointHistoryResult GetCompanyFrozenPointHistory(FromBody.GetFrozenPointHistory fromBody)
+    {
+
+        RedisCache.BIDContext.BIDInfo AdminData = new RedisCache.BIDContext.BIDInfo();
+        FrozenPointHistoryResult Result = new FrozenPointHistoryResult();
+
+        if (!RedisCache.BIDContext.CheckBIDExist(fromBody.BID))
+        {
+            Result.ResultCode = APIResult.enumResult.SessionError;
+            return Result;
+        }
+        else
+        {
+            AdminData = RedisCache.BIDContext.GetBIDInfo(fromBody.BID);
+        }
+        fromBody.CompanyID = AdminData.forCompanyID;
+
+        BackendDB backendDB = new BackendDB();
+        List<DBModel.FrozenPointHistory> Table = backendDB.GetCompanyFrozenPointHistoryResult(fromBody);
+
+        if (Table != null)
+        {
+            Result.Results = Table;
+            Result.ResultCode = APIResult.enumResult.OK;
+        }
+        else
+        {
+            Result.ResultCode = APIResult.enumResult.NoData;
+        }
+        return Result;
+    }
+
     [HttpPost]
     [ActionName("GetFrozenPointHistory")]
     public FrozenPointHistoryResult GetFrozenPointHistory(FromBody.GetFrozenPointHistory fromBody)

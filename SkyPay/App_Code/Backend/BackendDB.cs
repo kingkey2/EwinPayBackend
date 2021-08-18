@@ -15798,6 +15798,59 @@ public class BackendDB
         return returnValue;
     }
 
+    public List<DBModel.FrozenPointHistory> GetCompanyFrozenPointHistoryResult(FromBody.GetFrozenPointHistory fromBody)
+    {
+        string SS;
+        System.Data.SqlClient.SqlCommand DBCmd;
+        List<DBModel.FrozenPointHistory> returnValue = new List<DBModel.FrozenPointHistory>();
+        string SummaryContent = string.Empty;
+        DataTable DT;
+        string SummaryDateString = string.Empty;
+
+        SS = " SELECT FP.forPaymentSerial,FP.CompanyFrozenAmount,FP.Status,FP.BankCard,FP.BankCard,FP.BankName,FP.BankCardName " +
+             " FROM   FrozenPoint FP WITH(NOLOCK) WHERE FP.CompanyFrozenAmount>0 ";
+     
+        if (fromBody.PaymentSerial != "")
+        {
+            SS += "        AND FP.forPaymentSerial = @PaymentSerial ";
+        }
+
+
+        if (fromBody.CompanyID != 0)
+        {
+            SS += "        AND FP.forCompanyID = @CompanyID ";
+        }
+
+
+        if (fromBody.Status != 99)
+        {
+            SS += "        AND FP.Status = @Status ";
+        }
+
+        DBCmd = new System.Data.SqlClient.SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = System.Data.CommandType.Text;
+        DBCmd.Parameters.Add("@CompanyID", System.Data.SqlDbType.Int).Value = fromBody.CompanyID;
+        DBCmd.Parameters.Add("@PaymentSerial", System.Data.SqlDbType.VarChar).Value = fromBody.PaymentSerial;
+        DBCmd.Parameters.Add("@Status", System.Data.SqlDbType.Int).Value = fromBody.Status;
+        DT = DBAccess.GetDB(DBConnStr, DBCmd);
+
+        if (DT != null)
+        {
+            if (DT.Rows.Count > 0)
+            {
+                returnValue = DataTableExtensions.ToList<DBModel.FrozenPointHistory>(DT).ToList();
+            }
+        }
+
+        if (returnValue.Count == 0)
+        {
+            returnValue = null;
+        }
+
+        return returnValue;
+    }
+
     public DBModel.FrozenPointHistory GetSumFrozenPoint(string ProviderCode)
     {
         string SS;
@@ -16211,10 +16264,10 @@ public class BackendDB
         List<DBModel.RiskControlByPaymentSuccessCount> returnValue = null;
         DataTable DT;
 
-        SS = "SELECT tmpTable.* FROM ( SELECT UserIP,count(*) as Count,convert(varchar, MAX(FinishDate), 120) as EndDate,convert(varchar, min(FinishDate), 120) as StartDate FROM PaymentTable WITH(NOLOCK) " +
+        SS = "SELECT tmpTable.* FROM ( SELECT ClientIP,count(*) as Count,convert(varchar, MAX(FinishDate), 120) as EndDate,convert(varchar, min(FinishDate), 120) as StartDate FROM PaymentTable WITH(NOLOCK) " +
              " Where FinishDate between DATEADD(minute,-10,GETDATE()) And GETDATE()" +
              " And(ProcessStatus = 4 or ProcessStatus = 2) And SubmitType=0 " +
-             " Group by UserIP)  tmpTable WHERE Count>= 3";
+             " Group by ClientIP)  tmpTable WHERE Count>= 3";
 
         DBCmd = new System.Data.SqlClient.SqlCommand();
         DBCmd.CommandText = SS;
@@ -16245,7 +16298,7 @@ public class BackendDB
           " WHERE PT.PaymentID NOT IN(SELECT forPaymentID" +
           " FROM RiskControlPaymentTable)" +
           " AND PT.FinishDate between @StartDate And @EndDate" +
-          " AND PT.UserIP = @UserIP";
+          " AND PT.ClientIP = @UserIP";
 
             DBCmd = new System.Data.SqlClient.SqlCommand();
             DBCmd.CommandText = SS;

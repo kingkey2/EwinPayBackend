@@ -48,11 +48,11 @@
     <![endif]-->
     <link rel="stylesheet" href="/Company/assets/css/ace-skins.min.css" />
     <link rel="stylesheet" href="/Company/assets/css/ace-rtl.min.css" />
-
     <link rel="stylesheet" href="/Company/assets/css/ace-rtl.min.css" />
-
-    <script src="/VPay/assets/js/BackendJS/BackendAPI.js?20210129"></script>
+    <script src="/VPay/assets/js/BackendJS/BackendAPI.js?s20210129"></script>
     <script src="/Company/assets/js/jquery-2.1.4.min.js"></script>
+
+    @*<script src="~/VPay/assets/js/jquery-3.3.1.min.js"></script>*@
     <!-- sweetalert Plugin Js -->
     <script src="/VPay/assets/plugins/sweetalert/sweetalert.min.js"></script>
     <script src="/VPay/assets/js/hashes.min.js"></script>
@@ -68,13 +68,76 @@
     <script src="assets/js/html5shiv.min.js"></script>
     <script src="assets/js/respond.min.js"></script>
     <![endif]-->
-    
+
+    <script src="/Company/assets/js/jquery.dataTables.min.js"></script>
+    <script src="/Company/assets/js/jquery.dataTables.bootstrap.min.js"></script>
+    <script src="/Company/assets/js/dataTables.buttons.min.js"></script>
+    <script src="/Company/assets/js/buttons.flash.min.js"></script>
+    <script src="/Company/assets/js/buttons.html5.min.js"></script>
+    <script src="/Company/assets/js/buttons.print.min.js"></script>
+    <script src="/Company/assets/js/buttons.colVis.min.js"></script>
+    <script src="/Company/assets/js/dataTables.select.min.js"></script>
+
+    <script src="~/VPay/assets/js/AutoNumeric.js"></script>
+    <script src="~/VPay/assets/js/xlsx.core.min.js"></script>
+    <script src="~/VPay/assets/js/moment.min.js"></script>
+    <script src="~/VPay/assets/js/daterangepicker.js"></script>
+    <link href="~/VPay/assets/css/daterangepicker.css" rel="stylesheet" />
+
+    <style>
+        .m-t-30 {
+            margin-top: 30px;
+        }
+
+        .page-loader-wrapper .loader {
+            position: relative;
+            top: calc(40% - 30px);
+        }
+
+        .page-loader-wrapper {
+            BACKGROUND-COLOR: beige;
+            z-index: 99999999;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            text-align: center;
+        }
+    </style>
+
     <script>
         var apiURL = "/api/Backend";
         var AdminJsonData = '@Html.Raw(AdminJsonData)';
         var AdminObject = null;
         var BID = '@BID';
+        var chineseTableLang = {
+            "processing": "处理中...",
+            "loadingRecords": "载入中...",
+            "lengthMenu": "显示 _MENU_ 项结果",
+            "zeroRecords": "没有符合的结果",
+            "info": "显示第 _START_ 至 _END_ 项结果，共 _TOTAL_ 项",
+            "infoEmpty": "显示第 0 至 0 项结果，共 0 项",
+            "infoFiltered": "(從 _MAX_ 项结果中过滤)",
+            "infoPostFix": "",
+            "search": "搜寻:",
+            "paginate": {
+                "first": "第一页",
+                "previous": "上一页",
+                "next": "下一页",
+                "last": "最后一页"
+            },
+            "aria": {
+                "sortAscending": ": 升幂划分",
+                "sortDescending": ": 降幂划分"
+            }
+        };
+
         function init() {
+        
             api = new BackendAPI(BID, apiURL);
             if (AdminJsonData != "") {
                 AdminObject = JSON.parse(AdminJsonData);
@@ -84,12 +147,45 @@
                 sessionLogout();
             }
 
-            $('#menuContent').load('Index.cshtml');
+            if ('@CheckLoginPermission' == 'false') {
+                location.href = "Login.cshtml";
+            }
+
             createMenu();
+            goPageForModify("Home.cshtml","Home");
+            $('.page-loader-wrapper').fadeOut();
         }
 
-        window.onresize = function () {
-            $("#menuContent").innerHeight(window.innerHeight - 150);
+        function loadPage(doc, pageName) {
+            wrapperFadeIn();
+            $('#MainFunctionTitle').text($(doc).parent().parent().parent().find('span').text());
+            $('#AdditionalFunctionTitle').text($(doc).text());
+            $('#AdditionalFunctionTitle').data('src', pageName)
+            $('#menuContent').html('');
+            $('#menuContent').load(pageName);
+        }
+
+        function goPage(pageName) {
+            $("#navlist").find("[data-src='" + pageName + "']").trigger('click');
+        }
+
+        function goPageForModify(pageName,title) {
+            $('#AdditionalFunctionTitle').text(title);
+            $('#AdditionalFunctionTitle').data('src', pageName);
+            $('#menuContent').html('');
+            $('#menuContent').load(pageName);
+        }
+
+        function reloadPage() {
+            var pageName = $('#AdditionalFunctionTitle').data('src');
+            $("#navlist").find("[data-src='" + pageName + "']").trigger('click');
+        }
+
+        function loadHomePage() {
+            $('#MainFunctionTitle').text('主页');
+            $('#AdditionalFunctionTitle').text('Home');
+            $('#menuContent').html('');
+            $('#menuContent').load('Home.cshtml');
         }
 
         function createMenu() {
@@ -143,7 +239,7 @@
                             $.each(obj[i].PermissionResults, function (j, item) {
 
                                 docSubmenu.append(`<li class="hover">
-                                                            <a href="${obj[i].PermissionResults[j].LinkURL}">
+                                                            <a data-src="${obj[i].PermissionResults[j].LinkURL}" onclick="loadPage(this,'${obj[i].PermissionResults[j].LinkURL}')">
                                                             <i class="menu-icon fa fa-caret-right"></i>
                                                             ${obj[i].PermissionResults[j].Description}
                                                             </a>
@@ -153,7 +249,7 @@
 
                             $(docli).append($(docSubmenu));
 
-                            $('.nav-list').append(docli);
+                            $('#navlist').append(docli);
 
                         })
 
@@ -162,7 +258,7 @@
 
                 if (!AdminObject.CheckGoogleKeySuccess) {
                     errorAlertCallback("请先绑定谷歌验证器", function () {
-                        GoPageByUrl("GoogleDoubleCheck.cshtml");
+                        goPage("GoogleDoubleCheck.cshtml");
                     });
                 }
             });
@@ -170,6 +266,31 @@
 
 
         }
+
+        //#region 登出按鈕事件
+        function Logout() {
+            swal({
+                title: "是否要登出",
+                type: "warning",
+                confirmButtonText: "確認",
+                cancelButtonText: "取消",
+                showCancelButton: true,
+                closeOnConfirm: false
+            }, function (isConfirm) {
+                if (isConfirm) {
+                    api.userLogout(function (success, obj) {
+                        if (success) {
+                            sessionStorage.clear();
+                            location.href = "/Company/Login";
+                        }
+                    });
+                } else {
+                }
+            });
+        }
+  
+            //#endregion
+
 
         //#region 登出事件
         function sessionLogout() {
@@ -203,17 +324,6 @@
                 if (cb) {
                     cb();
                 }
-            })
-        }
-
-        function successAlertAndcloseTab(pageID) {
-            swal({
-                title: "更新成功",
-                type: "success",
-                confirmButtonText: "确认",
-                closeOnConfirm: true
-            }, function () {
-                CloseActivePage(pageID);
             })
         }
 
@@ -287,7 +397,7 @@
 
 
         function errorAlertCallback(title, cb) {
-            $(".page-loader-wrapper").fadeOut();
+
             swal({
                 title: title,
                 type: "error",
@@ -323,333 +433,114 @@
             });
         }
 
-        //#endregion
-        //function resizeIFrameToFitContent(iFrame) {
+        //#endregion
 
-        //    iFrame.width = iFrame.contentWindow.document.body.scrollWidth;
-        //    iFrame.height = iFrame.contentWindow.document.body.scrollHeight;
-        //}
+        //添加千分符號
+        function toCurrency(num) {
 
-        //window.addEventListener('DOMContentLoaded', function (e) {
+            num = parseFloat(Number(num).toFixed(2));
+            var parts = num.toString().split('.');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            return parts.join('.');
+        }
 
-        //    var iFrame = document.getElementById('mainFrame');
-        //    resizeIFrameToFitContent(iFrame);
+        //刪除千分符號
+        function toNumber(num) {
+            var returnNum = Number(num.trim().replace(/,/g, ""));
+            return returnNum;
+        }
+        //是否為浮點數
+        function isFloat(n) {
+            return n === n && n !== (n | 0);
+        }
 
-        //});
+        function wrapperFadeOut() {
+            $(".page-loader-wrapper").fadeOut();
+        }
+
+        function wrapperFadeIn() {
+            $(".page-loader-wrapper").fadeIn();
+        }
+
+        //#region 驗證TempData的Type是否與編輯頁面相同
+        function CheckTempDataType(type1) {
+
+            if (window.sessionStorage["TempData"] == undefined) {
+                swal({
+                    title: "错误",
+                    type: "warning",
+                    confirmButtonText: "确认",
+                    closeOnConfirm: true
+                }, function () {
+                    loadHomePage();
+                })
+            } else if (!window.sessionStorage["TempData"]) {
+
+                swal({
+                    title: "错误",
+                    type: "warning",
+                    confirmButtonText: "确认",
+                    closeOnConfirm: true
+                }, function () {
+                    loadHomePage();
+                })
+            }
+
+            var td = JSON.parse(window.sessionStorage["TempData"]);
+            if (type1 == td.type) {
+                return td;
+            } else {
+                swal({
+                    title: "错误",
+                    type: "warning",
+                    confirmButtonText: "确认",
+                    closeOnConfirm: true
+                }, function () {
+                    loadHomePage();
+                })
+            }
+        }
+        //#endregion
 
         window.onload = init;
     </script>
 </head>
 
+
+
 <body class="no-skin">
+
+    <div class="page-loader-wrapper">
+        <div class="loader">
+            <div class="m-t-30"><img class="zmdi-hc-spin" src="~/VPay/assets/images/logo_S_w.svg" width="48" height="48" alt="sQuare"></div>
+            <p>Please wait...</p>
+        </div>
+    </div>
+
     <div id="navbar" class="navbar navbar-default    navbar-collapse       h-navbar ace-save-state">
         <div class="navbar-container ace-save-state" id="navbar-container">
             <div class="navbar-header pull-left">
                 <a href="index.html" class="navbar-brand">
                     <small>
                         <i class="fa fa-leaf"></i>
-                        Ace Admin
+                        VPay
                     </small>
                 </a>
-
-                <button class="pull-right navbar-toggle navbar-toggle-img collapsed" type="button" data-toggle="collapse" data-target=".navbar-buttons,.navbar-menu">
-                    <span class="sr-only">Toggle user menu</span>
-
-                    <img src="assets/images/avatars/user.jpg" alt="Jason's Photo" />
-                </button>
-
-              
-           
             </div>
 
             <div class="navbar-buttons navbar-header pull-right  collapse navbar-collapse" role="navigation">
                 <ul class="nav ace-nav">
                     <li class="transparent dropdown-modal">
-                        <a data-toggle="dropdown" class="dropdown-toggle" href="#">
-                            <i class="ace-icon fa fa-bell icon-animated-bell"></i>
+                        <a onclick="Logout()">
+                            <i class="ace-icon glyphicon glyphicon-off"></i>
                         </a>
-
-                        <div class="dropdown-menu-right dropdown-navbar dropdown-menu dropdown-caret dropdown-close">
-                            <div class="tabbable">
-                                <ul class="nav nav-tabs">
-                                    <li class="active">
-                                        <a data-toggle="tab" href="#navbar-tasks">
-                                            Tasks
-                                            <span class="badge badge-danger">4</span>
-                                        </a>
-                                    </li>
-
-                                    <li>
-                                        <a data-toggle="tab" href="#navbar-messages">
-                                            Messages
-                                            <span class="badge badge-danger">5</span>
-                                        </a>
-                                    </li>
-                                </ul><!-- .nav-tabs -->
-
-                                <div class="tab-content">
-                                    <div id="navbar-tasks" class="tab-pane in active">
-                                        <ul class="dropdown-menu-right dropdown-navbar dropdown-menu">
-                                            <li class="dropdown-content">
-                                                <ul class="dropdown-menu dropdown-navbar">
-                                                    <li>
-                                                        <a href="#">
-                                                            <div class="clearfix">
-                                                                <span class="pull-left">Software Update</span>
-                                                                <span class="pull-right">65%</span>
-                                                            </div>
-
-                                                            <div class="progress progress-mini">
-                                                                <div style="width:65%" class="progress-bar"></div>
-                                                            </div>
-                                                        </a>
-                                                    </li>
-
-                                                    <li>
-                                                        <a href="#">
-                                                            <div class="clearfix">
-                                                                <span class="pull-left">Hardware Upgrade</span>
-                                                                <span class="pull-right">35%</span>
-                                                            </div>
-
-                                                            <div class="progress progress-mini">
-                                                                <div style="width:35%" class="progress-bar progress-bar-danger"></div>
-                                                            </div>
-                                                        </a>
-                                                    </li>
-
-                                                    <li>
-                                                        <a href="#">
-                                                            <div class="clearfix">
-                                                                <span class="pull-left">Unit Testing</span>
-                                                                <span class="pull-right">15%</span>
-                                                            </div>
-
-                                                            <div class="progress progress-mini">
-                                                                <div style="width:15%" class="progress-bar progress-bar-warning"></div>
-                                                            </div>
-                                                        </a>
-                                                    </li>
-
-                                                    <li>
-                                                        <a href="#">
-                                                            <div class="clearfix">
-                                                                <span class="pull-left">Bug Fixes</span>
-                                                                <span class="pull-right">90%</span>
-                                                            </div>
-
-                                                            <div class="progress progress-mini progress-striped active">
-                                                                <div style="width:90%" class="progress-bar progress-bar-success"></div>
-                                                            </div>
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </li>
-
-                                            <li class="dropdown-footer">
-                                                <a href="#">
-                                                    See tasks with details
-                                                    <i class="ace-icon fa fa-arrow-right"></i>
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </div><!-- /.tab-pane -->
-
-                                    <div id="navbar-messages" class="tab-pane">
-                                        <ul class="dropdown-menu-right dropdown-navbar dropdown-menu">
-                                            <li class="dropdown-content">
-                                                <ul class="dropdown-menu dropdown-navbar">
-                                                    <li>
-                                                        <a href="#">
-                                                            <img src="assets/images/avatars/avatar.png" class="msg-photo" alt="Alex's Avatar" />
-                                                            <span class="msg-body">
-                                                                <span class="msg-title">
-                                                                    <span class="blue">Alex:</span>
-                                                                    Ciao sociis natoque penatibus et auctor ...
-                                                                </span>
-
-                                                                <span class="msg-time">
-                                                                    <i class="ace-icon fa fa-clock-o"></i>
-                                                                    <span>a moment ago</span>
-                                                                </span>
-                                                            </span>
-                                                        </a>
-                                                    </li>
-
-                                                    <li>
-                                                        <a href="#">
-                                                            <img src="assets/images/avatars/avatar3.png" class="msg-photo" alt="Susan's Avatar" />
-                                                            <span class="msg-body">
-                                                                <span class="msg-title">
-                                                                    <span class="blue">Susan:</span>
-                                                                    Vestibulum id ligula porta felis euismod ...
-                                                                </span>
-
-                                                                <span class="msg-time">
-                                                                    <i class="ace-icon fa fa-clock-o"></i>
-                                                                    <span>20 minutes ago</span>
-                                                                </span>
-                                                            </span>
-                                                        </a>
-                                                    </li>
-
-                                                    <li>
-                                                        <a href="#">
-                                                            <img src="assets/images/avatars/avatar4.png" class="msg-photo" alt="Bob's Avatar" />
-                                                            <span class="msg-body">
-                                                                <span class="msg-title">
-                                                                    <span class="blue">Bob:</span>
-                                                                    Nullam quis risus eget urna mollis ornare ...
-                                                                </span>
-
-                                                                <span class="msg-time">
-                                                                    <i class="ace-icon fa fa-clock-o"></i>
-                                                                    <span>3:15 pm</span>
-                                                                </span>
-                                                            </span>
-                                                        </a>
-                                                    </li>
-
-                                                    <li>
-                                                        <a href="#">
-                                                            <img src="assets/images/avatars/avatar2.png" class="msg-photo" alt="Kate's Avatar" />
-                                                            <span class="msg-body">
-                                                                <span class="msg-title">
-                                                                    <span class="blue">Kate:</span>
-                                                                    Ciao sociis natoque eget urna mollis ornare ...
-                                                                </span>
-
-                                                                <span class="msg-time">
-                                                                    <i class="ace-icon fa fa-clock-o"></i>
-                                                                    <span>1:33 pm</span>
-                                                                </span>
-                                                            </span>
-                                                        </a>
-                                                    </li>
-
-                                                    <li>
-                                                        <a href="#">
-                                                            <img src="assets/images/avatars/avatar5.png" class="msg-photo" alt="Fred's Avatar" />
-                                                            <span class="msg-body">
-                                                                <span class="msg-title">
-                                                                    <span class="blue">Fred:</span>
-                                                                    Vestibulum id penatibus et auctor  ...
-                                                                </span>
-
-                                                                <span class="msg-time">
-                                                                    <i class="ace-icon fa fa-clock-o"></i>
-                                                                    <span>10:09 am</span>
-                                                                </span>
-                                                            </span>
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </li>
-
-                                            <li class="dropdown-footer">
-                                                <a href="inbox.html">
-                                                    See all messages
-                                                    <i class="ace-icon fa fa-arrow-right"></i>
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </div><!-- /.tab-pane -->
-                                </div><!-- /.tab-content -->
-                            </div><!-- /.tabbable -->
-                        </div><!-- /.dropdown-menu -->
                     </li>
 
-                    <li class="light-blue dropdown-modal user-min">
-                        <a data-toggle="dropdown" href="#" class="dropdown-toggle">
-                            <img class="nav-user-photo" src="assets/images/avatars/user.jpg" alt="Jason's Photo" />
-                            <span class="user-info">
-                                <small>Welcome,</small>
-                                Jason
-                            </span>
-
-                            <i class="ace-icon fa fa-caret-down"></i>
-                        </a>
-
-                        <ul class="user-menu dropdown-menu-right dropdown-menu dropdown-yellow dropdown-caret dropdown-close">
-                            <li>
-                                <a href="#">
-                                    <i class="ace-icon fa fa-cog"></i>
-                                    Settings
-                                </a>
-                            </li>
-
-                            <li>
-                                <a href="profile.html">
-                                    <i class="ace-icon fa fa-user"></i>
-                                    Profile
-                                </a>
-                            </li>
-
-                            <li class="divider"></li>
-
-                            <li>
-                                <a href="#">
-                                    <i class="ace-icon fa fa-power-off"></i>
-                                    Logout
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
+                    
                 </ul>
             </div>
 
-            <nav role="navigation" class="navbar-menu pull-left collapse navbar-collapse">
-                <ul class="nav navbar-nav">
-                    <li>
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                            Overview
-                            &nbsp;
-                            <i class="ace-icon fa fa-angle-down bigger-110"></i>
-                        </a>
-
-                        <ul class="dropdown-menu dropdown-light-blue dropdown-caret">
-                            <li>
-                                <a href="#">
-                                    <i class="ace-icon fa fa-eye bigger-110 blue"></i>
-                                    Monthly Visitors
-                                </a>
-                            </li>
-
-                            <li>
-                                <a href="#">
-                                    <i class="ace-icon fa fa-user bigger-110 blue"></i>
-                                    Active Users
-                                </a>
-                            </li>
-
-                            <li>
-                                <a href="#">
-                                    <i class="ace-icon fa fa-cog bigger-110 blue"></i>
-                                    Settings
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-
-                    <li>
-                        <a href="#">
-                            <i class="ace-icon fa fa-envelope"></i>
-                            Messages
-                            <span class="badge badge-warning">5</span>
-                        </a>
-                    </li>
-                </ul>
-
-                <form class="navbar-form navbar-left form-search" role="search">
-                    <div class="form-group">
-                        <input type="text" placeholder="search" />
-                    </div>
-
-                    <button type="button" class="btn btn-mini btn-info2">
-                        <i class="ace-icon fa fa-search icon-only bigger-110"></i>
-                    </button>
-                </form>
-            </nav>
+          
         </div><!-- /.navbar-container -->
     </div>
 
@@ -679,85 +570,20 @@
                 </div>
             </button><!-- /.sidebar-shortcuts -->
 
-            <ul class="nav nav-list"></ul><!-- /.nav-list -->
+            <ul class="nav nav-list" id="navlist"></ul><!-- /.nav-list -->
         </div>
 
         <div class="main-content">
             <div class="main-content-inner">
                 <div class="page-content">
-                    <div class="ace-settings-container" id="ace-settings-container">
-                        <div class="btn btn-app btn-xs btn-warning ace-settings-btn" id="ace-settings-btn">
-                            <i class="ace-icon fa fa-cog bigger-130"></i>
-                        </div>
-
-                        <div class="ace-settings-box clearfix" id="ace-settings-box">
-                            <div class="pull-left width-50">
-                                <div class="ace-settings-item">
-                                    <div class="pull-left">
-                                        <select id="skin-colorpicker" class="hide">
-                                            <option data-skin="no-skin" value="#438EB9">#438EB9</option>
-                                            <option data-skin="skin-1" value="#222A2D">#222A2D</option>
-                                            <option data-skin="skin-2" value="#C6487E">#C6487E</option>
-                                            <option data-skin="skin-3" value="#D0D0D0">#D0D0D0</option>
-                                        </select>
-                                    </div>
-                                    <span>&nbsp; Choose Skin</span>
-                                </div>
-
-                                <div class="ace-settings-item">
-                                    <input type="checkbox" class="ace ace-checkbox-2 ace-save-state" id="ace-settings-navbar" autocomplete="off" />
-                                    <label class="lbl" for="ace-settings-navbar"> Fixed Navbar</label>
-                                </div>
-
-                                <div class="ace-settings-item">
-                                    <input type="checkbox" class="ace ace-checkbox-2 ace-save-state" id="ace-settings-sidebar" autocomplete="off" />
-                                    <label class="lbl" for="ace-settings-sidebar"> Fixed Sidebar</label>
-                                </div>
-
-                                <div class="ace-settings-item">
-                                    <input type="checkbox" class="ace ace-checkbox-2 ace-save-state" id="ace-settings-breadcrumbs" autocomplete="off" />
-                                    <label class="lbl" for="ace-settings-breadcrumbs"> Fixed Breadcrumbs</label>
-                                </div>
-
-                                <div class="ace-settings-item">
-                                    <input type="checkbox" class="ace ace-checkbox-2" id="ace-settings-rtl" autocomplete="off" />
-                                    <label class="lbl" for="ace-settings-rtl"> Right To Left (rtl)</label>
-                                </div>
-
-                                <div class="ace-settings-item">
-                                    <input type="checkbox" class="ace ace-checkbox-2 ace-save-state" id="ace-settings-add-container" autocomplete="off" />
-                                    <label class="lbl" for="ace-settings-add-container">
-                                        Inside
-                                        <b>.container</b>
-                                    </label>
-                                </div>
-                            </div><!-- /.pull-left -->
-
-                            <div class="pull-left width-50">
-                                <div class="ace-settings-item">
-                                    <input type="checkbox" class="ace ace-checkbox-2" id="ace-settings-hover" autocomplete="off" />
-                                    <label class="lbl" for="ace-settings-hover"> Submenu on Hover</label>
-                                </div>
-
-                                <div class="ace-settings-item">
-                                    <input type="checkbox" class="ace ace-checkbox-2" id="ace-settings-compact" autocomplete="off" />
-                                    <label class="lbl" for="ace-settings-compact"> Compact Sidebar</label>
-                                </div>
-
-                                <div class="ace-settings-item">
-                                    <input type="checkbox" class="ace ace-checkbox-2" id="ace-settings-highlight" autocomplete="off" />
-                                    <label class="lbl" for="ace-settings-highlight"> Alt. Active Item</label>
-                                </div>
-                            </div><!-- /.pull-left -->
-                        </div><!-- /.ace-settings-box -->
-                    </div><!-- /.ace-settings-container -->
+                
 
                     <div class="page-header">
                         <h1>
-                            Top Menu Style
+                            <span id="MainFunctionTitle"></span>
                             <small>
                                 <i class="ace-icon fa fa-angle-double-right"></i>
-                                top menu &amp; navigation
+                                <span id="AdditionalFunctionTitle"></span>
                             </small>
                         </h1>
                     </div><!-- /.page-header -->
@@ -767,13 +593,13 @@
                             <!-- PAGE CONTENT BEGINS -->
 
 
-                         
+
                             <div class="center" id="menuContent">
-             
+
                             </div>
-                                <!-- PAGE CONTENT ENDS -->
-                            </div><!-- /.col -->
-                        </div><!-- /.row -->
+                            <!-- PAGE CONTENT ENDS -->
+                        </div><!-- /.col -->
+                    </div><!-- /.row -->
                 </div><!-- /.page-content -->
             </div>
         </div><!-- /.main-content -->

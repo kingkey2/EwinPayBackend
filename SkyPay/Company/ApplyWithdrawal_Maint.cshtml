@@ -1,0 +1,664 @@
+﻿@{
+    var bc = new BackendController(); string BID = HttpContext.Current.Request.Cookies.AllKeys.Contains("BID") == true ? HttpContext.Current.Request.Cookies["BID"].Value.ToString() : "";
+
+    string CheckPermission = "success";
+
+    string PermissionName = Request.Path.Split('/').Last().Split('.').First();
+    var result = bc.CheckPermission(BID, PermissionName);
+
+    if (result.ResultCode != BackendController.APIResult.enumResult.OK)
+    {
+        CheckPermission = "false";
+    }
+
+    var resultCheckLoginIP = bc.CheckLoginIPByCompany(BID);
+    string CheckLoginPermission = "success";
+    if (resultCheckLoginIP.ResultCode != BackendController.APIResult.enumResult.OK)
+    {
+        CheckLoginPermission = "false";
+    }
+}
+
+
+<div class="row">
+    <div class="col-xs-12">
+        <form class="form-horizontal" role="form">
+            <div class="form-group">
+                <div class="col-xs-12">
+
+                    <button class="btn btn-info" style="float:right;margin-right:5px;" type="button" id="btnadd">
+                        申请提现
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-xs-9 no-padding-right">
+                    <input id="dateinput" class="form-control" />
+
+                </div>
+                <div class="col-xs-3">
+                    <select id="deteselect" class="col-xs-10 col-sm-5">
+                        <option value="0">今日</option>
+                        <option value="1">昨日</option>
+                        <option value="2">过去7日</option>
+                        <option value="3">过去30日</option>
+                        <option value="4">这个月</option>
+                        <option value="5">上个月</option>
+                        <option value="6">自定义</option>
+                    </select>
+                </div>
+
+            </div>
+            <div class="form-group">
+                <div class="col-xs-4">
+                    <input type="text" id="input_WithdrawSerial" placeholder="平台订单号" class="form-control" style="line-height: inherit;">
+                </div>
+
+                <div class="col-xs-4">
+                    <select id="select_Status" style="float:left;"></select>
+                </div>
+            </div>
+
+            <div class="clearfix form-actions">
+                <div>
+                    <button class="btn btn-info" type="button" id="btnsearch">
+
+                        搜寻
+                    </button>
+                    <button class="btn" type="button" id="Excel_download">
+
+                        汇出Excel
+                    </button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="row" style="background-color: #23c6c8;line-height: 30px;">
+                        <span style="color:white;font-size:15px;margin-left:5px"> 成功总金额 : </span><span style="font-size:15px;margin-left:5px" id="count1"></span>
+                        <span style="color:white;font-size:15px;margin-left:5px"> 成功总笔数 : </span><span style="font-size:15px;margin-left:5px" id="count3"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-xs-12">
+                    <div id="div_table_WithdrawalTable">
+                        <table style="width:100%" class="table table-bordered table-striped table-hover dataTable nowrap " id="table_WithdrawalTable"></table>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script>
+    var Table;
+    var isCreatedTable = false;
+    var withdrawalRecordTable;
+
+    $(document).ready(function () {
+        pageLoad();
+    });
+
+    function pageLoad() {
+
+        if ('@CheckLoginPermission' == 'false') {
+                location.href = "Login.cshtml";
+            }
+
+        if ('@CheckPermission' == 'false') {
+            parent.errorAlertCallback("权限不足", function () {
+                loadHomePage();
+            });
+        }
+
+        //啟用日期
+        var start = moment().hour(00).minute(00);
+        var end = moment().hour(23).minute(59);
+
+        $('#dateinput').daterangepicker({
+            startDate: start,
+            endDate: end,
+            timePicker: true,
+            timePicker24Hour: true,
+            locale: {
+
+                "applyLabel": "確認",
+                "cancelLabel": "取消",
+                "format": 'YYYY/MM/DD HH:mm',
+                "daysOfWeek": ["日", "一", "二", "三", "四", "五", "六"],
+                "monthNames": ["1月", "2月", "3月", "4月", "5月", "6月",
+                    "7月", "8月", "9月", "10月", "11月", "12月"]
+            }
+        }, function (start, end, label) {
+            $('#deteselect').val("6");
+            });
+
+        CreateWithdrawalStatusSelect();
+        createWithdrawalTable2();
+   
+        wrapperFadeOut();
+    };
+
+    function statisticsAmount(data) {
+        var count1 = 0;
+        var count3 = 0;
+
+        if (data.length > 0) {
+            for (var i = 0; i < data.length; i++) {
+              if (data[i].Status == 2) {
+                    count1 += data[i].FinishAmount;
+                    count3++;
+                }
+            }
+
+            $('#count1').text(toCurrency(parseFloat(count1.toFixed(4))));
+            $('#count3').text(count3);
+
+        }
+
+    }
+
+    $('#deteselect').change(function () {
+
+        switch ($(this).val()) {
+            case "0"://今日
+                var start = moment().hour(00).minute(00);
+                var end = moment().hour(23).minute(59);
+                break;
+            case "1"://昨日
+                var start = moment().subtract(1, 'days').hour(00).minute(00);
+                var end = moment().subtract(1, 'days').hour(23).minute(59);
+                break;
+            case "2"://过去7日
+                var start = moment().subtract(6, 'days').hour(00).minute(00);
+                var end = moment().hour(23).minute(59);
+                break;
+            case "3"://过去30日
+                var start = moment().subtract(29, 'days').hour(00).minute(00);
+                var end = moment().hour(23).minute(59);
+                break;
+            case "4"://这个月
+                var start = moment().startOf('month').hour(00).minute(00);
+                var end = moment().endOf('month').hour(23).minute(59);
+                break;
+            case "5"://上个月
+                var start = moment().subtract(1, 'month').startOf('month').hour(00).minute(00);
+                var end = moment().subtract(1, 'month').endOf('month').hour(23).minute(59);
+                break;
+            default:
+        }
+        $('#dateinput').data('daterangepicker').setStartDate(start);
+        $('#dateinput').data('daterangepicker').setEndDate(end);
+
+    })
+
+    function createWithdrawalTable2() {
+
+        $("#table_WithdrawalTable").DataTable({
+            columns: [
+                { "title": "平台订单号", "data": "WithdrawSerial" },
+                {  //下發狀態，0=建立/1=進行中/2=成功/3=失敗/4=審核確認中/5=匯款處理中/6=匯款完成，成功，審核中/7=匯款完成，失敗，審核中
+                    "title": "状态", "data": "Status",
+                    "render": function (data) {
+                        switch (data) {
+                            case 0:
+                                return '建立';
+                                break;
+                            case 1:
+                                return '<span style="color:orange;font-weight:900">审核中</span>';
+                                break;
+                            case 2:
+                                return '<span style="color:green;font-weight:900">成功</span>';
+                                break;
+                            case 3:
+                                return '<span style="color:red;font-weight:900">失敗</span>';
+                                break;
+                            case 4:
+                                return '<span style="color:orange;font-weight:900">审核中</span>';
+                                break;
+                            case 5:
+                                return '<span style="color:orange;font-weight:900">审核中</span>';
+                                break;
+                            case 6:
+                                return '<span style="color:orange;font-weight:900">审核中</span>';
+                                break;
+                            case 7:
+                                return '<span style="color:orange;font-weight:900">审核中</span>';
+                                break;
+                            case 9:
+                                return '审核退回';
+                                break;
+                            case 10:
+                                return '<span style="color:orange;font-weight:900">审核中</span>';
+                                break;
+                            case 11:
+                                return '<span style="color:orange;font-weight:900">审核中</span>';
+                                break;
+                            case 12:
+                                return '<span style="color:orange;font-weight:900">审核中</span>';
+                                break;
+                            case 13:
+                                return '<span style="color:orange;font-weight:900">审核中</span>';
+                                break;
+                            case 13:
+                                return '<span style="color:orange;font-weight:900">审核中</span>';
+                                break;
+                            case 14:
+                                return '<span style="color:orange;font-weight:900">系统问题单</span>';
+                                break;
+                            default:
+                                return '';
+                                break;
+                        }
+                    }
+                },
+                { "title": "币别", "data": "CurrencyType" },
+                {
+                    "title": "申请金额", "data": "Amount",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
+                    }
+                },
+                {
+                    "title": "手续费", "data": "CollectCharge",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
+                    }
+                },
+                {
+                    "title": "实际金额", "data": "FinishAmount",
+                    "render": function (data, display, rowdata) {
+                        if (data != 0) {
+                            return toCurrency(rowdata.CollectCharge + rowdata.Amount);
+                        } else {
+                            return toCurrency(data);
+                        }
+                    }
+                },
+                { "title": "银行", "data": "BankName" },
+                { "title": "卡号", "data": "BankCard" },
+                { "title": "开户名", "data": "BankCardName" },
+                {
+                    "title": "建立日期", "data": "CreateDate",
+                    "render": function (data, display, rowdata) {
+                        return rowdata.CreateDate2;
+                    }
+                },
+                {
+                    "title": "完成日期", "data": "FinishDate",
+                    "render": function (data, display, rowdata) {
+                        return rowdata.FinishDate2;
+                    }
+                },
+                { "title": "城市", "data": "OwnCity" },
+                { "title": "省份", "data": "OwnProvince" },
+                { "title": "支行", "data": "BankBranchName" },
+                //{
+                //    "title": "退回原因", "data": "RejectDescription",
+                //    "render": function (data, display, rowdata) {
+                //        return data;
+                //    }
+                //},
+                { "title": "", "data": "WithdrawID", "visible": false }
+            ],
+            rowCallback: function (row, data) { },
+            filter: true,
+            info: false,
+            ordering: true,
+            processing: true,
+            retrieve: true,
+            selected: true,
+            scrollX: true,
+            order: [[10, "desc"]],
+            autoWidth: false,
+            language: chineseTableLang
+        });
+
+    }
+
+    function createWithdrawalTable(data) {
+        isCreatedTable = true;
+
+        Table = $("#table_WithdrawalTable").DataTable({
+            data: data,
+            columns: [
+                { "title": "平台订单号", "data": "WithdrawSerial" },
+                {  //下發狀態，0=建立/1=進行中/2=成功/3=失敗/4=審核確認中/5=匯款處理中/6=匯款完成，成功，審核中/7=匯款完成，失敗，審核中
+                    "title": "状态", "data": "Status",
+                    "render": function (data) {
+                        switch (data) {
+                            case 0:
+                                return '建立';
+                                break;
+                            case 1:
+                                return '<span style="color:orange;font-weight:900">审核中</span>';
+                                break;
+                            case 2:
+                                return '<span style="color:green;font-weight:900">成功</span>';
+                                break;
+                            case 3:
+                                return '<span style="color:red;font-weight:900">失敗</span>';
+                                break;
+                            case 4:
+                                return '<span style="color:orange;font-weight:900">审核中</span>';
+                                break;
+                            case 5:
+                                return '<span style="color:orange;font-weight:900">审核中</span>';
+                                break;
+                            case 6:
+                                return '<span style="color:orange;font-weight:900">审核中</span>';
+                                break;
+                            case 7:
+                                return '<span style="color:orange;font-weight:900">审核中</span>';
+                                break;
+                            case 9:
+                                return '审核退回';
+                                break;
+                            case 10:
+                                return '<span style="color:orange;font-weight:900">审核中</span>';
+                                break;
+                            case 11:
+                                return '<span style="color:orange;font-weight:900">审核中</span>';
+                                break;
+                            case 12:
+                                return '<span style="color:orange;font-weight:900">审核中</span>';
+                                break;
+                            case 13:
+                                return '<span style="color:orange;font-weight:900">审核中</span>';
+                                break;
+                            case 13:
+                                return '<span style="color:orange;font-weight:900">审核中</span>';
+                                break;
+                            case 14:
+                                return '<span style="color:orange;font-weight:900">系统问题单</span>';
+                                break;
+                            default:
+                                return '';
+                                break;
+                        }
+                    }
+                },
+                { "title": "币别", "data": "CurrencyType" },
+                {
+                    "title": "申请金额", "data": "Amount",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
+                    }
+                },
+                {
+                    "title": "手续费", "data": "CollectCharge",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
+                    }
+                },
+                {
+                    "title": "实际金额", "data": "FinishAmount",
+                    "render": function (data, display, rowdata) {
+                        if (data != 0) {
+                            return toCurrency(rowdata.CollectCharge + rowdata.Amount);
+                        } else {
+                            return toCurrency(data);
+                        }
+                    }
+                },
+                { "title": "银行", "data": "BankName" },
+                { "title": "卡号", "data": "BankCard" },
+                { "title": "开户名", "data": "BankCardName" },
+                {
+                    "title": "建立日期", "data": "CreateDate",
+                    "render": function (data, display, rowdata) {
+                        return rowdata.CreateDate2;
+                    }
+                },
+                {
+                    "title": "完成日期", "data": "FinishDate",
+                    "render": function (data, display, rowdata) {
+                        return rowdata.FinishDate2;
+                    }
+                },
+                { "title": "城市", "data": "OwnCity" },
+                { "title": "省份", "data": "OwnProvince" },
+                { "title": "支行", "data": "BankBranchName" },
+                //{
+                //    "title": "退回原因", "data": "RejectDescription",
+                //    "render": function (data, display, rowdata) {
+                //        return data;
+                //    }
+                //},
+                { "title": "", "data": "WithdrawID", "visible": false }
+            ],
+            rowCallback: function (row, data) { },
+            filter: true,
+            info: false,
+            ordering: true,
+            processing: true,
+            retrieve: true,
+            selected: true,
+            scrollX: true,
+            order: [[10, "desc"]],
+            autoWidth: false,
+            language: chineseTableLang
+        });
+
+        Table.on('page.dt', function () {
+            Table.columns.adjust();
+        });
+    }
+
+    $('#btnsearch').click(function () {
+        getWithdrawalTableResult();
+    })
+
+
+    $('#Excel_download').click(function () {
+        CreateExcel();
+    })
+
+    function CreateExcel() {
+        if (Table == null) {
+            parent.warningAlert("没有汇出资料");
+            return;
+        }
+
+
+        if (Table.rows().data().length > 0) {
+            var exceldata = [
+                ['平台订单号', '状态', '申请金额', '手续费', '实际金额', '银行', '卡号', '开户名', '建立日期', '完成日期', '城市','省份','支行']
+            ];
+            var TableData = Table.rows().data();
+            for (var i = 0; i < TableData.length; i++) {
+                var data = TableData[i];
+
+                var FinishDate = "";
+                var ProcessStatus = "";
+                var DownStatus = "";
+                if (data.FinishDate2 != null) {
+                    FinishDate = data.FinishDate2;
+                }
+
+
+                switch (data.Status) {
+                    case 0:
+                        ProcessStatus = '建立';
+                        break;
+                    case 1:
+                        ProcessStatus = '审核中';
+                        break;
+                    case 2:
+                        ProcessStatus = '成功';
+                        break;
+                    case 3:
+                        ProcessStatus = '失败';
+                        break;
+                    case 4:
+                        ProcessStatus = '审核中';
+                        break;
+                    case 5:
+                        ProcessStatus = '审核中';
+                        break;
+                    case 6:
+                        ProcessStatus = '审核中';
+                        break;
+                    case 7:
+                        ProcessStatus = '审核中';
+                        break;
+                    case 10:
+                        ProcessStatus = '审核中';
+                        break;
+                    case 11:
+                        ProcessStatus = '审核中';
+                        break;
+                    case 12:
+                        ProcessStatus = '审核中';
+                        break;
+                    case 13:
+                        ProcessStatus = '审核中';
+                        break;
+                    case 14:
+                        ProcessStatus = '系统问题单';
+                        break;
+                    default:
+                        ProcessStatus = '';
+                        break;
+                }
+
+                var tmpArray = new Array(data.WithdrawSerial, ProcessStatus, data.Amount, data.CollectCharge, data.FinishAmount, data.BankName, data.BankCard, data.BankCardName, data.CreateDate2, FinishDate, data.OwnCity, data.OwnProvince, data.BankBranchName);
+                exceldata.push(tmpArray);
+            }
+
+            var sheet = XLSX.utils.aoa_to_sheet(exceldata);
+            openDownloadDialog(sheet2blob(sheet), dateTimeStr() + '.xlsx');
+        } else {
+            parent.warningAlert("没有汇出资料");
+        }
+    }
+
+    function dateTimeStr() {
+        var dateTime = new Date();
+        var year = dateTime.getFullYear();
+        var month = dateTime.getMonth() + 1;//js從0開始取
+        var date = dateTime.getDate();
+
+
+        if (month < 10) {
+            month = "0" + month;
+        }
+        if (date < 10) {
+            date = "0" + date;
+        }
+
+
+
+        return "VPayBackendWithdrawal_" + year + "-" + month + "-" + date + " ";
+    }
+
+    function openDownloadDialog(url, saveName) {
+        if (typeof url == 'object' && url instanceof Blob) {
+            url = URL.createObjectURL(url); // 创建blob地址
+        }
+        var aLink = document.createElement('a');
+        aLink.href = url;
+        aLink.download = saveName || ''; // HTML5新增的属性，指定保存文件名，可以不要后缀，注意，file:///模式下不会生效
+        var event;
+        if (window.MouseEvent) event = new MouseEvent('click');
+        else {
+            event = document.createEvent('MouseEvents');
+            event.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+        }
+        aLink.dispatchEvent(event);
+    }
+
+    function sheet2blob(sheet, sheetName) {
+        sheetName = sheetName || 'sheet1';
+        var workbook = {
+            SheetNames: [sheetName],
+            Sheets: {}
+        };
+        workbook.Sheets[sheetName] = sheet;
+        // 生成excel的配置项
+        var wopts = {
+            bookType: 'xlsx', // 要生成的文件类型
+            bookSST: false, // 是否生成Shared String Table，官方解释是，如果开启生成速度会下降，但在低版本IOS设备上有更好的兼容性
+            type: 'binary'
+        };
+        var wbout = XLSX.write(workbook, wopts);
+        var blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
+        // 字符串转ArrayBuffer
+        function s2ab(s) {
+            var buf = new ArrayBuffer(s.length);
+            var view = new Uint8Array(buf);
+            for (var i = 0; i != s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+            return buf;
+        }
+        return blob;
+    }
+
+    function getWithdrawalTableResult() {
+        var dateinputval = $('#dateinput').val().split('-');
+        var startdate = dateinputval[0];
+        var enddate = dateinputval[1] + ":59.999";
+        var withdrawSerial = $('#input_WithdrawSerial').val();
+        var companyid = AdminObject.forCompanyID;
+        var status = $('#select_Status').val();
+
+        api.getWithdrawalTableResult(withdrawSerial, companyid, startdate, enddate, status, function (success, obj) {
+
+            if (isCreatedTable) {
+                Table.clear().draw();
+            }
+
+            if (obj.ResultCode == 0) {
+                if (!isCreatedTable) {
+                    $("#div_table_WithdrawalTable").empty();
+                    $("#div_table_WithdrawalTable").append('<table style="width:100%" class="table table-bordered table-striped table-hover dataTable nowrap" id="table_WithdrawalTable"></table>');
+                    createWithdrawalTable(obj.WithdrawalResults);
+
+
+                } else {
+                    Table.rows.add(obj.WithdrawalResults).draw();
+
+                }
+
+                statisticsAmount(obj.WithdrawalResults);
+                //Table.rows.add(obj.WithdrawalResult).draw(); // Add new data
+            } else {
+                switch (obj.ResultCode) {
+                    case 4:
+                        parent.errorAlertCallback("权限不足", function () {
+                            loadHomePage();
+                        });
+                        break;
+                    case 5:
+                        parent.warningAlert("没有资料");
+                        break;
+                    case 7:
+                        parent.errorAlert("您已断线请重新登入", "Login.cshtml");
+                        break;
+                    default:
+                        parent.warningAlert("其他错误");
+                        break;
+                }
+
+                wrapperFadeOut();
+            }
+        });
+    }
+
+    $('#btnadd').click(function () {
+        goPage("ApplyWithdrawal_Create2.cshtml");
+    })
+
+    function CreateWithdrawalStatusSelect() {
+        //流程狀態，0=建立/1=進行中/2=成功/3=失敗/99=全部
+        $("#select_Status").children().remove();
+        $("#select_Status").append('<option value="99">全部</option>');
+        $("#select_Status").append('<option value="0">审核中</option>');
+        $("#select_Status").append('<option value="2">成功</option>');
+        $("#select_Status").append('<option value="3">失败</option>');
+        $("#select_Status").append('<option value="9">审核退回</option>');
+  
+    }
+
+</script>

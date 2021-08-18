@@ -1148,7 +1148,7 @@ if ('@CheckLoginPermission' == 'false') {
                     "title": "图片", "data": "ImageName", render: function (data, display, rowdata) {
                         if (rowdata.ImageName !=null) {
                             var tmpHtml = '';
-                            debugger;
+                          
                             var imageNames = rowdata.ImageName.split(",").sort(function (a, b) {
                                 return a - b
                             });

@@ -1,0 +1,530 @@
+﻿@{
+    var bc = new BackendController(); string BID = HttpContext.Current.Request.Cookies.AllKeys.Contains("BID") == true ?  HttpContext.Current.Request.Cookies["BID"].Value.ToString():"";
+
+    string CheckPermission = "success";
+
+    string PermissionName = Request.Path.Split('/').Last().Split('.').First();
+    var result = bc.CheckPermission(BID,PermissionName);
+
+    if (result.ResultCode != BackendController.APIResult.enumResult.OK)
+    {
+        CheckPermission = "false";
+    }
+
+    var resultCheckLoginIP = bc.CheckLoginIPByCompany(BID);
+    string CheckLoginPermission = "success";
+    if (resultCheckLoginIP.ResultCode != BackendController.APIResult.enumResult.OK)
+    {
+        CheckLoginPermission = "false";
+    }
+}
+
+<div class="row">
+    <div class="col-xs-12">
+        <form class="form-horizontal" role="form">
+            <div class="form-group">
+                <div class="col-xs-9 no-padding-right">
+                    <input id="dateinput" class="form-control" />
+
+                </div>
+                <div class="col-xs-3">
+                    <select id="deteselect" class="col-xs-10 col-sm-5">
+                        <option value="0">今日</option>
+                        <option value="1">昨日</option>
+                        <option value="2">过去7日</option>
+                        <option value="3">过去30日</option>
+                        <option value="4">这个月</option>
+                        <option value="5">上个月</option>
+                        <option value="6">自定义</option>
+                    </select>
+                </div>
+
+            </div>
+            <div class="form-group">
+            
+                <div class="col-xs-4">
+                    <select id="select_OperatorType" style="float:left;"></select>
+                </div>
+            </div>
+
+            <div class="clearfix form-actions">
+                <div>
+                    <button class="btn btn-info" type="button" id="btnCompanySearch">
+
+                        搜寻
+                    </button>
+                    <button class="btn" type="button" id="Excel_download">
+
+                        汇出Excel
+                    </button>
+                </div>
+            </div>
+         
+            <div class="form-group">
+                <div class="col-xs-12">
+                    <div id="div_table_SummaryCompanyByDateTable">
+                        <table style="width:100%" class="table table-bordered table-striped table-hover dataTable nowrap " id="table_SummaryCompanyByDateTable"></table>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script>
+    var Table;
+    var CData;
+    var CSeleData;
+    var isCreatedTable = false;
+    var CompanyID;
+
+    $(document).ready(function () {
+        
+if ('@CheckLoginPermission' == 'false') {
+                location.href = "Login.cshtml";
+            }
+
+              if ('@CheckPermission' == 'false') {
+            parent.errorAlertCallback("权限不足", function () {
+                loadHomePage();
+            });
+        }
+
+        pageLoad();
+    });
+
+    function pageLoad() {
+   
+        createSummaryCompanyByDateTable2();
+        createOperatorType();
+
+        //啟用日期
+        var start = moment().hour(00).minute(00);
+        var end = moment().hour(23).minute(59);
+
+        $('#dateinput').daterangepicker({
+            startDate: start,
+            endDate: end,
+            timePicker: false,
+            timePicker24Hour: false,
+            locale: {
+
+                "applyLabel": "確認",
+                "cancelLabel": "取消",
+                "format": 'YYYY/MM/DD',
+                "daysOfWeek": ["日", "一", "二", "三", "四", "五", "六"],
+                "monthNames": ["1月", "2月", "3月", "4月", "5月", "6月",
+                    "7月", "8月", "9月", "10月", "11月", "12月"]
+            }
+        }, function (start, end, label) {
+            $('#deteselect').val("6");
+            $('#deteselect').selectpicker('refresh');
+        });
+
+        CompanyID = AdminObject.forCompanyID;
+        if (AdminObject.CompanyType == 1) {
+            $('#btn_selectCompany').hide();
+        }
+        wrapperFadeOut();
+    }
+
+    $('#deteselect').change(function () {
+
+        switch ($(this).val()) {
+            case "0"://今日
+                var start = moment().hour(00).minute(00);
+                var end = moment().hour(23).minute(59);
+                break;
+            case "1"://昨日
+                var start = moment().subtract(1, 'days').hour(00).minute(00);
+                var end = moment().subtract(1, 'days').hour(23).minute(59);
+                break;
+            case "2"://过去7日
+                var start = moment().subtract(6, 'days').hour(00).minute(00);
+                var end = moment().hour(23).minute(59);
+                break;
+            case "3"://过去30日
+                var start = moment().subtract(29, 'days').hour(00).minute(00);
+                var end = moment().hour(23).minute(59);
+                break;
+            case "4"://这个月
+                var start = moment().startOf('month').hour(00).minute(00);
+                var end = moment().endOf('month').hour(23).minute(59);
+                break;
+            case "5"://上个月
+                var start = moment().subtract(1, 'month').startOf('month').hour(00).minute(00);
+                var end = moment().subtract(1, 'month').endOf('month').hour(23).minute(59);
+                break;
+            default:
+        }
+        $('#dateinput').data('daterangepicker').setStartDate(start);
+        $('#dateinput').data('daterangepicker').setEndDate(end);
+
+    })
+
+    //#region 建立報表
+    function createSummaryCompanyByDateTable2() {
+        $("#table_SummaryCompanyByDateTable").DataTable({
+            columns: [
+                { "title": "日期", "data": "CreateDate" },
+
+                { "title": "订单号", "data": "TransactionOrder" },
+                { "title": "商户订单号", "data": "DownOrderID" },
+                { "title": "支付代码", "data": "ServiceType" },
+                { "title": "支付通道", "data": "ServiceTypeName" },
+                //{
+                //    "title": "币别", "data": "CurrencyType"
+                //},
+                {
+                    "title": "类型", "data": "OperatorType",
+                    "render": function (data, display, rowdata) {
+                        switch (data) {
+                            case 0:
+                                return '代付';
+                                break;
+                            case 1:
+                                return '代收';
+                                break;
+                            //case 2:
+                            //    return '代理占成';
+                            //    break;
+                            case 3:
+                                return '人工调帐';
+                                break;
+                            default:
+                                return '';
+                                break;
+                        }
+                    }
+                },
+                {
+                    "title": "异动额度(商户)", "data": "Value",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
+                    }
+                },
+                {
+                    "title": "异动前额度(商户)", "data": "BeforeValue",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
+
+                    }
+                },
+                {
+                    "title": "异动额度(支付通道)", "data": "ValueByService",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
+                    }
+                },
+                {
+                    "title": "异动前额度(支付通道)", "data": "BeforeValueByService",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
+
+                    }
+                }
+            ],
+            rowCallback: function (row, data) { },
+            filter: true,
+            info: false,
+            ordering: true,
+            processing: true,
+            retrieve: true,
+            selected: true,
+            scrollX: true,
+            autoWidth: false,
+            order: [[0, "desc"]],
+            language: chineseTableLang
+        });
+    }
+
+    function createSummaryCompanyByDateTable(data) {
+        isCreatedTable = true;
+        Table = $("#table_SummaryCompanyByDateTable").DataTable({
+            data: data,
+            columns: [
+                {
+                    "title": "日期", "data": "CreateDate",
+                    "render": function (data, display, rowdata) {
+                        return data.replace("T", " ");
+                    }
+                },
+
+
+                { "title": "订单号", "data": "TransactionOrder" },
+                { "title": "商户订单号", "data": "DownOrderID" },
+                //{ "title": "支付代码", "data": "ServiceType" },
+                { "title": "支付通道", "data": "ServiceTypeName" },
+                //{
+                //    "title": "币别", "data": "CurrencyType"
+                //},
+                {
+                    "title": "类型", "data": "OperatorType",
+                    "render": function (data, display, rowdata) {
+                        switch (data) {
+                            case 0:
+                                return '代付';
+                                break;
+                            case 1:
+                                return '代收';
+                                break;
+                            //case 2:
+                            //    return '代理占成';
+                            //    break;
+                            case 3:
+                                var OperatorType = '人工调帐';
+                                if (rowdata.TransactionOrder.includes("OP")) {
+                                    if (rowdata.Value > 0) {
+                                        OperatorType = '冲正';
+                                    }
+                                }
+
+                                if (rowdata.TransactionOrder.includes("IP")) {
+                                    if (rowdata.Value < 0) {
+                                        OperatorType = '冲正';
+                                    }
+                                }
+
+                                return OperatorType;
+                                break;
+                            default:
+                                return '';
+                                break;
+                        }
+                    }
+                },
+                {
+                    "title": "异动额度", "data": "Value",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
+                    }
+                },
+                {
+                    "title": "异动前额度(商户)", "data": "BeforeValue",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
+
+                    }
+                },
+                {
+                    "title": "异动后额度(商户)", "data": "BeforeValue",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data + rowdata.Value);
+
+                    }
+                },
+
+                {
+                    "title": "异动前额度(通道)", "data": "BeforeValueByService",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
+
+                    }
+                },
+                {
+                    "title": "异动后额度(通道)", "data": "BeforeValueByService",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data + rowdata.ValueByService);
+
+                    }
+                },
+            ],
+            rowCallback: function (row, data) { },
+            filter: true,
+            info: false,
+            ordering: true,
+            processing: true,
+            retrieve: true,
+            selected: true,
+            scrollX: true,
+            autoWidth: false,
+            order: [[0, "desc"]],
+            language: chineseTableLang
+        });
+    }
+
+    function getSummaryCompanyByDateLogResult(searchData) {
+        api.GetCompanyServicePointLogResultByCompany(searchData, function (success, obj) {
+            if (isCreatedTable) {
+                Table.clear().draw();
+            }
+            if (obj.ResultCode == 0) {
+                if (!isCreatedTable) {
+                    $("#div_table_SummaryCompanyByDateTable").empty();
+                    $("#div_table_SummaryCompanyByDateTable").append('<table style="width:100%" class="table table-bordered table-striped table-hover dataTable nowrap" id="table_SummaryCompanyByDateTable"></table>');
+                    createSummaryCompanyByDateTable(obj.CompanyServicePointLogs);
+                } else {
+                    Table.rows.add(obj.CompanyServicePointLogs).draw(); // Add new data
+                }
+            } else {
+                switch (obj.ResultCode) {
+                    case 4:
+                        parent.errorAlertCallback("权限不足", function () {
+                            loadHomePage();
+                        });
+                        break;
+                    case 5:
+                        warningAlert("没有资料");
+                        break;
+                    case 7:
+                        errorAlert("您已断线请重新登入", "Login.cshtml");
+                        break;
+                    default:
+                        warningAlert("其他错误");
+                        break;
+                }
+            }
+        });
+    }
+    //#endregion
+
+    //搜尋
+    $("#btnCompanySearch").on("click", function () {
+        //#region 驗證
+
+        if ($("#divCompanyData").find('.date').eq(0).val() == "") {
+            parent.warningAlert("请输入起始日期");
+            return;
+        }
+        if ($("#divCompanyData").find('.date').eq(1).val() == "") {
+            parent.warningAlert("请输入结束日期");
+            return;
+        }
+        //#endregion
+        var operatorType = $("#select_OperatorType").val();
+        var dateinputval = $('#dateinput').val().split('-');
+        var startDate = dateinputval[0];
+        var endDate = dateinputval[1];
+        var data = {
+            CompanyID: $('#companyLabel').attr("data-id"),
+            StartDate: startDate,
+            EndDate: endDate,
+            OperatorType: operatorType
+        }
+        getSummaryCompanyByDateLogResult(data);
+    })
+
+
+    function createOperatorType() {
+
+        $("#select_OperatorType").append('<option value="99">' + "全部" + '</option>');
+        $("#select_OperatorType").append('<option value="1">' + "代收" + '</option>');
+        $("#select_OperatorType").append('<option value="0">' + "代付" + '</option>');
+        $("#select_OperatorType").append('<option value="3">' + "人工调帐" + '</option>');
+    }
+
+
+
+    $('#Excel_download').click(function () {
+        CreateExcel();
+    })
+
+    function CreateExcel() {
+        if (Table == null) {
+            warningAlert("没有汇出资料");
+            return;
+        }
+
+        if (Table.rows().data().length > 0) {
+            var exceldata = [['日期', '订单号','商户订单号' ,'支付通道', '类型', '异动额度', '异动前额度(商户)', '异动后额度(商户)', '异动前额度(通道)', '异动后额度(通道)']];
+            var TableData = Table.rows().data();  
+            for (var i = 0; i < TableData.length; i++) {
+                var data = TableData[i];
+             
+                var CreateDate = data.CreateDate.replace("T", " ");
+                var OperatorType = "";
+     
+                if (data.OperatorType == 0) {
+                    OperatorType = '代付';
+                } else if (data.OperatorType == 1) {
+                    OperatorType = '代收';
+                } else if (data.OperatorType == 3) {
+                    OperatorType = '人工调帐';
+                    if (data.TransactionOrder.includes("OP")) {
+                        if (data.Value > 0) {
+                            OperatorType = '冲正';
+                        }
+                    }
+
+                    if (data.TransactionOrder.includes("IP")) {
+                        if (data.Value < 0) {
+                            OperatorType = '冲正';
+                        }
+                    }
+                }
+                else {
+                    OperatorType = '';
+                }
+
+                var tmpArray = new Array(CreateDate, data.TransactionOrder,  data.DownOrderID,data.ServiceTypeName, OperatorType, data.Value, data.BeforeValue, data.BeforeValue + data.Value, data.BeforeValueByService, data.ValueByService + data.BeforeValueByService);
+                exceldata.push(tmpArray);
+            }
+
+            var sheet = XLSX.utils.aoa_to_sheet(exceldata);
+            openDownloadDialog(sheet2blob(sheet), dateTimeStr() + '.xlsx');
+        } else {
+            parent.warningAlert("没有汇出资料");
+        }
+    }
+
+    function dateTimeStr() {
+        var dateTime = new Date();
+        var year = dateTime.getFullYear();
+        var month = dateTime.getMonth() + 1;//js從0開始取
+        var date = dateTime.getDate();
+
+
+        if (month < 10) {
+            month = "0" + month;
+        }
+        if (date < 10) {
+            date = "0" + date;
+        }
+
+
+
+        return "VPay_" + year + "-" + month + "-" + date + " ";
+    }
+
+    function openDownloadDialog(url, saveName) {
+        if (typeof url == 'object' && url instanceof Blob) {
+            url = URL.createObjectURL(url); // 创建blob地址
+        }
+        var aLink = document.createElement('a');
+        aLink.href = url;
+        aLink.download = saveName || ''; // HTML5新增的属性，指定保存文件名，可以不要后缀，注意，file:///模式下不会生效
+        var event;
+        if (window.MouseEvent) event = new MouseEvent('click');
+        else {
+            event = document.createEvent('MouseEvents');
+            event.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+        }
+        aLink.dispatchEvent(event);
+    }
+
+    function sheet2blob(sheet, sheetName) {
+        sheetName = sheetName || 'sheet1';
+        var workbook = {
+            SheetNames: [sheetName],
+            Sheets: {}
+        };
+        workbook.Sheets[sheetName] = sheet;
+        // 生成excel的配置项
+        var wopts = {
+            bookType: 'xlsx', // 要生成的文件类型
+            bookSST: false, // 是否生成Shared String Table，官方解释是，如果开启生成速度会下降，但在低版本IOS设备上有更好的兼容性
+            type: 'binary'
+        };
+        var wbout = XLSX.write(workbook, wopts);
+        var blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
+        // 字符串转ArrayBuffer
+        function s2ab(s) {
+            var buf = new ArrayBuffer(s.length);
+            var view = new Uint8Array(buf);
+            for (var i = 0; i != s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+            return buf;
+        }
+        return blob;
+    }
+</script>

@@ -1,0 +1,212 @@
+﻿@{
+    var bc = new BackendController(); string BID = HttpContext.Current.Request.Cookies.AllKeys.Contains("BID") == true ?  HttpContext.Current.Request.Cookies["BID"].Value.ToString():"";
+
+    string CheckPermission = "success";
+
+    string PermissionName = Request.Path.Split('/').Last().Split('.').First();
+    var result = bc.CheckPermission(BID,PermissionName);
+
+    if (result.ResultCode != BackendController.APIResult.enumResult.OK)
+    {
+        CheckPermission = "false";
+    }
+
+    var resultCheckLoginIP = bc.CheckLoginIPByCompany(BID);
+    string CheckLoginPermission = "success";
+    if (resultCheckLoginIP.ResultCode != BackendController.APIResult.enumResult.OK)
+    {
+        CheckLoginPermission = "false";
+    }
+
+}
+<script>
+
+    var tmpdata;
+
+    $(document).ready(function () {
+        pageLoad();
+    });
+    function pageLoad() {
+
+        if ('@CheckLoginPermission' == 'false') {
+            location.href = "Login.cshtml";
+        }
+
+        if ('@CheckPermission' == 'false') {
+            errorAlertCallback("权限不足", function () {
+                loadHomePage();
+            });
+        }
+
+        GetGoogleQrCode();
+
+        $('#btnGoogleKeySave').on('click', function () {
+            if (tmpdata) {
+
+                if ($('#input_UserKey1').val().trim() == "") {
+                    warningAlert("尚未填写动态密码");
+                    return;
+                }
+
+                var data = {
+                    UserKey: $('#input_UserKey1').val().trim(),
+                    GoogleKey: tmpdata.GoogleKey
+                }
+
+                api.setGoogleQrCode(data, function (success, obj) {
+                    if (obj.ResultCode == 0) {
+                        successAlert3("设定完成,请重新登入", function () {
+                            pageLogout();
+                        });
+                    } else {
+                        var message = ""
+                        switch (obj.ResultCode) {
+
+                            case 7:
+                                errorAlert("您已断线请重新登入", "Login.cshtml");
+                                break;
+                            case 6:
+                                message = "动态密码有误";
+                                break;
+                            default:
+                                message = "其他错误";
+                                break;
+                        }
+
+                       warningAlert(message);
+                    }
+                });
+
+            } else {
+                warningAlert("资料错误,请联系系统商");
+            }
+        })
+
+        $('#btnGoogleKeySave2').on('click', function () {
+            if (tmpdata) {
+
+                if ($('#input_UserKey2').val().trim() == "") {
+                    warningAlert("尚未填写动态密码");
+                    return;
+                }
+
+                var data = {
+                    UserKey: $('#input_UserKey2').val().trim(),
+                    GoogleKey: tmpdata.GoogleKey
+                }
+                wrapperFadeIn();
+
+                api.unsetGoogleQrCode(data, function (success, obj) {
+                    wrapperFadeOut();
+                    if (success) {
+                        if (obj.ResultCode == 0) {
+                            successAlert(function () {
+                                reloadPage();
+                            });
+                        }
+                        else {
+                            var message = ""
+                            switch (obj.ResultCode) {
+
+                                case 7:
+                                    errorAlert("您已断线请重新登入", "Login.cshtml");
+                                    break;
+                                case 6:
+                                    message = "动态密码有误";
+                                    break;
+                                default:
+                                    message = "其他错误";
+                                    break;
+                            }
+
+                            warningAlert(message);
+                        }
+                    }
+                  
+                });
+
+            } else {
+               warningAlert("资料错误,请联系系统商");
+            }
+        })
+    }
+
+    function GetGoogleQrCode() {
+        api.getGoogleQrCode(function (success, obj) {
+            wrapperFadeOut();
+            if (success) {
+                if (obj.ResultCode == 0) {
+                    tmpdata = obj.GoogleQrCodeResult;
+                    if (obj.GoogleQrCodeResult.IsCreated) {
+                        $('#changeMobileForm').show();
+                    } else {
+                        $('#qrCodeImg').attr('src', obj.GoogleQrCodeResult.ImageUrl);
+                        $('#input_ManualEntryKey').val(obj.GoogleQrCodeResult.ManualEntryKey);
+                        $('#createForm').show();
+                    }
+                }
+                else {
+                    switch (obj.ResultCode) {
+                        case 7:
+                            errorAlert("您已断线请重新登入", "Login.cshtml");
+                            break;
+                        default:
+                            warningAlert("其他错误");
+                            break;
+                    }
+                }
+            } else {
+                warningAlert("其他错误");
+            }
+
+        });
+    }
+
+</script>
+
+<div class="row">
+    <div class="col-xs-12">
+        <form class="form-horizontal" role="form">
+            <div id="createForm" style="display:none">
+                <div>重要提示： Google Authenticator双重验证可以更安全的保护您的账户，未开启双重验证不影响正常的交易。您可以依照下面的步骤来设置并启用这一功能。</div>
+                <img id="qrCodeImg" />
+                <div>1. 在"Google Authenticator (身份验证器)"应用程序中，点击"添加新账户 (iOS 下是 + 号)"，然后选择"扫描条形码"。</div>
+                <div>2. 将手机上的相机镜头对准下图扫描该条形码。</div>
+                <div>3. 如果您无法扫描成功上图的条形码，您还可以手动添加账户，并输入如下密钥：</div>
+                <div>
+                    <label id="companyLabel" style="margin-left:20px"></label>
+                </div>
+                <label for="input_ManualEntryKey">密钥 : </label>
+
+                <div class="form-group">
+                    <input style="text-align:center;"  class="form-control" id="input_ManualEntryKey" type="text" readonly="readonly">
+                </div>
+                <label for="input_UserKey1">动态密码 : </label>
+                <div class="form-group">
+                    <input style="text-align:center;" class="form-control" id="input_UserKey1" type="text">
+                </div>
+                <div class="text-center">
+                    <button class="btn btn-info"  type="button" id="btnGoogleKeySave"><i class="ace-icon fa fa-check bigger-110"></i>开启谷歌验证</button>
+                </div>
+            </div>
+            <div id="changeMobileForm" style="display:none">
+                <div for="">您已经开启Google双重验证, 建议保持开启状态保护账户安全!</div>
+                <div for="">如果您想更换绑定手机请在下方先解绑然后再绑定Goole双重验证</div>
+                <label for="input_UserKey2">动态密码 : </label>
+                <div class="form-group">
+                    <input style="text-align:center;" class="form-control" id="input_UserKey2" type="text">
+                </div>
+
+                <div class="text-center">
+                    <button class="btn btn-info" type="button" id="btnGoogleKeySave2"><i class="ace-icon fa fa-check bigger-110"></i>解除谷歌验证</button>
+                </div>
+            </div>
+         
+
+          
+        </form>
+    </div>
+</div>
+
+
+

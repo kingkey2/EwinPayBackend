@@ -54,7 +54,7 @@
                     <input type="text" id="input_OwnProvince" placeholder="省份" class="col-xs-10 col-sm-5">
                 </div>
             </div>
-       
+
 
             <div class="clearfix form-actions">
                 <div class="center">
@@ -83,13 +83,14 @@
         if ('@CheckLoginPermission' == 'false') {
                 location.href = "Login.cshtml";
             }
-      
+
         getBankCodeResult();
-        wrapperFadeOut();
+        parent.wrapperFadeOut();
     }
 
     //儲存
     $("#btn_BankCard_Save").on("click", function () {
+   
         //#region 驗證
         if ($("#select_BankCode").val() == 0) {
             warningAlert("请先选择银行");
@@ -111,7 +112,14 @@
             return;
         }
 
-        
+        //if (simplifiedchineseCheck($('#input_BankCardName').val().trim()) == 1) {
+        //    parent.warningAlert("持卡人姓名只能有中文");
+        //    return;
+        //} else if (simplifiedchineseCheck($('#input_BankCardName').val().trim()) == 2) {
+        //    parent.warningAlert("持卡人姓名只能有简体字");
+        //    return;
+        //}
+
         if ($("#input_OwnProvince").val().trim() == "") {
             warningAlert("尚未输入所属省份");
             return;
@@ -129,7 +137,7 @@
         }
 
         if ($("#input_OwnCity").val().trim() == "") {
-            warningAlert("尚未输入所属城市");
+           warningAlert("尚未输入所属城市");
             return;
         }
 
@@ -167,7 +175,6 @@
         var ownCity = $("#input_OwnCity").val().trim();
         var bankBranchName = $("#input_BankBranchName").val().trim();
 
-
         api.insertBankCard(bankCard, bankCode, bankCardName, companyid, ownProvince, ownCity, bankBranchName, function (success, obj) {
             if (success) {
                 if (obj.ResultCode == 0) {
@@ -178,7 +185,7 @@
                     var message = ""
                     switch (obj.ResultCode) {
                         case 4:
-                            parent.errorAlertCallback("权限不足", function () {
+                            errorAlertCallback("权限不足", function () {
                                 loadHomePage();
                             });
                             break;
@@ -200,6 +207,7 @@
 
     })
 
+
     function getBankCodeResult() {
         api.getBankCodeTableResult(function (success, obj) {
 
@@ -209,8 +217,8 @@
                 $.each(obj.BankCodeResults, function (i, item) {
                     $("#select_BankCode").append('<option value="' + obj.BankCodeResults[i].BankCode + '">' + obj.BankCodeResults[i].BankName + '</option>');
                 })
-     
-                parent.wrapperFadeOut();
+
+                wrapperFadeOut();
             } else {
                 var message = ""
                 switch (obj.ResultCode) {
@@ -228,7 +236,7 @@
                         break;
                 }
 
-               wrapperFadeOut();
+                wrapperFadeOut();
             }
         });
     }

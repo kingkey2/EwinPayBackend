@@ -1,0 +1,207 @@
+﻿@{
+    var bc = new BackendController(); string BID = HttpContext.Current.Request.Cookies.AllKeys.Contains("BID") == true ? HttpContext.Current.Request.Cookies["BID"].Value.ToString() : "";
+
+    string CheckPermission = "success";
+
+    string PermissionName = Request.Path.Split('/').Last().Split('.').First();
+    var result = bc.CheckPermission(BID, PermissionName);
+
+    if (result.ResultCode != BackendController.APIResult.enumResult.OK)
+    {
+        CheckPermission = "false";
+    }
+
+    var resultCheckLoginIP = bc.CheckLoginIPByCompany(BID);
+    string CheckLoginPermission = "success";
+    if (resultCheckLoginIP.ResultCode != BackendController.APIResult.enumResult.OK)
+    {
+        CheckLoginPermission = "false";
+    }
+
+}
+
+<div class="row">
+    <div class="col-xs-12">
+        <form class="form-horizontal" role="form">
+
+            <div class="form-group">
+                <div class="col-xs-4">
+                    <input type="text" id="input_PaymentSerial" placeholder="平台冻结单号" class="form-control" style="line-height: inherit;">
+                </div>
+                <div class="col-xs-4">
+                    <select id="select_Type" style="float:left;"></select>
+                </div>
+            </div>
+
+            <div class="clearfix form-actions">
+                <div>
+                    <button class="btn btn-info" type="button" id="btnSearch">
+                        搜寻
+                    </button>
+            
+                </div>
+            </div>
+            <div class="row" style="background-color: #99FF99;line-height: 30px;">
+                <span style="font-weight:900;color:#227700;font-size:15px;margin-left:5px"> 总冻结金额 : </span><span style="font-size:15px;margin-left:5px" id="count2"></span>
+            </div>
+            <div class="form-group">
+                <div class="col-xs-12">
+                    <div id="div_table">
+                        <table style="width:100%" class="table table-bordered table-striped table-hover dataTable nowrap " id="table_Table"></table>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script>
+    var Table;
+    var isCreatedTable = false;
+    var isFirstSearch = false;
+
+    $(document).ready(function () {
+        if ('@CheckLoginPermission' == 'false') {
+                location.href = "Login.cshtml";
+            }
+
+               if ('@CheckPermission' == 'false') {
+            errorAlertCallback("权限不足", function () {
+                loadHomePage();
+            });
+        }
+
+        pageLoad();
+    });
+    function pageLoad() {
+        createTypeSelect();
+        wrapperFadeOut();
+
+    };
+
+    function getTableResult() {
+
+        var Status = $('#select_Type').val();
+        var PaymentSerial = $("#input_PaymentSerial").val();
+
+        api.getCompanyFrozenPointHistory(PaymentSerial, Status, function (success, obj) {
+            if (isCreatedTable) {
+                Table.clear().draw();
+            }
+
+            if (obj.ResultCode == 0) {
+                var companyFrozenAmount = 0;
+                var providerFrozenAmount = 0;
+                var frozendata = obj.Results;
+                for (var i = 0; i < frozendata.length; i++) {
+                    if (frozendata[i].Status == 0) {
+                        companyFrozenAmount += frozendata[i].CompanyFrozenAmount;
+                        providerFrozenAmount += frozendata[i].ProviderFrozenAmount;
+                    }
+                }
+                $('#count1').text(toCurrency(providerFrozenAmount));
+                $('#count2').text(toCurrency(companyFrozenAmount));
+
+                if (!isCreatedTable) {
+                    isCreatedTable = true;
+                    createTable(frozendata);
+                } else {
+                    Table.rows.add(frozendata).draw();
+                }
+                wrapperFadeOut();
+            } else {
+                switch (obj.ResultCode) {
+                    case 7:
+                        errorAlert("您已断线请重新登入", "Login.cshtml");
+                        break;
+                    case 5:
+
+                        warningAlert("查无资料");
+                        break;
+                    default:
+                        //warningAlert("其他錯誤");
+                        break;
+                }
+                wrapperFadeOut();
+            }
+        });
+    }
+
+    function createTable(data) {
+
+        Table = $('#table_Table').DataTable({
+            data: data,
+            columns: [
+                {
+                    "title": "被冻结单号", "data": "forPaymentSerial"
+                },
+                {
+                    "title": "银行卡资讯", "data": "BankCard",
+                    "render": function (data, display, rowdata) {
+                        var html = "";
+                        if (!(rowdata.BankName == null || rowdata.BankName == "")) {
+                            html += rowdata.BankName + "</br>";
+                        }
+                        if (!(rowdata.BankCard == null || rowdata.BankCard == "")) {
+                            html += rowdata.BankCard + "</br>";
+                        }
+                        if (!(rowdata.BankCardName == null || rowdata.BankCardName == "")) {
+                            html += rowdata.BankCardName + "</br>";
+                        }
+
+                        if (html != "") {
+                            html = html.substring(0, html.length -5);
+                        }
+
+
+                        return "<span>" + html+ "</span>";
+                    }
+                },
+                {
+                    "title": "冻结金额", "data": "CompanyFrozenAmount",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
+                    }
+                },
+               
+                {
+                    "title": "状态", "data": "Status",
+                    "render": function (data, display, rowdata) {
+                        switch (data) {
+                            case 0:
+                                return '冻结';
+                                break;
+                            case 1:
+                                return '解冻';
+                                break;
+                        }
+                    }
+                }
+            ],
+            rowCallback: function (row, data) { },
+            filter: true,         //右上搜尋
+            info: false,
+            ordering: true, //排序
+            processing: true,
+            retrieve: true,
+            paging: true,    //分頁
+            scrollX: true,
+            autoWidth: false,
+            language: chineseTableLang
+        });
+    }
+
+    $('#btnSearch').click(function () {
+        getTableResult();
+    })
+
+
+    function createTypeSelect() {
+        //0=代收/1=代付/2=提現/3=後台加扣
+        $("#select_Type").append('<option value="99">' + '所有' + '</option>');
+        $("#select_Type").append('<option value="0">' + '冻结' + '</option>');
+        $("#select_Type").append('<option value="1">' + '解冻' + '</option>');
+    }
+
+</script>

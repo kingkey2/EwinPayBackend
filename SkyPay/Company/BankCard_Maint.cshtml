@@ -1,0 +1,220 @@
+﻿@{
+    var bc = new BackendController(); string BID = HttpContext.Current.Request.Cookies.AllKeys.Contains("BID") == true ? HttpContext.Current.Request.Cookies["BID"].Value.ToString() : "";
+
+    string CheckPermission = "success";
+
+    string PermissionName = Request.Path.Split('/').Last().Split('.').First();
+    var result = bc.CheckPermission(BID, PermissionName);
+
+    if (result.ResultCode != BackendController.APIResult.enumResult.OK)
+    {
+        CheckPermission = "false";
+    }
+
+    var resultCheckLoginIP = bc.CheckLoginIPByCompany(BID);
+    string CheckLoginPermission = "success";
+    if (resultCheckLoginIP.ResultCode != BackendController.APIResult.enumResult.OK)
+    {
+        CheckLoginPermission = "false";
+    }
+}
+
+
+<div class="row">
+    <div class="col-xs-12">
+        <form class="form-horizontal" role="form">
+            <div class="form-group">
+                <div class="col-xs-12">
+
+                    <button class="btn" style="float:right;margin-right:5px;" type="button" id="btndisable">
+                        停用
+                    </button>
+                    <button class="btn btn-warning" style="float:right;margin-right:5px;" type="button" id="btnedit">
+                        修改
+                    </button>
+                    <button class="btn btn-info" style="float:right;margin-right:5px;" type="button" id="btnadd">
+                        新增
+                    </button>
+                </div> 
+            </div>
+       
+
+            <div class="form-group">
+                <div class="col-xs-12">
+              
+                        <table style="width:100%" class="table table-bordered table-striped table-hover dataTable nowrap" id="table_BankCardTable"></table>
+                  
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script>
+    var Table;
+
+    $(document).ready(function () {
+        pageLoad();
+    });
+
+    function pageLoad() {
+        if ('@CheckLoginPermission' == 'false') {
+                location.href = "Login.cshtml";
+            }
+
+             if ('@CheckPermission' == 'false') {
+            parent.errorAlertCallback("权限不足", function () {
+                loadHomePage();
+            });
+        }
+
+
+        createBankCardTable();
+        getBankCardTableResult();
+
+        $('#table_BankCardTable tbody').on('click', 'tr', function () {
+            if ($(this).hasClass('selected')) {
+                $(this).removeClass('selected');
+            } else {
+                Table.$('tr.selected').removeClass('selected');
+                $(this).addClass('selected');
+            }
+        });
+
+    };
+
+    function createBankCardTable() {
+        Table = $("#table_BankCardTable").DataTable({
+            data: [],
+            columns: [
+                { "title": "银行名称", "data": "BankName" },
+                { "title": "分行名称", "data": "BankBranchName" },
+                { "title": "卡号", "data": "BankCard" },
+                { "title": "持卡人姓名", "data": "BankCardName" },
+                { "title": "所属省份", "data": "OwnProvince" },
+                { "title": "所属城市", "data": "OwnCity" }
+            ],
+            rowCallback: function (row, data) { },
+            filter: true,
+            info: false,
+            ordering: true,
+            processing: true,
+            retrieve: true,
+            selected: true,
+            scrollX: true,
+            autoWidth: false,
+            language: chineseTableLang
+        });
+    }
+
+    function getBankCardTableResult() {
+        var companyid = AdminObject.forCompanyID;
+
+        api.getBankCardTableResult(companyid, function (success, obj) {
+            Table.clear().draw();
+            if (obj.ResultCode == 0) {
+                Table.rows.add(obj.BankCardResults).draw(); // Add new data
+                wrapperFadeOut();
+            } else {
+                var message = ""
+                switch (obj.ResultCode) {
+                    case 5:
+
+                        break;
+                    case 7:
+                        errorAlert("您已断线请重新登入", "Login.cshtml");
+                        break;
+                    default:
+                        message = "其他错误";
+                        warningAlert(message);
+                        break;
+                }
+                wrapperFadeOut();
+
+            }
+        });
+    }
+
+    $('#btnadd').click(function () {
+      
+        var data = {
+            CompanyID: AdminObject.forCompanyID
+        }
+
+        var tmpdata = {
+            type: "BankCard_Maint",
+            data: data
+        };
+        sessionStorage.setItem("TempData", JSON.stringify(tmpdata));
+        goPageForModify("BankCard_Create.cshtml","新增银行卡");
+    })
+
+    $('#btndisable').click(function () {
+        if (Table.row(".selected").data() == undefined) {
+            parent.warningAlert("请先选择要修改的资料");
+        } else {
+            swal({
+                title: "是否要删除？",
+                type: "warning",
+                showCancelButton: true,
+                closeOnConfirm: true,
+                confirmButtonText: "确定",
+                cancelButtonText: "取消",
+                confirmButtonColor: "#DD6B55",
+            },
+                function (isConfirm) {
+                    if (isConfirm) {
+                        deleteBankCard(Table.row(".selected").data().BankCard);
+                    }
+                });
+        }
+
+    })
+
+    function deleteBankCard(bankCard, currencyType) {
+        api.deleteBankCard(bankCard, function (success, obj) {
+            if (obj.ResultCode == 0) {
+                successAlert(function () {
+                    reloadPage();
+                });
+            } else {
+                switch (obj.ResultCode) {
+                    case 4:
+                        errorAlertCallback("权限不足", function () {
+                            loadHomePage();
+                        });
+                        break;
+
+                    case 7:
+                        errorAlert("您已断线请重新登入", "Login.cshtml");
+                        break;
+
+                    default:
+                        warningAlert("其他错误");
+                        break;
+                }
+            }
+        });
+    }
+
+
+    //編輯
+    $("#btnedit").on("click", function () {
+
+        if (Table.row(".selected").data() != undefined) {
+            var data = Table.row(".selected").data();
+
+            var tmpdata = {
+                type: "BankCard_Maint",
+                data: data
+            };
+            sessionStorage.setItem("TempData", JSON.stringify(tmpdata));
+            goPageForModify("BankCard_Update.cshtml", "修改银行卡");
+        } else {
+            warningAlert("请先选择要修改的资料");
+        }
+
+    })
+
+</script>

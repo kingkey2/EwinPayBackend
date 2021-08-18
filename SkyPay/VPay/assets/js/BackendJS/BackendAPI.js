@@ -6199,6 +6199,31 @@ var BackendAPI = function (BID, APIUrl) {
         });
     };
 
+    this.getCompanyFrozenPointHistory = function (PaymentSerial, Status, cb) {
+        var url = APIUrl + "/GetCompanyFrozenPointHistory";
+        var postData;
+
+        postData = {
+            BID: BID,
+            PaymentSerial: PaymentSerial,
+            Status: Status
+        };
+
+        callServiceByPost(url, postData, function (success, text) {
+            if (success == true) {
+                var obj = getJSON(text);
+
+                if (cb) {
+                    cb(true, obj);
+                }
+            } else {
+                if (cb) {
+                    cb(false, text);
+                }
+            }
+        });
+    };
+
     this.getFrozenPointHistory = function (startDate, endDate, PaymentSerial, CompanyID, providercode, Status, groupID,  cb) {
         var url = APIUrl + "/getFrozenPointHistory";
         var postData;
