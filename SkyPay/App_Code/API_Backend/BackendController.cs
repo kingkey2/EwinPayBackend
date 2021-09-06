@@ -7661,6 +7661,39 @@ public class BackendController : ApiController
 
 
     [HttpPost]
+    [ActionName("GetSummaryCompanyByDateResultFlot")]
+    public SummaryCompanyByDateFlot GetSummaryCompanyByDateResultFlot([FromBody] FromBody.PaymentTable SearchData)
+    {
+        SummaryCompanyByDateFlot retValue = new SummaryCompanyByDateFlot();
+        BackendDB backendDB = new BackendDB();
+        RedisCache.BIDContext.BIDInfo AdminData = new RedisCache.BIDContext.BIDInfo();
+
+        if (!RedisCache.BIDContext.CheckBIDExist(SearchData.BID))
+        {
+            retValue.ResultCode = APIResult.enumResult.SessionError;
+            return retValue;
+        }
+        else
+        {
+            AdminData = RedisCache.BIDContext.GetBIDInfo(SearchData.BID);
+        }
+        SearchData.CompanyID = AdminData.forCompanyID;
+        retValue.SummaryCompanyByDates = backendDB.GetSummaryCompanyByDateResultFlot(SearchData);
+
+        if (retValue.SummaryCompanyByDates != null)
+        {
+            retValue.ResultCode = APIResult.enumResult.OK;
+
+        }
+
+        else
+        {
+            retValue.ResultCode = APIResult.enumResult.NoData;
+        }
+        return retValue;
+    }
+
+    [HttpPost]
     [ActionName("GetSummaryCompanyByDateResult")]
     public SummaryCompanyByDate GetSummaryCompanyByDateResult([FromBody] FromBody.PaymentTable SearchData)
     {
@@ -13491,6 +13524,12 @@ public class BackendController : ApiController
         public decimal TotalPayAgentAmount;
         public decimal TotalAgentAmount;
     }
+
+    public class SummaryCompanyByDateFlot : APIResult
+    {
+        public List<DBModel.SummaryCompanyByDateFlot> SummaryCompanyByDates;
+    }
+
 
     public class SummaryCompanyByHour : APIResult
     {

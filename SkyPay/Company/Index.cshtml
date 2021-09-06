@@ -148,11 +148,11 @@
             }
 
             if ('@CheckLoginPermission' == 'false') {
-                location.href = "Login.cshtml";
+                location.href = "/Company/Login.cshtml";
             }
 
             createMenu();
-            goPageForModify("Home.cshtml","Home");
+            loadHomePage();
             $('.page-loader-wrapper').fadeOut();
         }
 
@@ -216,6 +216,9 @@
                                     break;
                                 case "Report":
                                     icon = '  <i class="menu-icon fa fa-sticky-note"></i>';
+                                    break;
+                                case "ReportQuery":
+                                    icon = '  <i class="menu-icon glyphicon glyphicon-edit"></i>';
                                     break;
                                 case "ProgramUse":
                                     icon = '  <i class="menu-icon fa fa-desktop"></i>';
@@ -530,14 +533,20 @@
 
             <div class="navbar-buttons navbar-header pull-right  collapse navbar-collapse" role="navigation">
                 <ul class="nav ace-nav">
+                    <li class="transparent dropdown-modal" style="border-left-width: 1px;">
+                        <a onclick="loadHomePage()">
+                            <i class="ace-icon glyphicon glyphicon-home"></i>
+                        </a>
+                    </li>
                     <li class="transparent dropdown-modal">
                         <a onclick="Logout()">
                             <i class="ace-icon glyphicon glyphicon-off"></i>
                         </a>
                     </li>
 
-                    
+
                 </ul>
+               
             </div>
 
           

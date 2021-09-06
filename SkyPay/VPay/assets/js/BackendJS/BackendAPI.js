@@ -5443,6 +5443,25 @@ var BackendAPI = function (BID, APIUrl) {
         });
     };
 
+    this.getSummaryCompanyByDateResultFlot = function (postdata, cb) {
+
+        var url = APIUrl + "/GetSummaryCompanyByDateResultFlot";
+        postdata["BID"] = BID;
+        callServiceByPost(url, postdata, function (success, text) {
+            if (success == true) {
+                var obj = getJSON(text);
+
+                if (cb) {
+                    cb(true, obj);
+                }
+            } else {
+                if (cb) {
+                    cb(false, text);
+                }
+            }
+        });
+    };
+
     this.getSummaryCompanyByDateResult = function (postdata, cb) {
 
         var url = APIUrl + "/GetSummaryCompanyByDateResult";

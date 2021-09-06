@@ -217,8 +217,8 @@
         new AutoNumeric.multiple('.thousand-symbols', 'floatPos', { allowDecimalPadding: false, decimalPlaces: 4, modifyValueOnWheel: false });
         ShowCompanyPoint();
         createCompanyServicePointTable();
-        //setInterval("getCompanyServicePointResult()", 20000);
-        //setInterval("ShowCompanyPoint2()", 20000);
+        setInterval("getCompanyServicePointResult()", 20000);
+        setInterval("ShowCompanyPoint2()", 20000);
          wrapperFadeOut();
     };
 
@@ -1853,7 +1853,7 @@
                                     var failCount = array_data.length - o.Message;
 
                                     parent.successAlert3("申请完成,成功笔数" + o.Message + ",失败笔数:" + failCount, function () {
-                                        parent.refreshPage(window.frameElement.id.split('_')[1]);
+                                        reloadPage();
                                     });
 
                                 } else {
@@ -1873,7 +1873,7 @@
                                             break;
                                         default:
                                             parent.successAlert3("目前没有可申请订单,5分钟内只能提交一张相同银行卡资讯订单" , function () {
-                                                parent.refreshPage(window.frameElement.id.split('_')[1]);
+                                                reloadPage();
                                             });
 
                                             break;

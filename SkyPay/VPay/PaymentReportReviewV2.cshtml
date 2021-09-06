@@ -1341,7 +1341,11 @@
                                     }
                                 }
                   
-                        } else {
+                        } else if ($(".select_providerCode").val() == "Qida") {
+                            var selectTypeSelect = $(select_providerCode).parent().parent().find('.select_serviceType');
+                            selectTypeSelect.val('OOB02');
+                        }
+                        else {
                             var select_providerGroup = $($(select_providerCode).parent().find('.select_providerGroup'));
                             select_providerGroup.hide();
                             select_providerGroup.empty();

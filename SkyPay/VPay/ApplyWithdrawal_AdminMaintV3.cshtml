@@ -2539,7 +2539,7 @@
 
         api.getWithdrawalResultByWithdrawSerial(withdrawSerial, function (success, obj) {
             if (obj.ResultCode == 0) {
-                if (obj.WithdrawalResult.Status == 0 || obj.WithdrawalResult.Status == 1 || obj.WithdrawalResult.Status == 3 || obj.WithdrawalResult.Status == 13 || obj.WithdrawalResult.Status == 14) {
+                if (obj.WithdrawalResult.Status == 0) {
                     WithdrawalReviewConfirm(obj.WithdrawalResult);
                 } else {
                     parent.warningAlert("目前状态无法审核");

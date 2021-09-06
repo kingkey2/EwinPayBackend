@@ -865,7 +865,7 @@ public class DBModel {
 
     }
 
-    public class SummaryCompanyByDate {
+        public class SummaryCompanyByDate {
         public string SummaryDate2 { get; set; }
         public int forCompanyID { get; set; }
         public string CurrencyType { get; set; }
@@ -884,6 +884,14 @@ public class DBModel {
         public int CompanyType { get; set; }
 
     }
+
+    public class SummaryCompanyByDateFlot
+    {
+        public string SummaryDate { get; set; }
+        public decimal TotalWithdrawalAmount { get; set; }
+        public decimal TotalNetAmount { get; set; }
+    }
+
 
     public class SummaryCompanyByHour
     {

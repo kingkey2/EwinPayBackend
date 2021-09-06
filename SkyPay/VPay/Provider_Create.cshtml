@@ -1052,18 +1052,18 @@ if ('@CheckLoginPermission' == 'false') {
         //儲存
         $("#btn_Save").on("click", function () {
             //#region 驗證
-            if ($("#ProviderCode").val() == "") {
+            if ($("#ProviderCode").val().trim() == "") {
                 parent.warningAlert("供应商代码为必填！");
                 return;
             }
-            if ($("#ProviderName").val() == "") {
+            if ($("#ProviderName").val().trim() == "") {
                 parent.warningAlert("供应商名称为必填！");
                 return;
             }
           
             //#endregion
-            var providerCode = $("#ProviderCode").val();
-            var providerName = $("#ProviderName").val();
+            var providerCode = $("#ProviderCode").val().trim();
+            var providerName = $("#ProviderName").val().trim();
             var introducer = $("#Introducer").val();
             var providerUrl = $("#ProviderUrl").val();
             var merchantKey = $("#MerchantKey").val();

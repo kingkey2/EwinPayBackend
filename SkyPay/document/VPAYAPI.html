@@ -1,0 +1,2185 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <link href="/document/main.css" rel="stylesheet" />
+    <link href="/document/atelier-savanna-light.css" rel="stylesheet" />
+    <link href="/document/bootstrap.css" rel="stylesheet" />
+    <script src="/document/highlight.pack.js"></script>
+    <link rel="icon" href="/document/image/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="/document/image/favicon.ico" type="image/x-icon" />
+
+    <script>
+        hljs.initHighlightingOnLoad();
+    </script>
+    <style>
+        .fast_img {
+            margin-top: 10px;
+            margin-bottom: 40px;
+        }
+    </style>
+    <title>VPAY API</title>
+</head>
+<body style="">
+
+    <div id="MathJax_Message" style="display: none;"></div>
+
+    <div id="doc" class="container markdown-body">
+
+        <h1 style="text-align:center;margin-top:20px;padding-top:10px">VPAY API 文件</h1>
+     
+        <p></p>
+        <div class="toc">
+            <ul>
+                <li>
+                    <a href="#API 文件" title="API 文件" smoothhashscroll="">API 文件</a>
+                    <ul>
+                        <li>
+                            <a href="#API网址" title="API网址" smoothhashscroll="">API网址</a>
+                            <ul>
+                                <li><a href="#Header" title="Header" smoothhashscroll="">Header</a></li>
+                                <li><a href="#加密方式" title="加密方式" smoothhashscroll="">加密方式</a></li>
+                                <!--<li><a href="#Response" title="Response" smoothhashscroll="">Response</a></li>
+                            <li><a href="#Request" title="Request" smoothhashscroll="">Request</a></li>-->
+                            </ul>
+
+                        <li>
+                            <a href="#相关 API" title="相关 API" smoothhashscroll="">相关 API</a>
+                            <ul>
+                                <li><a href="#支付申请" title="支付申请" smoothhashscroll="">支付申請</a></li>
+                                <li><a href="#支付异步回传结果" title="支付异步回传结果" smoothhashscroll="">支付异步回传结果</a></li>
+                                <li><a href="#支付订单查询" title="支付订单查询" smoothhashscroll="">支付订单查询</a></li>
+                                <li><a href="#快速储值" title="快速储值" smoothhashscroll="">快速储值</a></li>
+                                <li><a href="#代付申请" title="代付申请" smoothhashscroll="">代付申请</a></li>
+                                <li><a href="#代付订单确认" title="代付订单确认" smoothhashscroll="">代付订单确认</a></li>
+                                <li><a href="#快速代付" title="快速代付" smoothhashscroll="">快速代付</a></li>
+                                <li><a href="#代付异步回传结果" title="代付异步回传结果" smoothhashscroll="">代付异步回传结果</a></li>
+                                <li><a href="#代付订单查询" title="代付订单查询" smoothhashscroll="">代付订单查询</a></li>
+                                <li><a href="#代付订单查询(商户订单号)" title="代付订单查询(商户订单号)" smoothhashscroll="">代付订单查询(商户订单号)</a></li>
+                                <li><a href="#余额查询" title="余额查询" smoothhashscroll="">余额查询</a></li>
+                            </ul>
+                        </li>
+
+
+                        <li>
+                            <a href="#附录" title="附录" smoothhashscroll="">
+                                附录
+                            </a>
+                            <ul>
+                                <li><a href="#币别" title="币别" smoothhashscroll="">币别</a></li>
+                                <!--<li><a href="#银行代码" title="银行代码" smoothhashscroll="">银行代码</a></li>-->
+                                <li><a href="#服务类型" title="服务类型" smoothhashscroll="">服务类型</a></li>
+                                <li><a href="#错误代码查询" title="错误代码查询" smoothhashscroll="">错误代码查询</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <!--<li>
+                <a href="#附錄" title="附錄" smoothhashscroll="">附錄</a>
+                <ul>
+                    <li><a href="#詳細投注資料" title="詳細投注資料" smoothhashscroll="">附錄一 : 詳細投注資料</a></li>
+                </ul>
+            </li>-->
+            </ul>
+        </div><p></p>
+        <h2 class="" id="测试资讯"><a class="anchor hidden-xs" href="#测试资讯" title="测试资讯" smoothhashscroll=""><span class="octicon octicon-link"></span></a>测试资讯</h2>
+        <h3 class="" id="API网址">
+            <a class="anchor hidden-xs" href="#API网址" title="API网址" smoothhashscroll=""><span class="octicon octicon-link"></span></a>API网址
+        </h3>
+        <p>URL : < URL > /api/Gateway</p>
+        <h3 class="" id="Header"><a class="anchor hidden-xs" href="#Header" title="Header" smoothhashscroll=""><span class="octicon octicon-link"></span></a>Header</h3>
+        <p>每次使用<code>API</code>所需要的<code>Header</code>设定值</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Value</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Content-Type</td>
+                    <td>string</td>
+                    <td>application/json</td>
+                    <td>Json格式<code></code></td>
+                </tr>
+                <tr>
+                    <td>Content-Type</td>
+                    <td>string</td>
+                    <td>application/x-www-form-urlencoded</td>
+                    <td>form表单格式<code>只用在"支付申請"时，其余接口均为 Json格式。</code></td>
+                </tr>
+            </tbody>
+        </table>
+        <h3 class="" id="加密方式"><a class="anchor hidden-xs" href="#加密方式" title="加密方式" smoothhashscroll=""><span class="octicon octicon-link"></span></a>加密方式</h3>
+        <p>加密方式皆为<code>SHA256</code></p>
+        <code>加密后需再转为大写</code>
+        <p>php:</p>
+        <pre>
+        <code class="php">
+                hash('sha256', $data, false);
+            </code>
+        </pre>
+        <p>java:</p>
+        <pre>
+        <code class="java">
+                MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                digest.reset();
+                digest.update(input.getBytes("utf8"));
+                toReturn = String.format("%064x", new BigInteger(1, digest.digest()));
+            </code>
+        </pre>
+        <p>加密字串:</p>
+        <p>5566520</p>
+        <p>加密后结果:</p>
+        <p>69481E4583F7A8FBC1200BC629603CB9A0D5B16822DE87B0ACA965C89CD80F00</p>
+        <p>线上测试网址:<a href="https://passwordsgenerator.net/sha256-hash-generator/">https://passwordsgenerator.net/sha256-hash-generator/</a></p>
+
+        <h2 class="" id="相关 API"><a class="anchor hidden-xs" href="#相关 API" title="相关 API" smoothhashscroll=""><span class="octicon octicon-link"></span></a>相关 API</h2>
+
+        <h3 class="" id="支付申请"><a class="anchor hidden-xs" href="#支付申请" title="支付申请" smoothhashscroll=""><span class="octicon octicon-link"></span></a>支付申请</h3>
+        <img src="image/RequirePayment.jpg" />
+        <p>URL: <code>RequirePayment</code></p>
+        <p>Method: <code>Post</code></p>
+        <p>Content-Type: <code>application/x-www-form-urlencoded</code></p>
+        <p><strong>Request</strong> :</p>
+        <p><strong>PS</strong> : 签章使用SHA256加密。</p>
+
+        <p>
+            <strong>
+                请求的类型是 form，即 Content-Type: application/x-www-form-urlencoded<br />
+                PostForm submit 导页到支付页面即可。
+            </strong>
+        </p>
+        <!--<p><strong>PS</strong> : CostType 、CostSubCode 請自己定義 。</p>-->
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>CompanyCode</td>
+                    <td>String</td>
+                    <td>
+                        是
+                    </td>
+                    <td>商户代码</td>
+                </tr>
+                <tr>
+                    <td>CurrencyType</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td><a class="anchor hidden-xs" href="#币别" title="币别" smoothhashscroll=""><span class="octicon octicon-link"></span>&nbsp;&nbsp;&nbsp;币别(详见对照表)</a></td>
+                </tr>
+                <tr>
+                    <td>ServiceType</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td><a class="anchor hidden-xs" href="#服务类型" title="服务类型" smoothhashscroll=""><span class="octicon octicon-link"></span>&nbsp;&nbsp;&nbsp;服务类型(详见对照表)</a></td>
+                </tr>
+                <tr>
+                    <td>BankCode</td>
+                    <td>String</td>
+                    <td>否</td>
+                    <td>
+                        <a class="anchor hidden-xs" href="#银行代码" title="银行代码" smoothhashscroll="">
+                            <span class="octicon octicon-link"></span>&nbsp;&nbsp;&nbsp;银行代码(详见对照表)
+                        </a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>ClientIP</td>
+                    <td>Integer</td>
+                    <td>是</td>
+                    <td>提单会员IP</td>
+                </tr>
+                <tr>
+                    <td>OrderID</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        订单编号<code>自行产生后带入</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td>OrderDate</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        订单日期<br />
+                        字串格式要求为 yyyy-MM-dd HH:mm:ss <code>ex:2018-01-01 11:22:33</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td>OrderAmount</td>
+                    <td>Number</td>
+                    <td>是</td>
+                    <td>
+                        商户订单金额<br />
+                        <code>只支援整数</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td>ReturnURL</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>回传网址</td>
+                </tr>
+                <tr>
+                    <td>UserName</td>
+                    <td>String</td>
+                    <td>否</td>
+                    <td>
+                        汇款人户名<br />
+                        <code>如果为实名制渠道需填写</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td>State</td>
+                    <td>String</td>
+                    <td>否</td>
+                    <td>
+                        公用回传参数<br />
+                        商户如果支付请求时传递了该参数，则通知商户支付成功时会原样回传该参数(允许值为空字符串，如：
+                        State="")
+                    </td>
+                </tr>
+                <tr>
+                    <td>Sign</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        签章:<code>需再使用SHA256加密后转大写</code><br>
+                        <code>OrderAmount如有小数时请将尾数0去除,100.00请带入100 (ex:100.00->100) 后加入签名中</code><br />
+                        格式:CompanyCode=商户代码&CurrencyType=币别&ServiceType=服务类型&OrderID=订单编号&OrderAmount=商户订单金额&OrderDate=订单日期&CompanyKey=金钥
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+        <pre>
+            <code class="json">
+
+                {
+                CompanyCode:'CompanyCode',
+                CurrencyType:'CNY',
+                ServiceType:'AA001',
+                BankCode:'BCCB',
+                ClientIP:'111.111.11.111',
+                OrderID:'OID001',
+                OrderDate:'2020-01-01 01:01:01',
+                OrderAmount:100.00,
+                ReturnURL:'http://ReturnURL',
+                Sign:'CompanyCode=CompanyCode&CurrencyType=CNY&ServiceType=AA001&OrderID=OID001&OrderAmount=100.00&OrderDate=2020-01-01 01:01:01&CompanyKey=CompanyKey'
+                }
+            </code>
+        </pre>
+
+        <!--支付異步回傳結果 -->
+        <h3 class="" id="支付异步回传结果"><a class="anchor hidden-xs" href="#支付异步回传结果" title="支付异步回传结果" smoothhashscroll=""> <span class="octicon octicon-link"></span></a>支付异步回传结果</h3>
+        <strong>PS : </strong>
+        <p>1 : API 需开启 Post 接口。 </p>
+        <p>2 : 回传格式为Json字串。 </p>
+        <p>3 : 成功后需回传 "SUCCESS"。 </p>
+        <p>4 : 如果未回传 "SUCCESS",系统会呼叫三次串接方API。 </p>
+        <p><strong>Response</strong></p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>PaymentSerial</td>
+                    <td>Integer</td>
+                    <td>交易编号</td>
+                </tr>
+
+                <tr>
+                    <td>PaymentStatus</td>
+                    <td>String</td>
+                    <td>
+                        0/成功<br>
+                        1/失败<br>
+                        2/处理中<br>
+                        3/其他问题，请联系客服<br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>OrderAmount</td>
+                    <td>Number</td>
+                    <td>商户订单金额</td>
+                </tr>
+                <tr>
+                    <td>PaymentAmount</td>
+                    <td>Number</td>
+                    <td>实际收单金额</td>
+                </tr>
+                <tr>
+                    <td>ServiceType</td>
+                    <td>String</td>
+                    <td><a class="anchor hidden-xs" href="#服务类型" title="服务类型" smoothhashscroll=""><span class="octicon octicon-link"></span>&nbsp;&nbsp;&nbsp;服务类型(详见对照表)</a></td>
+                </tr>
+                <tr>
+                    <td>CurrencyType</td>
+                    <td>String</td>
+                    <td><a class="anchor hidden-xs" href="#币别" title="币别" smoothhashscroll=""><span class="octicon octicon-link"></span>&nbsp;&nbsp;&nbsp;币别(详见对照表)</a></td>
+                </tr>
+                <tr>
+                    <td>CompanyCode</td>
+                    <td>String</td>
+                    <td>商户代码</td>
+                </tr>
+                <tr>
+                    <td>BankSequenceID</td>
+                    <td>string</td>
+                    <td>银行传回收单序号</td>
+                </tr>
+
+                <tr>
+                    <td>OrderID</td>
+                    <td>String</td>
+                    <td>
+                        订单编号
+                    </td>
+                </tr>
+                <tr>
+                    <td>OrderDate</td>
+                    <td>String</td>
+                    <td>
+                        订单日期
+                    </td>
+                </tr>
+                <tr>
+                    <td>Sign</td>
+                    <td>String</td>
+                    <td>
+                        签章:<code>需再使用SHA256加密后转大写</code><br>
+                        <code>OrderAmount如有小数时请将尾数0去除,100.00请带入100 (ex:100.00->100) 后加入签名中</code><br />
+                        格式:CompanyCode=商户代码&CurrencyType=币别&ServiceType=服务类型&OrderID=订单编号&OrderAmount=商户订单金额&OrderDate=订单日期&CompanyKey=金钥
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <pre>
+            <code class="json">
+                {
+                    "PaymentSerial": "PT001",
+                    "PaymentStatus": 0,
+                    "OrderAmount": 100.00,
+                    "PaymentAmount": 100.00,
+                    "ServiceType": "AA001",
+                    "CurrencyType":"CNY",
+                    "CompanyCode": "CompanyCode",
+                    "BankSequenceID": "BankSequenceID",
+                    "OrderID": "OID001",
+                    "OrderDate":"2020-01-01 01:01:01",
+                    "Sign":详细内容请见说明
+                }
+            </code>
+        </pre>
+ 
+        <h3 class="" id="支付订单查询"><a class="anchor hidden-xs" href="#支付订单查询" title="支付订单查询" smoothhashscroll=""><span class="octicon octicon-link"></span></a>支付查询订单</h3>
+        <p>URL: <code>/QueryPayment</code></p>
+        <p>Method: <code>POST</code></p>
+        <p>Content-Type: <code>application/json</code></p>
+        <p><strong>Request</strong> :</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>CompanyCode</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        商户代码
+                    </td>
+                </tr>
+                <tr>
+                    <td>PaymentSerial</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        交易序号
+                    </td>
+                </tr>
+                <tr>
+                    <td>Sign</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        签章:<code>需再使用SHA256加密后转大写</code><br>
+                        格式:CompanyCode=商户代码&PaymentSerial=交易序号&CompanyKey=金钥
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+        <pre>
+            <code class="json">
+                {
+                    CompanyCode:'CompanyCode',
+                    PaymentSerial:'PT001',
+                    QueryDate:'2020-01-01 01:01:01',
+                    Sign:'详细内容请见说明'
+                }
+            </code>
+        </pre>
+        <p><strong>Response</strong></p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>PaymentSerial</td>
+                    <td>Integer</td>
+                    <td>交易编号</td>
+                </tr>
+                <tr>
+                    <td>Status</td>
+                    <td>Number</td>
+                    <td>
+                        查询状态:<br>
+                        0/查询成功<br>
+                        1/查询失败<br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>PaymentStatus</td>
+                    <td>Number</td>
+                    <td>
+                        订单状态:<br>
+                        0/成功<br>
+                        1/失败<br>
+                        2/进行中<br>
+                        3/其他问题，请联络客服<br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>OrderAmount</td>
+                    <td>Number</td>
+                    <td>商户订单金额</td>
+                </tr>
+                <tr>
+                    <td>PaymentAmount</td>
+                    <td>Number</td>
+                    <td>实际收单金额</td>
+                </tr>
+                <tr>
+                    <td>ServiceType</td>
+                    <td>String</td>
+                    <td><a class="anchor hidden-xs" href="#服务类型" title="服务类型" smoothhashscroll=""><span class="octicon octicon-link"></span>&nbsp;&nbsp;&nbsp;服务类型(详见对照表)</a></td>
+                </tr>
+                <tr>
+                    <td>CurrencyType</td>
+                    <td>String</td>
+                    <td><a class="anchor hidden-xs" href="#币别" title="币别" smoothhashscroll=""><span class="octicon octicon-link"></span>&nbsp;&nbsp;&nbsp;币别(详见对照表)</a></td>
+                </tr>
+                <tr>
+                    <td>CompanyCode</td>
+                    <td>String</td>
+                    <td>
+                        商户代码
+                    </td>
+                </tr>
+                <tr>
+                    <td>BankSequenceID</td>
+                    <td>string</td>
+                    <td>银行传回收单序号</td>
+                </tr>
+
+                <tr>
+                    <td>OrderID</td>
+                    <td>String</td>
+                    <td>
+                        订单编号
+                    </td>
+                </tr>
+                <tr>
+                    <td>OrderDate</td>
+                    <td>String</td>
+                    <td>订单日期</td>
+                </tr>
+                <tr>
+                    <td>Sign</td>
+                    <td>String</td>
+                    <td>
+                        签章
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <pre>
+            <code class="json">
+                {
+                "PaymentID": PT001,
+                "Status": 0,
+                "PaymentStatus": 0,
+                "OrderAmount": 100.00,
+                "PaymentAmount": 100.00,
+                "ServiceType": "AA001",
+                "CompanyCode": "CompanyCode",
+                "BankSequenceID": "BankSequenceID",
+                "OrderID": "OD001",
+                "OrderDate":"2020-01-01 01:01:01",
+                "Sign":详细内容请见说明
+                }
+            </code>
+        </pre>
+        <!--...-->
+        <!--錢包(存款/扣款)-->
+        <h3 class="" id="代付申请"><a class="anchor hidden-xs" href="#代付申请" title="代付申请" smoothhashscroll=""><span class="octicon octicon-link"></span></a>代付申请</h3>
+        <!--<p>URL: <code>/QueryPayment</code></p>-->
+        <p>URL: <code>/RequireWithdraw</code></p>
+        <p>Method: <code>POST</code></p>
+        <p>Content-Type: <code>application/json</code></p>
+
+        <strong>PS : </strong>
+        <p>1 : 订单申请时，需提供 <a href="#代付订单确认" title="Title" smoothhashscroll="">代付订单确认</a> 接口供我方呼叫。 </p>
+        <p>2 : 需经过代付订单确认为商户发送的订单后，订单申请完成，反之则为失败单。 </p>
+        <p><strong>Request</strong> :</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>CompanyCode</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>商户代码</td>
+                </tr>
+
+
+                <tr>
+                    <td>CurrencyType</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td><a class="anchor hidden-xs" href="#币别" title="币别" smoothhashscroll=""><span class="octicon octicon-link"></span>&nbsp;&nbsp; &nbsp;币别(详见对照表)</a></td>
+                </tr>
+
+                <tr>
+                    <td>OrderAmount</td>
+                    <td>Number</td>
+                    <td>是</td>
+                    <td>
+                        商户订单金额<br />
+                        <code>只支援整数</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td>BankName</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>银行名称</td>
+                </tr>
+                <tr>
+                    <td>BankCard</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>银行卡号</td>
+                </tr>
+                <tr>
+                    <td>BankCardName</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>开户名</td>
+                </tr>
+                <tr>
+                    <td>BankBranchName</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>支行名称</td>
+                </tr>
+                <tr>
+                    <td>OwnProvince</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>省份</td>
+                </tr>
+                <tr>
+                    <td>OwnCity</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>城市</td>
+                </tr>
+                <tr>
+                    <td>OrderID</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        订单号<code>保证唯一值</code>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>OrderDate</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        订单日期<br />
+                        字串格式要求为 yyyy-MM-dd HH:mm:ss <code>ex:2020-01-01 01:01:01</code>
+                    </td>
+                <tr>
+                    <td>ReturnUrl</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>回调地址</td>
+                </tr>
+                <tr>
+                    <td>ClientIP</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>提单会员IP</td>
+                </tr>
+                <tr>
+                    <td>Sign</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        签章:<code>需再使用SHA256加密后转大写</code><br>
+                        <code>OrderAmount如有小数时请将尾数0去除,100.00请带入100 (ex:100.00->100) 后加入签名中</code><br />
+                        格式:CompanyCode=商户代码&CurrencyType=币别&OrderID=订单号&OrderAmount=商户订单金额&OrderDate=订单日期&CompanyKey=金钥
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+        <pre>
+            <code class="json">
+                {
+                    "CompanyCode": "CompanyCode",
+                    "CurrencyType": "CNY",
+                    "OrderAmount": 100.00,
+                    "BankCard": 123456789,
+                    "BankCardName": "BankCardName",
+                    "BankName": "BankName",
+                    "BankBranchName": "BankBranchName",
+                    "OwnProvince": "OwnProvince",
+                    "OwnCity": "OwnCity",
+                    "OrderID": "OD001",
+                    "OrderDate": "2020-01-01 01:01:01",
+                    "ReturnUrl": "https://ReturnUrl",
+                    "ClientIP":"111.1.1.11",
+                    "Sign":详细内容请见说明
+                }
+            </code>
+        </pre>
+        <p><strong>Response</strong></p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>WithdrawSerial</td>
+                    <td>String</td>
+                    <td>系统订单号</td>
+                </tr>
+
+                <tr>
+                    <td>Status</td>
+                    <td>Number</td>
+                    <td>
+                        0=申请成功<br>
+                        1=申请失败<br>
+                        <code>实际支付结果需等待<a href="#代付异步回传结果" title="Title" smoothhashscroll="">代付异步回传结果</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Message</td>
+                    <td>String</td>
+                    <td>其他资讯</td>
+                </tr>
+                <tr>
+                    <td>OrderAmount</td>
+                    <td>Number</td>
+                    <td>金额</td>
+                </tr>
+            </tbody>
+        </table>
+        <pre>
+        <code class="json">
+                {
+                "WithdrawSerial":"WT2019122212480000000575",
+                "OrderAmount":100.0000,
+                "Status":0,
+                "Message":null
+                }
+            </code>
+        </pre>
+
+        <h3 class="" id="代付订单确认"><a class="anchor hidden-xs" href="#代付订单确认" title="代付订单确认" smoothhashscroll=""><span class="octicon octicon-link"></span></a>代付订单确认</h3>
+        <!--<p>URL: <code>/QueryPayment</code></p>-->
+        <p>URL: <code>商户需提供给我方客服设定</code></p>
+
+        <strong>PS : </strong>
+        <p>1 : 此为代付申请确认 API,我方收到 <a href="#代付申请" title="Title" smoothhashscroll="">代付申请</a> 后,会呼叫商户提供的网域,确认是否有该笔订单申请。 </p>
+        <p>2 : 请提供查询订单网域由我方设定。 </p>
+        <p>3 : 订单查询失败时,回传资讯请填写清楚错误资讯。 </p>
+        <p>4 : API接口格式如下 : </p>
+        <p>Method: <code>POST</code></p>
+        <p>Content-Type: <code>application/json</code></p>
+        <p>5 : 请求参数与回传格式如下 : </p>
+        <p><strong>请求参数(我方呼叫时所带的参数)</strong> :</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>参数名称</th>
+                    <th>参数变量名</th>
+                    <th>类型</th>
+                    <th>是否必填</th>
+                    <th>说明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>商户代码</td>
+                    <td>CompanyCode</td>
+                    <td>String</td>
+                    <td>Y</td>
+                    <td>商户代码</td>
+                </tr>
+                <tr>
+                    <td>商户订单号</td>
+                    <td>OrderID</td>
+                    <td>String</td>
+                    <td>Y</td>
+                    <td>商户下单订单号</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p><strong>回传参数(商户收到请求后返回是否有此笔订单)</strong> :</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>参数名称</th>
+                    <th>参数变量名</th>
+                    <th>类型</th>
+                    <th>是否必填</th>
+                    <th>说明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>成功與否的狀態</td>
+                    <td>status</td>
+                    <td>String</td>
+                    <td>Y</td>
+                    <td>true:成功(确认有此订单) false:失败</td>
+                </tr>
+                <tr>
+                    <td>讯息</td>
+                    <td>msg</td>
+                    <td>String</td>
+                    <td>Y</td>
+                    <td>讯息(成功或失败都请提供资此参数)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p><strong>示例</strong> :</p>
+        <p>1 : 确认有此笔订单。 </p>
+        <p>我方请求参数 : </p>
+        <pre>
+        <code class="json">
+                {
+                    "CompanyCode": "AAA",
+                    "OrderID": "WT12345"
+                }
+            </code>
+        </pre>
+        <p>商户回传参数 : </p>
+        <pre>
+        <code class="json">
+                {
+                    "status": "true",
+                    "msg": "有查询到此笔订单资讯,订单号: WT12345"
+                }
+            </code>
+        </pre>
+
+        <p>2 : 查询失败时 : </p>
+        <p>我方请求参数 : </p>
+        <pre>
+        <code class="json">
+                {
+                    "CompanyCode": "AAA",
+                    "OrderID": "WT12345"
+                }
+            </code>
+        </pre>
+        <p>商户回传参数 : </p>
+        <pre>
+        <code class="json">
+                {
+                    "status": "false",
+                    "msg": "请提供相关错误资讯"
+                }
+            </code>
+        </pre>
+        <!--...-->
+
+        <h3 class="" id="快速代付"><a class="anchor hidden-xs" href="#快速代付" title="快速代付" smoothhashscroll=""><span class="octicon octicon-link"></span></a>快速代付</h3>
+
+        <img src="image/ReviewWithdraw.jpg" />
+
+        <p>快速代付，为代付功能的快速版本，提供代付输入的画面</p>
+        <h3 class="" id="快速代付流程"></h3>
+        <ol>
+            <li class=""> <a href="#快速支付页面" title="Title" smoothhashscroll="">带入参数开启快速支付页面</a></li>
+            <li class="">
+                会员填写完资讯后，会呼叫 <a href="#人工审核接口" title="Title" smoothhashscroll="">人工审核接口</a>
+                <code>人工审核接口须由贵司提供。</code>
+            </li>
+            <li class="">
+                审核完毕后，将结果传入 <a href="#支付训习通知" title="Title" smoothhashscroll="">支付训习通知</a> 我方确认完毕后,即完成代付申请。<br />
+                <strong>PS : </strong>
+                如贵司传送结果为审核失败，则该单流完完毕，不需等待 <a href="#代付异步回传结果" title="Title" smoothhashscroll="">代付异步回传结果</a>，<br />
+                如贵司传送结果为审核成功，我方确认参数无误后，处理完毕后会回传结果通知 <a href="#代付异步回传结果" title="Title" smoothhashscroll="">代付异步回传结果。</a>
+
+            </li>
+
+        </ol>
+        <!--<p><strong>PS</strong> : CostType 、CostSubCode 請自己定義 。</p>-->
+        <h3 class="" id="快速支付页面"><a class="anchor hidden-xs" href="#快速支付页面" title="快速支付页面" smoothhashscroll=""><span class="octicon octicon-link"></span></a>快速支付页面</h3>
+        <p>URL: <code>由我方提供</code></p>
+        <p><strong>Request</strong> :</p>
+        <p><strong>该API为，H5重定向(Redirect)，非Form Submit方式传入时请特别注意</strong></p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>CompanyCode</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>商户代码</td>
+                </tr>
+                <tr>
+                    <td>SelCurrency</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        提供选择的币别群组(群组内的币别需先经过开通)
+
+                        <br />
+                        格式范例:<strong>CNY,JPY</strong>
+                        <br />
+                        不同币别中间请以逗号区隔，币别代码可参考附录
+                    </td>
+                </tr>
+                <tr>
+                    <td>OrderID</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        商户订单号
+                    </td>
+                </tr>
+                <tr>
+                    <td>ClientIP</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        提单会员IP
+                    </td>
+                </tr>
+                <tr>
+                    <td>CallBackUrl</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        <span class="" id="人工审核接口回传网域"><a class="anchor hidden-xs" href="#人工审核接口回传网域" title="人工审核接口回传网域" smoothhashscroll=""><span class="octicon octicon-link "></span></a>人工审核接口回传网域</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+
+        <h3 class="" id="人工审核接口"><a class="anchor hidden-xs" href="#人工审核接口" title="人工审核接口" smoothhashscroll=""><span class="octicon octicon-link"></span></a>人工审核接口</h3>
+        <strong>PS : </strong>
+        <p>1 : API 需开启 Post 接口。 </p>
+        <p>2 : 回传格式为Json字串。 </p>
+        <p>3 : 成功后需回传 "SUCCESS"。 </p>
+        <p>4 : 如果未回传 "SUCCESS",系统会呼叫三次串接方API。 </p>
+        <p>5 : 接口网址须在开启快速充值页面时带入。详见 <a href="#人工审核接口回传网域" title="Title" smoothhashscroll="">人工审核接口回传网域</a> </p>
+        <p><strong>Response</strong> :</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>CompanyCode</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>商户代码</td>
+                </tr>
+                <tr>
+                    <td>CurrencyType</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td><a class="anchor hidden-xs" href="#币别" title="币别" smoothhashscroll=""><span class="octicon octicon-link"></span>&nbsp;&nbsp; &nbsp;币别(详见对照表)</a></td>
+                </tr>
+                <tr>
+                    <td>WithdrawSerial</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>系统订单号</td>
+                </tr>
+                <tr>
+                    <td>OrderAmount</td>
+                    <td>Number</td>
+                    <td>是</td>
+                    <td>
+                        商户订单金额<br />
+                        <code>只支援整数 </code>
+                    </td>
+                </tr>
+                <tr>
+                    <td>WithdrawAmount</td>
+                    <td>Number</td>
+                    <td>是</td>
+                    <td>
+                        实际金额(加上手续费)
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>BankName</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>银行名称</td>
+                </tr>
+                <tr>
+                    <td>BankCard</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>银行卡号</td>
+                </tr>
+                <tr>
+                    <td>BankCardName</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>开户名</td>
+                </tr>
+                <tr>
+                    <td>BankBranchName</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>支行名称</td>
+                </tr>
+
+                <tr>
+                    <td>OrderDate</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        订单申请时间<br />
+                        字串格式为 yyyy-MM-dd HH:mm:ss <code>ex:2018-01-01 11:22:33</code>
+                    </td>
+                <tr>
+                    <td>Sign</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        签章:<code>需再使用SHA256加密后转大写</code><br>
+                        <code>OrderAmount如有小数时请将尾数0去除,100.00请带入100 (ex:100.00->100) 后加入签名中</code><br />
+                        <code>OrderDate 字串格式为 yyyy-MM-dd HH:mm:ss</code><br />
+                        格式:CompanyCode=商户代码&CurrencyType=币别&WithdrawSerial=系统订单号&OrderAmount=商户订单金额&OrderDate=订单日期&BankCard=银行卡号&CompanyKey=金钥
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <pre>
+        <code class="json">
+                {
+                    "CompanyCode": "DEMO",
+                    "CurrencyType": "CNY",
+                    "WithdrawSerial": "WT0000000001",
+                    "OrderAmount": 100.00,
+                    "BankName": "BankName",
+                    "BankCard": 123456,
+                    "BankCardName": "BankCardName",
+                    "BankBranchName":"BankBranchName",
+                    "OrderDate":"2019-01-24 22:35:04",
+                    "Sign":详细内容请见说明
+                }
+            </code>
+        </pre>
+
+
+        <h3 class="" id="支付训习通知"><a class="anchor hidden-xs" href="#支付训习通知" title="支付训习通知" smoothhashscroll=""><span class="octicon octicon-link"></span></a>支付训习通知</h3>
+        <p>URL: <code>/ManualWithdrawalReviewConfirme</code></p>
+        <p>Method: <code>POST</code></p>
+        <strong>PS : </strong>
+        <p>
+            如贵司传送结果为审核失败，则该单流完完毕，不需等待 <a href="#代付异步回传结果" title="Title" smoothhashscroll="">代付异步回传结果</a>，<br />
+            如贵司传送结果为审核成功，我方确认参数无误后，处理完毕后会回传结果通知 <a href="#代付异步回传结果" title="Title" smoothhashscroll="">代付异步回传结果。</a>
+        </p>
+        <p><strong>Request</strong> :</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>CompanyCode</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>商户代码</td>
+                </tr>
+
+
+                <tr>
+                    <td>CurrencyType</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td><a class="anchor hidden-xs" href="#币别" title="币别" smoothhashscroll=""><span class="octicon octicon-link"></span>&nbsp;&nbsp; &nbsp;币别(详见对照表)</a></td>
+                </tr>
+
+                <tr>
+                    <td>OrderAmount</td>
+                    <td>Number</td>
+                    <td>是</td>
+                    <td>
+                        商户订单金额<br />
+                        <code>只支援整数</code>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>OrderID</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        商户订单号<code>保证唯一值</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td>ReturnUrl</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>异步代付通知回调地址</td>
+                </tr>
+                <tr>
+                    <td>ServiceType</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        扣款通道
+                    </td>
+                </tr>
+                <tr>
+                    <td>WithdrawSerial</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        系统订单号
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>ReviewStatus</td>
+                    <td>Number</td>
+                    <td>是</td>
+                    <td>
+                        0=审核成功<br>
+                        1=审核失败<br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Sign</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        签章:<code>需再使用SHA256加密后转大写</code><br>
+                        <code>OrderAmount如有小数时请将尾数0去除,100.00请带入100 (ex:100.00->100) 后加入签名中</code><br />
+                        格式:CompanyCode=商户代码&CurrencyType=币别&WithdrawSerial=系统订单号&OrderAmount=商户订单金额&CompanyKey=金钥
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+        <pre>
+        <code class="json">
+                {
+                    "CompanyCode": "Demo",
+                    "CurrencyType": "CNY",
+                    "OrderAmount": 100.00,
+                    "BankCard": 123456789,
+                    "BankCardName": "王晓明",
+                    "BankName": "交通银行",
+                    "BankBranchName": "东莞分行",
+                    "OwnProvince": "广东省",
+                    "OwnCity": "东莞市",
+                    "OrderID": "cdfd98e25c914046a1127b2e358fe16e",
+                    "ReturnUrl": "https://www.youtube.com/",
+                    "ServiceType": "CP001",
+                    "WithdrawSerial": "WT00000000001",
+                    "ReviewStatus": 1,
+                    "Sign":详细内容请见说明
+                }
+            </code>
+        </pre>
+        <p><strong>Response</strong></p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>WithdrawSerial</td>
+                    <td>String</td>
+                    <td>系统订单号</td>
+                </tr>
+
+                <tr>
+                    <td>Status</td>
+                    <td>Number</td>
+                    <td>
+                        0=申请成功<br>
+                        1=申请失败<br>
+                        <code>实际支付结果需等待<a href="#代付异步回传结果" title="Title" smoothhashscroll="">代付异步回传结果。</a>,此时只是申请成功或失败</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Message</td>
+                    <td>String</td>
+                    <td>其他资讯</td>
+                </tr>
+                <tr>
+                    <td>OrderAmount</td>
+                    <td>Number</td>
+                    <td>金额</td>
+                </tr>
+            </tbody>
+        </table>
+
+
+        <h3 class="" id="代付异步回传结果"><a class="anchor hidden-xs" href="#代付异步回传结果" title="代付异步回传结果" smoothhashscroll=""><span class="octicon octicon-link"></span></a>代付异步回传结果</h3>
+        <strong>PS : </strong>
+        <p>1 : API 需开启 Post 接口。 </p>
+        <p>2 : 回传格式为Json字串。 </p>
+        <p>3 : 成功后需回传 "SUCCESS"。 </p>
+        <p>4 : 如果未回传 "SUCCESS",系统会呼叫三次串接方API。 </p>
+        <p><strong>Response</strong></p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>WithdrawSerial</td>
+                    <td>String</td>
+                    <td>系统订单号</td>
+                </tr>
+
+                <tr>
+                    <td>WithdrawStatus</td>
+                    <td>Status</td>
+                    <td>
+                        0=成功<br>
+                        1=失败<br>
+                        2=进行中<br>
+                        3=问题单，请直接联络窗口<br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>OrderAmount</td>
+                    <td>Number</td>
+                    <td>
+                        订单金额
+                    </td>
+                </tr>
+                <tr>
+                    <td>WithdrawAmount</td>
+                    <td>Number</td>
+                    <td>实际金额(加上手续费)</td>
+                </tr>
+                <tr>
+                    <td>WithdrawCharge</td>
+                    <td>Number</td>
+                    <td>手续费</td>
+                </tr>
+                <tr>
+                    <td>CurrencyType</td>
+                    <td>String</td>
+                    <td>币别</td>
+                </tr>
+                <tr>
+                    <td>CompanyCode</td>
+                    <td>String</td>
+                    <td>商户代码</td>
+                </tr>
+                <tr>
+                    <td>ServiceType</td>
+                    <td>String</td>
+                    <td>扣款通道</td>
+                </tr>
+                <tr>
+                    <td>OrderID</td>
+                    <td>String</td>
+                    <td>
+                        商户订单号
+                    </td>
+                </tr>
+                <tr>
+                    <td>OrderDate</td>
+                    <td>string</td>
+                    <td>订单日期 <br />字串格式要求为 yyyy-MM-dd HH:mm:ss <code>ex:2018-01-01 11:22:33</code></td>
+                </tr>
+                <tr>
+                    <td>Sign</td>
+                    <td>String</td>
+                    <td>
+                        签章:<code>需再使用SHA256加密后转大写</code><br>
+                        <code>OrderAmount如有小数时请将尾数0去除,100.00请带入100 (ex:100.00->100) 后加入签名中</code><br />
+                        格式:CompanyCode=商户代码&CurrencyType=币别&OrderID=订单号&OrderAmount=商户订单金额&OrderDate=订单日期&CompanyKey=金钥
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <pre>
+        <code class="json">
+
+                {
+                    "WithdrawSerial":"WT2019122214100000000580",
+                    "WithdrawStatus":0,
+                    "OrderAmount":100.0000,
+                    "WithdrawAmount":102.0000,
+                    "WithdrawCharge":2.0000,
+                    "CurrencyType":"CNY",
+                    "CompanyCode":"Mgmt",
+                    "ServiceType":"AP001",
+                    "OrderID":"30d3f75b173e4ca9b4580a8bf1edc366",
+                    "OrderDate":"2019-12-22 14:09:57",
+                    "Sign":详细内容请见说明
+                }
+
+            </code>
+        </pre>
+
+        <h3 class="" id="代付订单查询"><a class="anchor hidden-xs" href="#代付订单查询" title="代付订单查询" smoothhashscroll=""><span class="octicon octicon-link"></span></a>代付订单查询</h3>
+        <p>URL: <code>/QueryWithdraw</code></p>
+        <p>Method: <code>POST</code></p>
+        <p>Content-Type: <code>application/json</code></p>
+        <p><strong>Request</strong> :</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>CompanyCode</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        商户代码
+                    </td>
+                </tr>
+                <tr>
+                    <td>WithdrawSerial</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        交易序号
+                    </td>
+                </tr>
+                <tr>
+                    <td>Sign</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        签章:<code>需再使用SHA256加密后转大写</code><br>
+                        格式:CompanyCode=商户代码&WithdrawSerial=交易序号&CompanyKey=金钥
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+        <pre>
+        <code class="json">
+                {
+                    CompanyCode:'Demo',
+                    WithdrawSerial:'WT2019071918040000000530',
+                    QueryDate:'2019-01-24 22:35:04',
+                    Sign:'详细内容请见说明'
+                }
+            </code>
+        </pre>
+        <p><strong>Response</strong></p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>WithdrawSerial</td>
+                    <td>String</td>
+                    <td>交易编号</td>
+                </tr>
+
+                <tr>
+                    <td>Status</td>
+                    <td>Number</td>
+                    <td>
+                        查询状态:<br>
+                        0=查询成功<br>
+                        1=查询失败<br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>WithdrawStatus</td>
+                    <td>Number</td>
+                    <td>
+                        订单状态:<br>
+                        0=成功<br>
+                        1=失败<br>
+                        2=审核中<br>
+                        3=问题单<br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>OrderAmount</td>
+                    <td>Number</td>
+                    <td>商户订单金额</td>
+                </tr>
+                <tr>
+                    <td>WithdrawAmount</td>
+                    <td>Number</td>
+                    <td>实际代付金额</td>
+                </tr>
+                <tr>
+                    <td>WithdrawCharge</td>
+                    <td>Number</td>
+                    <td>手续费</td>
+                </tr>
+                <tr>
+                    <td>ServiceType</td>
+                    <td>String</td>
+                    <td>扣款通道</td>
+                </tr>
+                <tr>
+                    <td>CurrencyType</td>
+                    <td>String</td>
+                    <td><a class="anchor hidden-xs" href="#币别" title="币别" smoothhashscroll=""><span class="octicon octicon-link"></span>&nbsp;&nbsp;&nbsp;币别(详见对照表)</a></td>
+                </tr>
+                <tr>
+                    <td>CompanyCode</td>
+                    <td>String</td>
+                    <td>
+                        商户代码
+                    </td>
+                </tr>
+
+
+                <tr>
+                    <td>OrderID</td>
+                    <td>String</td>
+                    <td>
+                        商户订单编号
+                    </td>
+                </tr>
+                <tr>
+                    <td>OrderDate</td>
+                    <td>String</td>
+                    <td>订单日期</td>
+                </tr>
+                <tr>
+                    <td>Sign</td>
+                    <td>String</td>
+                    <td>
+                        签章:<code>需再使用SHA256加密后转大写</code><br>
+                        <code>OrderAmount如有小数时请将尾数0去除,100.00请带入100 (ex:100.00->100) 后加入签名中</code><br />
+                        格式:CompanyCode=商户代码&CurrencyType=币别&OrderID=商户订单号&OrderAmount=商户订单金额&OrderDate=订单日期&CompanyKey=金钥
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <pre>
+        <code class="json">
+                {
+                "WithdrawSerial":"WT0000001",
+                "Status": 0,
+                "WithdrawStatus": 1,
+                "OrderAmount": 100.00,
+                "WithdrawAmount": 100.00,
+                "WithdrawCharge": 2,
+                "ServiceType": "CP001",
+                "CurrencyType": "CNY",
+                "CompanyCode": "Demo",
+                "OrderID": "23806e5a-0869-4ef6-82a0-1c0d43bb7271",
+                "OrderDate":"2019-01-24 22:35:04",
+                "Sign":详细内容请见说明
+                }
+            </code>
+        </pre>
+        <!--...-->
+        <h3 class="" id="代付订单查询(商户订单号)"><a class="anchor hidden-xs" href="#代付订单查询(商户订单号)" title="代付订单查询(商户订单号)" smoothhashscroll=""><span class="octicon octicon-link"></span></a>代付订单查询(商户订单号)</h3>
+        <p><strong>PS</strong> : 此 API 与 <a href="#代付订单查询" title="Title" smoothhashscroll="">代付订单查询</a> 差别只有在 WithdrawSerial 改为带入贵司订单号，其余回传结果均相同 。</p>
+        <p>URL: <code>/QueryWithdrawByDownOrderID</code></p>
+        <p>Method: <code>POST</code></p>
+        <p>Content-Type: <code>application/json</code></p>
+        <p><strong>Request</strong> :</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>CompanyCode</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        商户代码
+                    </td>
+                </tr>
+                <tr>
+                    <td>WithdrawSerial</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        商户订单号
+                    </td>
+                </tr>
+                <tr>
+                    <td>Sign</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        签章:<code>需再使用SHA256加密后转大写</code><br>
+                        格式:CompanyCode=商户代码&WithdrawSerial=商户订单号&CompanyKey=金钥
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+        <pre>
+        <code class="json">
+                {
+                    CompanyCode:'Demo',
+                    WithdrawSerial:'WT2019071918040000000530',
+                    QueryDate:'2019-01-24 22:35:04',
+                    Sign:'详细内容请见说明'
+                }
+            </code>
+        </pre>
+        <p><strong>Response</strong></p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>WithdrawSerial</td>
+                    <td>String</td>
+                    <td>交易编号</td>
+                </tr>
+                <tr>
+                    <td>Status</td>
+                    <td>Number</td>
+                    <td>
+                        查询状态:<br>
+                        0=查询成功<br>
+                        1=查询失败<br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>WithdrawStatus</td>
+                    <td>Number</td>
+                    <td>
+                        订单状态:<br>
+                        0=成功<br>
+                        1=失败<br>
+                        2=审核中<br>
+                        3=问题单<br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>OrderAmount</td>
+                    <td>Number</td>
+                    <td>商户订单金额</td>
+                </tr>
+                <tr>
+                    <td>WithdrawAmount</td>
+                    <td>Number</td>
+                    <td>实际代付金额</td>
+                </tr>
+                <tr>
+                    <td>WithdrawCharge</td>
+                    <td>Number</td>
+                    <td>手续费</td>
+                </tr>
+                <tr>
+                    <td>ServiceType</td>
+                    <td>String</td>
+                    <td>扣款通道</td>
+                </tr>
+                <tr>
+                    <td>CurrencyType</td>
+                    <td>String</td>
+                    <td><a class="anchor hidden-xs" href="#币别" title="币别" smoothhashscroll=""><span class="octicon octicon-link"></span>&nbsp;&nbsp;&nbsp;币别(详见对照表)</a></td>
+                </tr>
+                <tr>
+                    <td>CompanyCode</td>
+                    <td>String</td>
+                    <td>
+                        商户代码
+                    </td>
+                </tr>
+
+
+                <tr>
+                    <td>OrderID</td>
+                    <td>String</td>
+                    <td>
+                        商户订单编号
+                    </td>
+                </tr>
+                <tr>
+                    <td>OrderDate</td>
+                    <td>String</td>
+                    <td>订单日期</td>
+                </tr>
+                <tr>
+                    <td>Sign</td>
+                    <td>String</td>
+                    <td>
+                        签章:<code>需再使用SHA256加密后转大写</code><br>
+                        <code>OrderAmount如有小数时请将尾数0去除,100.00请带入100 (ex:100.00->100) 后加入签名中</code><br />
+                        格式:CompanyCode=商户代码&CurrencyType=币别&OrderID=商户订单号&OrderAmount=商户订单金额&OrderDate=订单日期&CompanyKey=金钥
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <pre>
+        <code class="json">
+                {
+                "WithdrawSerial":"WT0000001",
+                "Status": 0,
+                "WithdrawStatus": 1,
+                "OrderAmount": 100.00,
+                "WithdrawAmount": 100.00,
+                "WithdrawCharge": 2,
+                "ServiceType": "CP001",
+                "CurrencyType": "CNY",
+                "CompanyCode": "Demo",
+                "OrderID": "23806e5a-0869-4ef6-82a0-1c0d43bb7271",
+                "OrderDate":"2019-01-24 22:35:04",
+                "Sign":详细内容请见说明
+                }
+            </code>
+        </pre>
+        <!--...-->
+
+
+        <h3 class="" id="余额查询"><a class="anchor hidden-xs" href="#余额查询" title="余额查询" smoothhashscroll=""><span class="octicon octicon-link"></span></a>余额查询</h3>
+        <p>URL: <code>/QueryBalance</code></p>
+        <p>Method: <code>POST</code></p>
+        <p>Content-Type: <code>application/json</code></p>
+        <p><strong>Request</strong> :</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>CompanyCode</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        商户代码
+                    </td>
+                </tr>
+                <tr>
+                    <td>CurrencyType</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        币别
+                    </td>
+                </tr>
+                <tr>
+                    <td>Sign</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>
+                        签章:<code>需再使用SHA256加密后转大写</code><br>
+                        格式:CurrencyType=币别&CompanyCode=交易序号&CompanyKey=金钥
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+        <pre>
+        <code class="json">
+                {
+                    CompanyCode:'Demo',
+                    CurrencyType:'CNY',
+                    Sign:'详细内容请见说明'
+                }
+            </code>
+        </pre>
+        <p><strong>Response</strong></p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>AccountBalance</td>
+                    <td>Number</td>
+                    <td>钱包总额</td>
+                </tr>
+
+                <tr>
+                    <td>CurrencyType</td>
+                    <td>String</td>
+                    <td>
+                        币别
+                    </td>
+                </tr>
+                <tr>
+                    <td>CompanyCode</td>
+                    <td>String</td>
+                    <td>商户代码</td>
+                </tr>
+                <tr>
+                    <td>CashBalance</td>
+                    <td>Number</td>
+                    <td>可用余额</td>
+                </tr>
+                <tr>
+                    <td>Status</td>
+                    <td>Number</td>
+                    <td>
+                        0=成功<br>
+                        1=失败<br>
+
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <pre>
+        <code class="json">
+                {
+                    "CompanyCode":"Demo",
+                    "CurrencyType":"CNY",
+                    "AccountBalance":27279.1000,
+                    "CashBalance":6308.1000,
+                    "Status":0,
+                    "Message":null
+                }
+               
+            </code>
+        </pre>
+        <!--...-->
+        <h1 class="" id="附录"><a class="anchor hidden-xs" href="#附录" title="附录" smoothhashscroll=""><span class="octicon octicon-link"></span></a>附录</h1>
+        <!--详细投注资料-->
+        <h3 class="" id="币别"><a class="anchor hidden-xs" href="#币别" title="币别" smoothhashscroll=""><span class="octicon octicon-link "></span></a>币别对照表</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Value</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!--<tr>
+                <td>HK</td>
+                <td>港币</td>
+            </tr>
+            <tr>
+                <td>JPY</td>
+                <td>日币</td>
+            </tr>
+            <tr>
+                <td>KRW</td>
+                <td>韩币</td>
+            </tr>
+            <tr>
+                <td>TWD</td>
+                <td>台币</td>
+            </tr>
+            <tr>
+                <td>USD</td>
+                <td>美金</td>
+            </tr>-->
+                <tr>
+                    <td>CNY</td>
+                    <td>人民币</td>
+                </tr>
+            </tbody>
+        </table>
+        <!--<h3 class="" id="银行代码"><a class="anchor hidden-xs" href="#银行代码" title="银行代码" smoothhashscroll=""><span class="octicon octicon-link "></span></a>银行代码</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Value</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>ABC</td>
+                <td>中国农业银行</td>
+            </tr>
+            <tr>
+                <td>ALIPAY</td>
+                <td>支付宝转帐银行卡</td>
+            </tr>
+            <tr>
+                <td style="text-decoration:line-through;">BCCB</td>
+                <td style="text-decoration:line-through;">北京银行</td>
+            </tr>
+            <tr>
+                <td>BOC</td>
+                <td>中国银行</td>
+            </tr>
+            <tr>
+                <td>BOS</td>
+                <td>上海银行</td>
+            </tr>
+            <tr>
+                <td>CCB</td>
+                <td>中国建设银行</td>
+            </tr>
+            <tr>
+                <td>CEB</td>
+                <td>中国光大银行</td>
+            </tr>
+            <tr>
+                <td>CIB</td>
+                <td>兴业银行</td>
+            </tr>
+            <tr>
+                <td>CITIC</td>
+                <td>中信银行</td>
+            </tr>
+            <tr>
+                <td>CMB</td>
+                <td>招商银行</td>
+            </tr>
+            <tr>
+                <td>CMBC</td>
+                <td>中国民生银行</td>
+            </tr>
+            <tr>
+                <td>COMM</td>
+                <td>交通银行</td>
+            </tr>
+
+            <tr>
+                <td>GDB</td>
+                <td>广发银行</td>
+            </tr>
+            <tr>
+                <td>HXB</td>
+                <td>华夏银行</td>
+            </tr>
+            <tr>
+                <td>ICBC</td>
+                <td>中国工业银行</td>
+            </tr>
+            <tr>
+                <td>PSBC</td>
+                <td>中国邮政储蓄银行</td>
+            </tr>
+            <tr>
+                <td>SPDB</td>
+                <td>浦发银行</td>
+            </tr>
+            <tr>
+                <td>NJCB</td>
+                <td>南京银行</td>
+            </tr>
+            <tr>
+                <td>HCCB</td>
+                <td>杭州银行</td>
+            </tr>
+            <tr>
+                <td>NBCB</td>
+                <td>宁波银行</td>
+            </tr>
+            <tr>
+                <td>SZPAB</td>
+                <td>平安银行</td>
+            </tr>
+            <tr>
+                <td>WECHAT</td>
+                <td>微信转帐银行卡</td>
+            </tr>
+        </tbody>
+    </table>-->
+        <h3 class="" id="服务类型"><a class="anchor hidden-xs" href="#服务类型" title="服务类型" smoothhashscroll=""><span class="octicon octicon-link "></span></a>服务类型</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Value</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>AB001</td>
+                    <td>支付宝转帐</td>
+                </tr>
+                <tr>
+                    <td>AP003</td>
+                    <td>支付宝扫码(个码)</td>
+                </tr>
+                <tr>
+                    <td>AP004</td>
+                    <td>支付宝h5</td>
+                </tr>
+                <tr>
+                    <td>AP005</td>
+                    <td>支付宝原生</td>
+                </tr>
+                <tr>
+                    <td>AP006</td>
+                    <td>支付宝h5(个码)</td>
+                </tr>
+                <tr>
+                    <td>AP007</td>
+                    <td>支付宝扫码(转卡)</td>
+                </tr>
+
+                <tr>
+                    <td>AP008</td>
+                    <td>支付宝h5(转卡)</td>
+                </tr>
+                <tr>
+                    <td>AP009</td>
+                    <td>支付宝h5(商家码)</td>
+                </tr>
+                <tr>
+                    <td>AP010</td>
+                    <td>支付宝扫码(商家码)</td>
+                </tr>
+                <tr>
+                    <td>AP011</td>
+                    <td>支付宝h5(跑分)</td>
+                </tr>
+                <tr>
+                    <td>AP012</td>
+                    <td>支付宝扫码(跑分)</td>
+                </tr>
+                <tr>
+                    <td>AP013</td>
+                    <td>支付宝h5(原生)</td>
+                </tr>
+                <tr>
+                    <td>AP014</td>
+                    <td>支付宝扫码(原生)</td>
+                </tr>
+                <tr>
+                    <td>BD003</td>
+                    <td>百度扫码</td>
+                </tr>
+
+                <tr>
+                    <td>BK001</td>
+                    <td>银行卡转帐</td>
+                </tr>
+                <tr>
+                    <td>CP001</td>
+                    <td>云闪付(个码)</td>
+                </tr>
+                <tr>
+                    <td>CP002</td>
+                    <td>云闪付24H(商家码)</td>
+                </tr>
+
+                <tr>
+                    <td>FP002</td>
+                    <td>银联快捷</td>
+                </tr>
+                <tr>
+                    <td>FP003</td>
+                    <td>快捷扫码</td>
+                </tr>
+                <tr>
+                    <td>FP004</td>
+                    <td>快捷h5</td>
+                </tr>
+                <tr>
+                    <td>JP002</td>
+                    <td>京东支付</td>
+                </tr>
+
+                <tr>
+                    <td>JP003</td>
+                    <td>
+                        京东扫码
+                    </td>
+                </tr>
+                <tr>
+                    <td>JP004</td>
+                    <td>京东h5</td>
+                </tr>
+                <tr>
+                    <td>OB002</td>
+                    <td>网银(外充)</td>
+                </tr>
+                <tr>
+                    <td>OB003</td>
+                    <td>网银(内充)</td>
+                </tr>
+                <tr>
+                    <td>QQ003</td>
+                    <td>QQ扫码</td>
+                </tr>
+                <tr>
+                    <td>QQ004</td>
+                    <td>QQh5</td>
+                </tr>
+
+                <tr>
+                    <td>UP003</td>
+                    <td>银联扫码</td>
+                </tr>
+
+                <tr>
+                    <td>UP004</td>
+                    <td>
+                        银联h5
+                    </td>
+                </tr>
+                <tr>
+                    <td>WX001</td>
+                    <td>微信转帐</td>
+                </tr>
+                <tr>
+                    <td>WX003</td>
+                    <td>微信扫码(个码)</td>
+                </tr>
+                <tr>
+                    <td>WX004</td>
+                    <td>微信h5(个码)</td>
+                </tr>
+                <tr>
+                    <td>WX005</td>
+                    <td>微信小程序</td>
+                </tr>
+                <tr>
+                    <td>WX006</td>
+                    <td>微信h5(转卡)</td>
+                </tr>
+                <tr>
+                    <td>WX007</td>
+                    <td>微信扫码(转卡)</td>
+                </tr>
+
+                <tr>
+                    <td>WX008</td>
+                    <td>微信h5(商家码)</td>
+                </tr>
+                <tr>
+                    <td>WX009</td>
+                    <td>微信扫码(商家码)</td>
+                </tr>
+                <tr>
+                    <td>WX010</td>
+                    <td>微信h5(跑分)</td>
+                </tr>
+                <tr>
+                    <td>WX011</td>
+                    <td>微信扫码(跑分)</td>
+                </tr>
+                <tr>
+                    <td>WX012</td>
+                    <td>微信h5(原生)</td>
+                </tr>
+                <tr>
+                    <td>WX013</td>
+                    <td>微信扫码(原生)</td>
+                </tr>
+                <tr>
+                    <td>WX014</td>
+                    <td>微信h5(话费)</td>
+                </tr>
+                <tr>
+                    <td>WX015</td>
+                    <td>微信扫码(话费)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3 class="" id="错误代码查询">
+            <a class="anchor hidden-xs" href="#错误代码查询" title="错误代码查询" smoothhashscroll=""><span class="octicon octicon-link "></span></a>
+            错误代码查询
+        </h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Value</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>101</td>
+                    <td>商户代码有误</td>
+                </tr>
+                <tr>
+                    <td>102</td>
+                    <td>签名错误</td>
+                </tr>
+                <tr>
+                    <td>103</td>
+                    <td>订单号重复</td>
+                </tr>
+                <tr>
+                    <td>104</td>
+                    <td>商户已停用</td>
+                </tr>
+                <tr>
+                    <td>105</td>
+                    <td>币别错误</td>
+                </tr>
+                <tr>
+                    <td>106</td>
+                    <td>没有商户可用渠道</td>
+                </tr>
+
+                <tr>
+                    <td>107</td>
+                    <td>订单金额超过上限额度</td>
+                </tr>
+                <tr>
+                    <td>108</td>
+                    <td>订单金额低于下限额度</td>
+                </tr>
+                <tr>
+                    <td>109</td>
+                    <td>商户每日用量不足</td>
+                </tr>
+                <tr>
+                    <td>113</td>
+                    <td>建立订单失败</td>
+                </tr>
+                <tr>
+                    <td>114</td>
+                    <td>建立订单失败</td>
+                </tr>
+                <tr>
+                    <td>800</td>
+                    <td>渠道出码错误</td>
+                </tr>
+                <tr>
+                    <td>999</td>
+                    <td>该ip在黑名单内</td>
+                </tr>
+                <tr>
+                    <td>1111</td>
+                    <td>渠道设定有误</td>
+                </tr>
+                <tr>
+                    <td>1112</td>
+                    <td>渠道未开启</td>
+                </tr>
+
+                <tr>
+                    <td>1120</td>
+                    <td>渠道设定有误(金额)</td>
+                </tr>
+
+            </tbody>
+        </table>
+        <br />
+        <br />
+    </div>
+
+</body>
+</html>

@@ -11955,6 +11955,40 @@ public class BackendDB
         return returnValue;
     }
 
+    public List<DBModel.SummaryCompanyByDateFlot> GetSummaryCompanyByDateResultFlot(FromBody.PaymentTable SearchData)
+    {
+        List<DBModel.SummaryCompanyByDateFlot> returnValue = null;
+        String SS = String.Empty;
+        SqlCommand DBCmd;
+        DataTable DT;
+
+        SS = " SELECT convert(varchar, SummaryDate, 23) as SummaryDate,ISNULL(SUM(SummaryWithdrawalAmount),0) TotalWithdrawalAmount,ISNULL(SUM(SummaryNetAmount),0) TotalNetAmount" +
+            " FROM SummaryCompanyByDate"+
+            " WHERE SummaryDate Between @StartDate And @EndDate"+
+            " And SummaryCompanyByDate.CurrencyType = @CurrencyType"+
+            " And forCompanyID = @CompanyID"+
+            " GROUP BY SummaryDate";
+
+        DBCmd = new System.Data.SqlClient.SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = CommandType.Text;
+        DBCmd.Parameters.Add("@StartDate", SqlDbType.DateTime).Value = SearchData.StartDate;
+        DBCmd.Parameters.Add("@EndDate", SqlDbType.DateTime).Value = SearchData.EndDate;
+        DBCmd.Parameters.Add("@CompanyID", SqlDbType.Int).Value = SearchData.CompanyID;
+        DBCmd.Parameters.Add("@CurrencyType", SqlDbType.VarChar).Value = SearchData.CurrencyType;
+        DT = DBAccess.GetDB(DBConnStr, DBCmd);
+
+        if (DT != null)
+        {
+            if (DT.Rows.Count > 0)
+            {
+                returnValue = DataTableExtensions.ToList<DBModel.SummaryCompanyByDateFlot>(DT).ToList();
+            }
+        }
+
+        return returnValue;
+    }
+
     public List<DBModel.SummaryCompanyByHour> GetSummaryCompanyByHourResult(FromBody.PaymentTable SearchData)
     {
         List<DBModel.SummaryCompanyByHour> returnValue = null;

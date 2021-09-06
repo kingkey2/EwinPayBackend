@@ -55,6 +55,7 @@ namespace SkyPay.Backend
             data.Add("OrderDate", OrderDate.ToString("yyyy-MM-dd HH:mm:ss"));
             data.Add("OrderAmount", OrderAmount.ToString("#.##"));
             data.Add("RevolveURL", ReturnURL);
+            data.Add("UserName", "杨过");
             data.Add("Sign", Sign);
 
             RedirectAndPOST(this.Page, URL, data);

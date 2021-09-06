@@ -27,10 +27,7 @@ public static class Pay
     /// <param name="CompanyID"></param>
     /// <remarks></remarks>
 
-    public static string testPay()
-    {
-        return "1234";
-    }
+ 
     public static void CompanyReSortkey(int CompanyID) {
         string SS;
         System.Data.DataTable DT;
