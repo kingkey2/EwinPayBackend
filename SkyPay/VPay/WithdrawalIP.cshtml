@@ -1268,14 +1268,14 @@
                                 CreateDate = imageName_arr[2];
                            
                                 if (i == 0) {
-                                    tmpHtml += '<i data-imageid="' + ImageID + '" data-ip="' + rowdata.withdrawalIP + '" class="zmdi zmdi-plus" style="margin-top: 7px;margin-right: 5px;" onclick="addImage(this)"></i><input data-type="update" onchange="pictureChange(this)"  data-imageid="' + ImageID + '"  data-ip="' + rowdata.withdrawalIP + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><span class="span_CreateDate" style="margin-right:10px">' + CreateDate + '</span><img onclick="showImageScale(this)"  src = "/Backend/GetFileFromSharedFolder.cshtml?FileType=WithdrawalIP&FileName=' + ImageName + '" style = "height: 50px" /><button style="margin-left:10px" data-imageid="' + ImageID + '" onclick="deleteImage(this)">删除</button>';
+                                    tmpHtml += '<i data-imageid="' + ImageID + '" data-ip="' + rowdata.withdrawalIP + '" class="zmdi zmdi-plus" style="margin-top: 7px;margin-right: 5px;" onclick="addImage(this)"></i><input data-type="update" onchange="pictureChange(this)"  data-imageid="' + ImageID + '"  data-ip="' + rowdata.withdrawalIP + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><span class="span_CreateDate" style="margin-right:10px">' + CreateDate + '</span><img onclick="showImageScale(this)"  src = "/VPay/GetFileFromSharedFolder.cshtml?FileType=WithdrawalIP&FileName=' + ImageName + '" style = "height: 50px" /><button style="margin-left:10px" data-imageid="' + ImageID + '" onclick="deleteImage(this)">删除</button>';
                                 } else {
-                                    tmpHtml += '<br/><input data-type="update" onchange="pictureChange(this)" data-imageid="' + ImageID + '"  data-ip="' + rowdata.withdrawalIP + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><span class="span_CreateDate" style="margin-right:10px">' + CreateDate + '</span><img  onclick="showImageScale(this)"  src = "/Backend/GetFileFromSharedFolder.cshtml?FileType=WithdrawalIP&FileName=' + ImageName + '" style = "height: 50px" /><button style="margin-left:10px" data-imageid="' + ImageID + '" onclick="deleteImage(this)">删除</button>';
+                                    tmpHtml += '<br/><input data-type="update" onchange="pictureChange(this)" data-imageid="' + ImageID + '"  data-ip="' + rowdata.withdrawalIP + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><span class="span_CreateDate" style="margin-right:10px">' + CreateDate + '</span><img  onclick="showImageScale(this)"  src = "/VPay/GetFileFromSharedFolder.cshtml?FileType=WithdrawalIP&FileName=' + ImageName + '" style = "height: 50px" /><button style="margin-left:10px" data-imageid="' + ImageID + '" onclick="deleteImage(this)">删除</button>';
                                 }
                             }
                             return tmpHtml;
                         } else {
-                            return '<i class="zmdi zmdi-plus" style="margin-top: 7px;margin-right: 5px;"  onclick="addImage(this)"></i><input  data-type="create" onchange="pictureChange(this)" data-ip="' + rowdata.withdrawalIP + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><img src = "/Backend/GetFileFromSharedFolder.cshtml?FileType=WithdrawalIP&FileName="" style = "height: 50px" />';
+                            return '<i class="zmdi zmdi-plus" style="margin-top: 7px;margin-right: 5px;"  onclick="addImage(this)"></i><input  data-type="create" onchange="pictureChange(this)" data-ip="' + rowdata.withdrawalIP + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><img src = "/VPay/GetFileFromSharedFolder.cshtml?FileType=WithdrawalIP&FileName="" style = "height: 50px" />';
                         }
                     }
                 },
@@ -1306,7 +1306,7 @@
 
     function addImage(obj) {
         var ip = $(obj).data('ip');
-        $(obj).parent().append('<br/><input  data-type="create" onchange="pictureChange(this)" data-ip="' + ip + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><span class="span_CreateDate" style="margin-right:5px"></span><img  src = "/Backend/GetFileFromSharedFolder.cshtml?FileType=WithdrawalIP&FileName="" style = "height: 50px" />');
+        $(obj).parent().append('<br/><input  data-type="create" onchange="pictureChange(this)" data-ip="' + ip + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><span class="span_CreateDate" style="margin-right:5px"></span><img  src = "/VPay/GetFileFromSharedFolder.cshtml?FileType=WithdrawalIP&FileName="" style = "height: 50px" />');
     }
 
     function getWithdrawalIPresult() {

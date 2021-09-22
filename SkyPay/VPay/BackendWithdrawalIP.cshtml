@@ -1142,7 +1142,7 @@ if ('@CheckLoginPermission' == 'false') {
                 {
 
                     "title": "图片", "data": "ImageName", render: function (data, display, rowdata) {
-                        return '<input onchange="pictureChange(this)" data-ip="' + rowdata.withdrawalIP + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><img  src = "/Backend/GetFileFromSharedFolder.cshtml?FileType=BackendWithdrawalIP&FileName=' + rowdata.ImageName + '" style = "height: 50px" />';
+                        return '<input onchange="pictureChange(this)" data-ip="' + rowdata.withdrawalIP + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><img  src = "/VPay/GetFileFromSharedFolder.cshtml?FileType=BackendWithdrawalIP&FileName=' + rowdata.ImageName + '" style = "height: 50px" />';
                     }
                 },
                 {

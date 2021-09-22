@@ -225,7 +225,24 @@ var BackendAPI = function (BID, APIUrl) {
         });
     };
 
+    this.GetAgentCompanyServicePointLogResultByCompany = function (postdata, cb) {
 
+        var url = APIUrl + "/GetAgentCompanyServicePointLogResultByCompany";
+        postdata["BID"] = BID;
+        callServiceByPost(url, postdata, function (success, text) {
+            if (success == true) {
+                var obj = getJSON(text);
+
+                if (cb) {
+                    cb(true, obj);
+                }
+            } else {
+                if (cb) {
+                    cb(false, text);
+                }
+            }
+        });
+    };
 
     this.getManualPointLogResult = function (postdata, cb) {
 
@@ -4047,17 +4064,13 @@ var BackendAPI = function (BID, APIUrl) {
         });
     };
 
-    this.getOffLineResult = function (startdate, enddate, companyCode, companyState, cb) {
+    this.getOffLineResult = function (cb) {
 
         var url;
         url = APIUrl + "/GetOffLineResult";
 
         var postData = {
-            BID: BID,
-            Startdate: startdate,
-            Enddate: enddate,
-            CompanyCode: companyCode,
-            CompanyState: companyState
+            BID: BID
         };
 
         callServiceByPost(url, postData, function (success, text) {

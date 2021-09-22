@@ -1804,6 +1804,7 @@ public class DBViewModel {
         public int CompanyState { get; set; }
         public string ParentCompanyCode { get; set; }
         public string CompanyCode { get; set; }
+        public string CompanyName { get; set; }
         public DateTime CreateDate { get; set; }
         public string MerchantCode { get; set; }
     }

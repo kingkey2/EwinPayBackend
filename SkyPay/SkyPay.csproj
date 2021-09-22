@@ -896,9 +896,9 @@
     <Content Include="VPay\PaymentReport3.cshtml" />
     <None Include="packages.config" />
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
-    <Content Include="VPay\XForwarded.cshtml" />
     <Content Include="VPay\Result.cshtml" />
     <Content Include="VPay\CompanyFrozenPointHistory.cshtml" />
+    <Content Include="VPay\AgentCompanyServicePointLogByCompany.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

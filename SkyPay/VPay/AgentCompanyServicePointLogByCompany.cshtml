@@ -1,14 +1,10 @@
 ﻿@{
     var bc = new BackendController(); string BID = HttpContext.Current.Request.Cookies.AllKeys.Contains("BID") == true ?  HttpContext.Current.Request.Cookies["BID"].Value.ToString():"";
-    var result = bc.CheckLoginPermission(BID);
+
     string CheckPermission = "success";
-    if (result.ResultCode != BackendController.APIResult.enumResult.OK)
-    {
-        CheckPermission = "false";
-    }
 
     string PermissionName = Request.Path.Split('/').Last().Split('.').First();
-    result = bc.CheckPermission(BID,PermissionName);
+    var result = bc.CheckPermission(BID,PermissionName);
 
     if (result.ResultCode != BackendController.APIResult.enumResult.OK)
     {
@@ -22,7 +18,6 @@
         CheckLoginPermission = "false";
     }
 }
-
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=Edge">
@@ -99,7 +94,7 @@
     <script src="~/VPay/assets/js/ui.tabs.closable.js"></script>
 
     <script src="~/VPay/assets/js/common.js"></script>
-
+    <script src="~/VPay/assets/js/xlsx.core.min.js"></script>
     <style>
 
 
@@ -918,68 +913,22 @@
             font-weight: normal;
         }
     </style>
-
-    <style>
-        .imgScale_Outer {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0,0,0,0.7);
-            overflow-y: scroll;
-            z-index: 200;
-        }
-
-        .imgScale_inner {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%,-50%);
-            /* writing-mode: vertical-lr;
-        text-align: center; */
-        }
-
-            .imgScale_inner img {
-                max-width: 90vw;
-                max-height: 90vh;
-            }
-
-        .BtnClose {
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            font-size: 2.5em;
-        }
-    </style>
-    <style>
-
-        .dropdown-menu > .inner {
-            max-height: 300px !important;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-    </style>
 </head>
-
 <script src="~/VPay/assets/js/moment.min.js"></script>
 <script src="~/VPay/assets/js/daterangepicker.js"></script>
 <link href="~/VPay/assets/css/daterangepicker.css" rel="stylesheet" />
+
+<style>
+    .dropdown-menu {
+        max-height: 300px !important;
+    }
+</style>
+<script src="~/VPay/assets/js/xlsx.core.min.js"></script>
 <body class="theme-cyan">
-    <div class="imgScale_Outer" onclick="btnClose()" id="imgScale" style="display:none;">
-        <div class="BtnClose" onclick="btnClose()"><i class="fas fa-times" style="color: #fff; float: right; padding: 10px; cursor: pointer;"></i></div>
-        <div class="imgScale_inner">
-            <img id="idImgScale_Image" alt="">
-        </div>
-    </div>
-
-
     <div class="block-header paper-wrap">
         <div class="row">
             <div class="col col-lg-3 col-md-3 col-sm-3">
-                <h2>案件凍結</h2>
+                <h2>代理商户流水报表</h2>
             </div>
             <div class="col col-lg-9 col-md-9 col-sm-9">
                 <div class="tips">
@@ -993,54 +942,32 @@
     <div class="container-fluid">
         <!-- Basic Examples -->
         <div class="row clearfix">
-            <div class="col-lg-12">
+            <div class="col-lg-12 col-md-12 col-sm-12">
                 <div class="card">
-                    <div class="header">
-                        <div class="row">
-                            <div class="col-lg-7 col-md-7 col-sm-7">
-
-                            </div>
-                            <div class="col-lg-5 col-md-5 col-sm-5 ortherText">
-                                <button title="新增" id="btnCreate" type="button" class="btn btn-raised btn-primary btn-circle waves-effect float-right"><i class="fas fa-plus"></i></button>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="header"></div>
                     <div class="body">
-                        <div class="row">
-                            <div class="col col-lg-6 col-md-6 col-sm-6">
-                                <div class="row" style="margin-top: 10px">
-                                    <div>
-                                        <h6 style="margin-top: 10px;margin-right: 10px;margin-left: 15px;"> 被冻结单号 : </h6>
-                                    </div>
-                                    <div class="input-group" style="width:300px">
-                                        <input type="text" id="input_PaymentSerial" placeholder="平台訂單號" class="form-control" style="line-height: inherit;">
-                                    </div>
+                        <div class="row clearfix">
 
-                                </div>
+                            <div class="col-lg-12" id="divCompanyData">
 
-                                <div class="row" style="margin-top: 10px">
-                                    <div class="row" style="margin-bottom: 10px;">
-                                        <h6 style="margin-top: 10px;margin-right: 10px;margin-left: 15px;"> 类型 : </h6>
-                                        <select class="show-tick" id="select_Type"></select>
-                                    </div>
-
-                                    <h6 style="margin-top: 10px;margin-right: 10px;margin-left: 15px;"> 366群组 : </h6>
-                                    <select class="show-tick" id="select_proxyProviderGroup"></select>
-                                </div>
-                                <div class="row" style="margin-top: 10px">
+                                <div class="row" style="margin-bottom: 10px;">
                                     <div>
                                         <h6 style="margin-top: 10px;margin-right: 10px;margin-left: 15px;"> 商户 : </h6>
                                     </div>
                                     <span style="z-index:500;">
                                         <select class="show-tick" id="select_Company" data-live-search="true"></select>
                                     </span>
+                                </div>
 
-                                    <div>
-                                        <h6 style="margin-top: 10px;margin-right: 10px;margin-left: 15px;"> 渠道 : </h6>
+                                <div class="row">
+
+                                    <h6 style="margin-top: 10px;margin-right: 10px;margin-left: 15px;"> 类型 : </h6>
+                                    <div class="row" style="display:inline-block;margin-bottom: 10px;">
+                                        <select class="show-tick" id="select_OperatorType"></select>
                                     </div>
-                                    <select class="show-tick" id="select_providercode"></select>
 
                                 </div>
+
                                 <div class="row" style="margin-bottom: 10px;">
                                     <h6 style="margin-top: 10px;margin-right: 10px;margin-left: 15px;"> 时间 : </h6>
                                     <input id="dateinput" style="width:250px;height: 41px;margin-right:5px" class="form-control" />
@@ -1053,61 +980,40 @@
                                         <option value="5">上个月</option>
                                         <option value="6">自定义</option>
                                     </select>
-                                    @*<div class="col col-lg-2 col-md-4 col-sm-6">
-                        <select class="form-control show-tick" id="select_currency"></select>
-                    </div>*@
-
-                                    <div class="col col-lg-2 col-md-4 col-sm-6">
-                                        <button class="btn btn-raised btn-primary btn-round waves-effect" type="button" id="btnSearch">搜寻</button>
+                                    <div>
+                                        <button style="margin-left: 15px;" class="btn btn-raised btn-primary btn-round waves-effect" type="button" id="btnCompanySearch">搜寻</button>
+                                        <button id="Excel_download" type="button" class="btn btn-raised btn-round waves-effect">汇出Excel</button>
                                     </div>
-
+                                </div>
+                                <div id="div_table_SummaryCompanyByDateTable">
+                                    <table class="table table-bordered table-striped table-hover dataTable nowrap" id="table_SummaryCompanyByDateTable" style="width:100%"></table>
                                 </div>
                             </div>
-                            <div class="col col-lg-6 col-md-6 col-sm-6">
-                                <span style="margin-left:5px;font-size:larger">渠道总冻结金额:</span>
-                                <span id="AllProviderValue" style="margin-left:5px;color:green"></span>
-                                <span style="margin-left:25px;font-size:larger">商户总冻结金额:</span>
-                                <span id="AllCompanyValue" style="margin-left:5px;color:green"></span>
-                                @*<i class="zmdi zmdi-refresh" style="margin-top: 7px;margin-left:5px;font-size:2em;" onclick="getProxyProviderGroup('YE888');"></i>*@
-                                <table id="ProxyGroupTable" style="border:3px #cccccc solid;" cellpadding="10" border='1'>
-                                    <thead>
-
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-
-                            </div>
-
-                        </div>
-                        <div class="row" style="background-color: #99FF99;line-height: 30px;">
-                            <span style="font-weight:900;color:#227700;font-size:15px;margin-left:5px"> 渠道冻结金额 : </span><span style="font-size:15px;margin-left:5px" id="count1"></span>
-                            <span style="font-weight:900;color:#227700;font-size:15px;margin-left:5px"> 商户冻结金额 : </span><span style="font-size:15px;margin-left:5px" id="count2"></span>
-                        </div>
-                        <div id="div_table">
-                            <table style="width:100%" class="table table-bordered table-striped table-hover dataTable nowrap " id="table_Table"></table>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         <!-- #END# Basic Examples -->
-
     </div>
 </body>
 
 
+
 <script>
-    var selCompanyid;
     var Table;
+    var CData;
+    var CSeleData;
     var isCreatedTable = false;
-    var isFirstSearch = false;
+    var CompanyID;
 
     $(document).ready(function () {
-        if ('@CheckLoginPermission' == 'false') {
+        
+if ('@CheckLoginPermission' == 'false') {
                 location.href = "Login.cshtml";
             }
 
-               if ('@CheckPermission' == 'false') {
+              if ('@CheckPermission' == 'false') {
             parent.errorAlertCallback("权限不足", function () {
                 parent.GoPage("Home");
                 parent.CloseActivePage(window.frameElement.id.split('_')[1]);
@@ -1116,20 +1022,18 @@
 
         pageLoad();
     });
+
     function pageLoad() {
         AdminObject = parent.AdminObject;
         api = parent.api;
-        //建立下拉
-        getProviderCodeResult();
-   
-        //createCurrencySelect();
+
+        createSummaryCompanyByDateTable2();
+        createOperatorType();
         CreateCompanySelect();
-        createTypeSelect();
-        getProxyProviderGroup("YE888");
-        getProxyProviderGroup2();
         //啟用日期
         var start = moment().hour(00).minute(00);
         var end = moment().hour(23).minute(59);
+
         $('#dateinput').daterangepicker({
             startDate: start,
             endDate: end,
@@ -1149,218 +1053,11 @@
             $('#deteselect').selectpicker('refresh');
         });
 
-        //新增調帳資料
-        $("#btnCreate").on("click", function () {
-            var data = {
-                backID: window.frameElement.id.split('_')[1]
-            }
-
-            var tmpdata = {
-                type: "FrozenPointHistory_Create",
-                data: data
-            };
-            sessionStorage.setItem("TempData", JSON.stringify(tmpdata));
-            parent.GoPage("FrozenPointHistory_Create", "冻结案件新增", "FrozenPointHistory_Create.cshtml");
-
-        })
-
-        parent.wrapperFadeOut();
-
-    };
-
-    function showImageScale(doc) {
-        var src = $(doc).data("src");
-        var imgScale = document.getElementById("imgScale");
-        var idImgScale_Image = document.getElementById("idImgScale_Image");
-
-        idImgScale_Image.src = src;
-        imgScale.style.display = "block";
-    }
-
-    function btnClose() {
-        document.getElementById('imgScale').style.display = 'none';
-    }
-
-    function getProxyProviderGroup2() {
-        api.getProxyProviderGroupTableResultByAdmin("YE888", function (success, obj) {//YE888
-            if (obj.ResultCode == 0) {
-                $('#select_proxyProviderGroup').append('<option value="0">' + "未选择" + '</option>');
-                //绑定下拉选单
-            
-                for (var i = 0; i < obj.Results.length; i++) {
-                    $('#select_proxyProviderGroup').append('<option value="' + obj.Results[i].GroupID + '">' + obj.Results[i].GroupName + '</option>');
-                }
-                $('#select_proxyProviderGroup').selectpicker('refresh');
-
-            } else {
-                var message = ""
-                switch (obj.ResultCode) {
-                    case 7:
-                        parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                        break;
-                    case 5:
-
-                        break;
-                    case 4:
-                        parent.errorAlertCallback("权限不足", function () {
-                            parent.ChangePage("Home");
-                            parent.CloseActivePage(window.frameElement.id.split('_')[1]);
-                        });
-                        break;
-                    default:
-                        message = "其他错误";
-                        parent.warningAlert(message);
-                        break;
-                }
-            }
-        });
-
-    }
-
-    function pictureChange(input) {
-      
-        if (input.files && input.files[0]) {
-            if (Math.round(input.files[0].size / (1024 * 1024)) > 2) {
-                parent.warningAlert("档案大小必须小于 2 MB");
-                return false;
-            }
-
-            let reader = new FileReader();
-
-            reader.readAsDataURL(input.files[0]);
-            //將圖片轉成byte存下來供儲存用
-            reader = new FileReader();
-            reader.readAsArrayBuffer(input.files[0]);
-            reader.onload = function (e) {
-
-                var byteCurrencyPicture = e.target.result;
-                var frozenID = $(input).data('frozenid');
-                var type = $(input).data('type');
-                var imageID = $(input).data('imageid');
-                var imageData = Array.from(new Uint8Array(byteCurrencyPicture));
-                var imageName = $(input).val().split("\\").pop().split(".").pop();
-                $(input).parent().find('img').attr('src', e.target.result);
-
-                api.updateFrozenPointimg(imageData, imageName, frozenID, type, imageID, function (success, obj) {
-                    if (success) {
-                        if (obj.ResultCode == 0) {
-                            parent.successAlert(function () {
-                                getTableResult();
-
-                            });
-                        } else {
-                            switch (obj.ResultCode) {
-                                case 4:
-                                    parent.errorAlertCallback("权限不足", function () {
-                                        parent.ChangePage("Home");
-                                        parent.CloseActivePage(window.frameElement.id.split('_')[1]);
-                                    });
-                                    break;
-                                case 6:
-                                    message = "其他错误";
-                                    parent.warningAlert(message);
-                                    break;
-
-                                case 7:
-                                    parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                                    break;
-                                default:
-                                    message = "其他错误";
-                                    parent.warningAlert(message);
-                                    break;
-                            }
-                        }
-                    }
-                })
-            }
+        CompanyID = AdminObject.forCompanyID;
+        if (AdminObject.CompanyType == 1) {
+            $('#btn_selectCompany').hide();
         }
-    }
-
-    function getProxyProviderGroup(providerCode) {
-        parent.wrapperFadeIn();
-        getSumFrozenPoint();
-        api.getProxyProviderGroupFrozenPoint(providerCode, function (success, obj) {
-            if (success) {
-                parent.wrapperFadeOut();
-                $('#ProxyGroupTable>tbody').empty();
-                if (obj.ResultCode == 0) {
-
-                    proxyProviderGroupData = obj.Results;
-                    for (var i = 0; i < proxyProviderGroupData.length; i++) {
-                        if (i == 0) {
-                            var tmpTr = $('<tr></tr>');
-                            tmpTr.append(`<td style="font-size:15px;">${proxyProviderGroupData[i].GroupName}</td><td style="font-size:15px;color:red;">${toCurrency(proxyProviderGroupData[i].FrozenAmount)}</td >`)
-                        } else if (i % 3 == 0) {
-                            $('#ProxyGroupTable>tbody').append(tmpTr);
-                            tmpTr = $('<tr></tr>');
-                            tmpTr.append(`<td style="font-size:15px;">${proxyProviderGroupData[i].GroupName}</td><td style="font-size:15px;color:red;">${toCurrency(proxyProviderGroupData[i].FrozenAmount)}</td >`)
-                        } else {
-                            tmpTr.append(`<td style="font-size:15px;">${proxyProviderGroupData[i].GroupName}</td><td style="font-size:15px;color:red;">${toCurrency(proxyProviderGroupData[i].FrozenAmount)}</td >`)
-                        }
-
-                        if (i == proxyProviderGroupData.length - 1) {
-                            $('#ProxyGroupTable>tbody').append(tmpTr);
-                        }
-                    }
-                }
-                else {
-                    var message = ""
-                    switch (obj.ResultCode) {
-                        case 7:
-                            parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                            break;
-                        case 5:
-
-                            break;
-                        case 7:
-                            parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                            break;
-                        default:
-                            message = "其他错误";
-                            parent.warningAlert(message);
-                            break;
-                    }
-                }
-            } else {
-                parent.warningAlert("网路异常");
-                parent.wrapperFadeOut();
-            }
-
-        });
-
-    }
-
-    function getSumFrozenPoint() {
-      
-        api.getSumFrozenPoint("YE888",function (success, obj) {
-            if (success) {
-                if (obj.ResultCode == 0) {
-
-                    $('#AllProviderValue').text(toCurrency(obj.Results.ProviderFrozenAmount));
-                    $('#AllCompanyValue').text(toCurrency(obj.Results.CompanyFrozenAmount));
-                }
-                else {
-                    var message = ""
-                    switch (obj.ResultCode) {
-                        case 7:
-                            parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                            break;
-                        case 5:
-
-                            break;
-                        default:
-                            message = "其他错误";
-                            parent.warningAlert(message);
-                            break;
-                    }
-                    parent.wrapperFadeOut();
-
-                }
-
-            }
-
-        });
-
+        parent.wrapperFadeOut();
     }
 
     $('#deteselect').change(function () {
@@ -1397,330 +1094,271 @@
 
     })
 
-    function getTableResult() {
-        var dateinputval = $('#dateinput').val().split('-');
-        var startDate = dateinputval[0];
-        var endDate = dateinputval[1];
-        var Status = $('#select_Type').val();
-        var providercode = $('#select_providercode').val();
-        var CompanyID = $('#select_Company').val();
-        var PaymentSerial = $("#input_PaymentSerial").val();
-        var groupID = $('#select_proxyProviderGroup').val();
-
-        api.getFrozenPointHistory(startDate, endDate, PaymentSerial, CompanyID, providercode, Status, groupID, function (success, obj) {
-            if (isCreatedTable) {
-                Table.clear().draw();
-            }
-
-            if (obj.ResultCode == 0) {
-                var companyFrozenAmount = 0;
-                var providerFrozenAmount = 0;
-                var frozendata = obj.Results;
-                for (var i = 0; i < frozendata.length; i++) {
-                    if (frozendata[i].Status == 0) {
-                        companyFrozenAmount += frozendata[i].CompanyFrozenAmount;
-                        providerFrozenAmount += frozendata[i].ProviderFrozenAmount;
-                    }
-                }
-                $('#count1').text(toCurrency(providerFrozenAmount));
-                $('#count2').text(toCurrency(companyFrozenAmount));
-        
-                if (!isCreatedTable) {
-                    isCreatedTable = true;
-                    createTable(frozendata);
-                } else {
-                    Table.rows.add(frozendata).draw();
-                }
-                parent.wrapperFadeOut();
-            } else {
-                switch (obj.ResultCode) {
-                    case 7:
-                        parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                        break;
-                    case 5:
-
-                        parent.warningAlert("查无资料");
-                        break;
-                    default:
-                        //warningAlert("其他錯誤");
-                        break;
-                }
-                parent.wrapperFadeOut();
-            }
-        });
-    }
-
-    function createTable(data) {
-
-        Table = $('#table_Table').DataTable({
-            data: data,
+    //#region 建立報表
+    function createSummaryCompanyByDateTable2() {
+        $("#table_SummaryCompanyByDateTable").DataTable({
             columns: [
-                {
-                    "title": "被冻结单号", "data": "forPaymentSerial"
-                },
-                {
-                    "title": "商户", "data": "CompanyName"
-                },
-                {
-                    "title": "渠道", "data": "ProviderName",
-                    "render": function (data, display, rowdata) {
+                { "title": "日期", "data": "CreateDate" },
 
-                        if (rowdata.GroupName != null) {
-                            return `${data}/${rowdata.GroupName}`
-                        }
-                        return data;
-                    }
-                },
+                { "title": "订单号", "data": "TransactionOrder" },
+                { "title": "商户订单号", "data": "DownOrderID" },
+                { "title": "支付代码", "data": "ServiceType" },
+                { "title": "支付通道", "data": "ServiceTypeName" },
+                //{
+                //    "title": "币别", "data": "CurrencyType"
+                //},
                 {
-                    "title": "银行卡资讯", "data": "BankCard",
-                    "render": function (data, display, rowdata) {
-                        var html = "";
-                        if (!(rowdata.BankName == null || rowdata.BankName == "")) {
-                            html += rowdata.BankName + "</br>";
-                        }
-                        if (!(rowdata.BankCard == null || rowdata.BankCard == "")) {
-                            html += rowdata.BankCard + "</br>";
-                        }
-                        if (!(rowdata.BankCardName == null || rowdata.BankCardName == "")) {
-                            html += rowdata.BankCardName + "</br>";
-                        }
-
-                        if (html != "") {
-                            html = html.substring(0, html.length -5);
-                        }
-
-
-                        return "<span>" + html+ "</span>";
-                    }
-                },
-                {
-                    "title": "商户冻结金额", "data": "CompanyFrozenAmount",
-                    "render": function (data, display, rowdata) {
-                        return toCurrency(data);
-                    }
-                },
-                {
-                    "title": "渠道冻结金额", "data": "ProviderFrozenAmount",
-                    "render": function (data, display, rowdata) {
-                        return toCurrency(data);
-                    }
-                },
-                {
-                    "title": "计算前金额", "data": "ActualProviderFrozenAmount",
-                    "render": function (data, display, rowdata) {
-                        return toCurrency(data);
-                    }
-                },
-                {
-                    "title": "状态", "data": "Status",
+                    "title": "类型", "data": "OperatorType",
                     "render": function (data, display, rowdata) {
                         switch (data) {
                             case 0:
-                                return '冻结';
+                                return '代付';
                                 break;
                             case 1:
-                                return '解冻';
+                                return '代收';
+                                break;
+                            //case 2:
+                            //    return '代理占成';
+                            //    break;
+                            case 3:
+                                return '人工调帐';
+                                break;
+                            default:
+                                return '';
                                 break;
                         }
                     }
                 },
                 {
-                    "title": "备注", "data": "Description"
-                },
-                {
-
-                    "title": "图片", "data": "ImageName", render: function (data, display, rowdata) {
-                        if (rowdata.ImageName != null) {
-                            var tmpHtml = '';
-                            var imageNames = rowdata.ImageName.split(",").sort(function (a, b) {
-                                var a_arr = a.split("_");
-                                var a_date = a_arr[a_arr.length - 1];
-                                var b_arr = b.split("_");
-                                var b_date = b_arr[b_arr.length - 1];
-                                return new Date(b_date) - new Date(a_date)
-                            });
-                            for (var i = 0; i < imageNames.length; i++) {
-                                var imageName_arr = imageNames[i].split("_");
-                                ImageID = imageName_arr[0];
-                                ImageName = imageName_arr[1];
-                                CreateDate = imageName_arr[2];
-
-                                if (i == 0) {
-                                    tmpHtml += '<i data-imageid="' + ImageID + '" data-frozenid="' + rowdata.FrozenID + '" class="zmdi zmdi-plus" style="margin-top: 7px;margin-right: 5px;" onclick="addImage(this)"></i><input data-type="update" onchange="pictureChange(this)"  data-imageid="' + ImageID + '"  data-frozenid="' + rowdata.FrozenID + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><div><span class="span_CreateDate" style="margin-right:10px;">' + CreateDate + '</span><button onclick="showImageScale(this)"  data-src="/VPay/GetFileFromSharedFolder.cshtml?FileType=FrozenPoint&FileName=' + ImageName + '">显示图片</button><button style="margin-left:10px;" data-imageid="' + ImageID + '" onclick="deleteImage(this)">删除</button></div>';
-                                } else {
-                                    tmpHtml += '<br/><input data-type="update" onchange="pictureChange(this)" data-imageid="' + ImageID + '"  data-frozenid="' + rowdata.FrozenID + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><div><span class="span_CreateDate" style="margin-right:10px">' + CreateDate + '</span><button onclick="showImageScale(this)"  data-src="/VPay/GetFileFromSharedFolder.cshtml?FileType=FrozenPoint&FileName=' + ImageName + '">显示图片</button><button style="margin-left:10px;" data-imageid="' + ImageID + '" onclick="deleteImage(this)">删除</button></div>';
-                                }
-                            }
-                            return tmpHtml;
-                        } else {
-                            return '<i class="zmdi zmdi-plus" style="margin-top: 7px;margin-right: 5px;"  onclick="addImage(this)"></i><input  data-type="create" onchange="pictureChange(this)" data-frozenid="' + rowdata.FrozenID + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><div><button src ="" style="margin-top:5px;">未上传</button></div>';
-                        }
+                    "title": "异动额度(商户)", "data": "Value",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
                     }
                 },
                 {
-                    "title": "操作时间", "data": "CreateDate2",
+                    "title": "异动前额度(商户)", "data": "BeforeValue",
                     "render": function (data, display, rowdata) {
-                        if (data != '0001-01-01T00:00:00') {
-                            return data.replace(' ', '<br/>');
-                        } else {
-                            return '';
-                        }
-                    }
-                },
-                {
-                    "title": "冻结者", "data": "FrozenAdminName"
-                },
-              
-                {
-                    "title": "解冻时间", "data": "UnFrozenDate",
-                    "render": function (data, display, rowdata) {
-                        if (data != '0001-01-01T00:00:00') {
-                            return data.replace('T', '<br/>');
-                        } else {
-                            return '';
-                        }
-                    }
-                },
-                {
-                    "title": "解冻者", "data": "UnFrozenAdminName"
-                },
-                {
-                    "title": "操作",
-                    "data": "FrozenID",
-                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
 
-                        let retValue;
-                        if (rowdata.Status == 0)
-                            retValue = '<button type="button" data-frozenid=' + rowdata.FrozenID + ' data-companyname=' + rowdata.CompanyName + ' data-providername=' + rowdata.ProviderName + ' data-companyfrozenamount=' + rowdata.CompanyFrozenAmount + ' data-paymentserial=' + rowdata.forPaymentSerial +' onclick="ThawPoint(this)" >解冻</button>';
-                        else
-                            retValue = '';
-                        return retValue;
+                    }
+                },
+                {
+                    "title": "异动额度(支付通道)", "data": "ValueByService",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
+                    }
+                },
+                {
+                    "title": "异动前额度(支付通道)", "data": "BeforeValueByService",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
+
                     }
                 }
             ],
             rowCallback: function (row, data) { },
-            filter: true,         //右上搜尋
+            filter: true,
             info: false,
-            ordering: true, //排序
+            ordering: true,
             processing: true,
             retrieve: true,
-            paging: true,    //分頁
+            selected: true,
             scrollX: true,
             autoWidth: false,
+            order: [[0, "desc"]],
             language: chineseTableLang
         });
     }
 
-    $('#btnSearch').click(function () {
-        getProxyProviderGroup('YE888');
-        getTableResult();
-    })
+    function createSummaryCompanyByDateTable(data) {
+        isCreatedTable = true;
+        Table = $("#table_SummaryCompanyByDateTable").DataTable({
+            data: data,
+            columns: [
+                {
+                    "title": "日期", "data": "CreateDate",
+                    "render": function (data, display, rowdata) {
+                        return data.replace("T", " ");
+                    }
+                },
 
-    function addImage(obj) {
-        var id = $(obj).data('frozenid');
-        $(obj).parent().append('<br/><input  data-type="create" onchange="pictureChange(this)" data-frozenid="' + id + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><div><span class="span_CreateDate" style="margin-right:5px"></span><button style="margin-top:5px;" src= "">未上传</button></div>');
-    }
 
-    function deleteImage(doc) {
-        var ImageID = $(doc).data('imageid');
-
-        swal({
-            title: "是否要删除图片?",
-            type: "warning",
-            showCancelButton: true,
-            closeOnConfirm: true,
-            confirmButtonText: "确定",
-            cancelButtonText: "取消",
-            confirmButtonColor: "#DD6B55",
-        },
-            function (isConfirm) {
-                if (isConfirm) {
-
-                    if (!ImageID) {
-                        parent.successAlert(function () {
-                            getTableResult();
-                        });
-                    } else {
-                        api.deleteImage(ImageID, function (success, obj) {
-                            parent.wrapperFadeIn();
-                            if (success) {
-                                parent.wrapperFadeOut();
-                                if (obj.ResultCode == 0) {
-                                    parent.successAlert(function () {
-                                        getTableResult();
-                                    });
-                                } else {
-                                    var message = ""
-                                    switch (obj.ResultCode) {
-                                        case 6:
-                                            message = "删除失败";
-                                            parent.warningAlert(message);
-                                            break;
-                                        case 7:
-                                            parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                                            break;
-                                        default:
-                                            message = "其他错误";
-                                            parent.warningAlert(message);
-                                            break;
+                { "title": "订单号", "data": "TransactionOrder" },
+                { "title": "商户订单号", "data": "DownOrderID" },
+                //{ "title": "支付代码", "data": "ServiceType" },
+                { "title": "支付通道", "data": "ServiceTypeName" },
+                //{
+                //    "title": "币别", "data": "CurrencyType"
+                //},
+                {
+                    "title": "类型", "data": "OperatorType",
+                    "render": function (data, display, rowdata) {
+                        switch (data) {
+                            case 0:
+                                return '代付';
+                                break;
+                            case 1:
+                                return '代收';
+                                break;
+                            //case 2:
+                            //    return '代理占成';
+                            //    break;
+                            case 3:
+                                var OperatorType = '人工调帐';
+                                if (rowdata.TransactionOrder.includes("OP")) {
+                                    if (rowdata.Value > 0) {
+                                        OperatorType = '冲正';
                                     }
                                 }
 
-                            } else {
-                                parent.wrapperFadeOut();
-                                parent.warningAlert("系统有误");
-                            }
+                                if (rowdata.TransactionOrder.includes("IP")) {
+                                    if (rowdata.Value < 0) {
+                                        OperatorType = '冲正';
+                                    }
+                                }
 
-                        });
+                                return OperatorType;
+                                break;
+                            default:
+                                return '';
+                                break;
+                        }
                     }
-                }
-            });
-    }
+                },
+                {
+                    "title": "异动额度", "data": "Value",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
+                    }
+                },
+                {
+                    "title": "异动前额度(商户)", "data": "BeforeValue",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
 
-    function getProviderCodeResult() {
-        api.getProviderCodeResultByShowType(function (success, obj) {
-            if (obj.ResultCode == 0) {
-                createProviderSelect(obj.ProviderTypes);
-                parent.wrapperFadeOut();
-                //getTableResult();
-            } else {
-                var message = ""
-                switch (obj.ResultCode) {
-                    case 7:
-                        parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                        break;
-                    case 5:
+                    }
+                },
+                {
+                    "title": "异动后额度(商户)", "data": "BeforeValue",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data + rowdata.Value);
 
-                        break;
-                    default:
-                        message = "其他错误";
-                        parent.warningAlert(message);
-                        break;
-                }
-                parent.wrapperFadeOut();
+                    }
+                },
 
-            }
+                {
+                    "title": "异动前额度(通道)", "data": "BeforeValueByService",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data);
+
+                    }
+                },
+                {
+                    "title": "异动后额度(通道)", "data": "BeforeValueByService",
+                    "render": function (data, display, rowdata) {
+                        return toCurrency(data + rowdata.ValueByService);
+
+                    }
+                },
+            ],
+            rowCallback: function (row, data) { },
+            filter: true,
+            info: false,
+            ordering: true,
+            processing: true,
+            retrieve: true,
+            selected: true,
+            scrollX: true,
+            autoWidth: false,
+            order: [[0, "desc"]],
+            language: chineseTableLang
         });
     }
 
-    function createProviderSelect(providerdata) {
+    function getSummaryCompanyByDateLogResult(searchData) {
+        api.GetAgentCompanyServicePointLogResultByCompany(searchData, function (success, obj) {
+            if (isCreatedTable) {
+                Table.clear().draw();
+            }
+            if (obj.ResultCode == 0) {
+                if (!isCreatedTable) {
+                    $("#div_table_SummaryCompanyByDateTable").empty();
+                    $("#div_table_SummaryCompanyByDateTable").append('<table style="width:100%" class="table table-bordered table-striped table-hover dataTable nowrap" id="table_SummaryCompanyByDateTable"></table>');
+                    createSummaryCompanyByDateTable(obj.CompanyServicePointLogs);
+                } else {
+                    Table.rows.add(obj.CompanyServicePointLogs).draw(); // Add new data
+                }
+            } else {
+                switch (obj.ResultCode) {
+                    case 4:
+                        parent.errorAlertCallback("权限不足", function () {
+                            parent.ChangePage("Home");
+                            parent.CloseActivePage(window.frameElement.id.split('_')[1]);
+                        });
+                        break;
+                    case 5:
+                        parent.warningAlert("没有资料");
+                        break;
+                    case 7:
+                        parent.errorAlert("您已断线请重新登入", "Login.cshtml");
+                        break;
+                    default:
+                        parent.warningAlert("其他错误");
+                        break;
+                }
+            }
+        });
+    }
+    //#endregion
 
-        if (providerdata) {
-            $("#select_providercode").append('<option value="-99">全部</option>');
-            $.each(providerdata, function (i, item) {
-                $("#select_providercode").append('<option value="' + providerdata[i].ProviderCode + '">' + providerdata[i].ProviderName + '</option>');
-            })
+    //搜尋
+    $("#btnCompanySearch").on("click", function () {
+        //#region 驗證
 
-            $('#select_providercode').selectpicker('refresh');
+        if ($("#divCompanyData").find('.date').eq(0).val() == "") {
+            parent.warningAlert("请输入起始日期");
+            return;
         }
+        if ($("#divCompanyData").find('.date').eq(1).val() == "") {
+            parent.warningAlert("请输入结束日期");
+            return;
+        }
+
+        if ($('#select_Company').val() == 0) {
+            parent.warningAlert("尚未选择商户");
+            return;
+        }
+        //#endregion
+        var operatorType = $("#select_OperatorType").val();
+        var dateinputval = $('#dateinput').val().split('-');
+        var startDate = dateinputval[0];
+        var endDate = dateinputval[1];
+        var data = {
+            CompanyID: $('#select_Company').val(),
+            StartDate: startDate,
+            EndDate: endDate,
+            OperatorType: operatorType
+        }
+        getSummaryCompanyByDateLogResult(data);
+    })
+
+    function createOperatorType() {
+
+        $("#select_OperatorType").append('<option value="99">' + "全部" + '</option>');
+        $("#select_OperatorType").append('<option value="1">' + "代收" + '</option>');
+        $("#select_OperatorType").append('<option value="0">' + "代付" + '</option>');
+        $("#select_OperatorType").append('<option value="3">' + "人工调帐" + '</option>');
+        $('#select_OperatorType').selectpicker('refresh');
     }
 
     function CreateCompanySelect() {
-        api.getCompanyTableResult(function (success, obj) {
+        api.getOffLineResult(function (success, obj) {
+      
             if (obj.ResultCode == 0) {
+                debugger;
                 if (obj.CompanyResults.length > 0) {
                     $("#select_Company").children().remove();
-                    $("#select_Company").append('<option value="0">全部</option>');
+                    $("#select_Company").append('<option value="0">尚未选择</option>');
                     $.each(obj.CompanyResults, function (i, item) {
                         $("#select_Company").append('<option value="' + obj.CompanyResults[i].CompanyID + '">' + obj.CompanyResults[i].CompanyName + '</option>');
                     })
@@ -1740,53 +1378,115 @@
         });
     }
 
-    function createTypeSelect() {
-        //0=代收/1=代付/2=提現/3=後台加扣
-        $("#select_Type").append('<option value="99">' + '所有' + '</option>');
-        $("#select_Type").append('<option value="0">' + '冻结' + '</option>');
-        $("#select_Type").append('<option value="1">' + '解冻' + '</option>');
-        $('#select_Type').selectpicker('refresh');
-    }
-    
-    function ThawPoint(e) {
+    $('#Excel_download').click(function () {
+        CreateExcel();
+    })
 
-        var forPaymentSerial = $(e).data("paymentserial");
-        var CompanyFrozenAmount = $(e).data("companyfrozenamount");
-        var ProviderName = $(e).data("providername");
-        var CompanyName = $(e).data("companyname");
-        var FrozenID = $(e).data("frozenid");
-        swal({
-            title: "案件解冻",
-            text: `冻结单号:${forPaymentSerial}<br/>商户:${CompanyName}<br/>渠道:${ProviderName}<br/>商户冻结金额:${CompanyFrozenAmount}`,
-            type: "warning",
-            html: true,
-            showCancelButton: true,
-            closeOnConfirm: true,
-            confirmButtonText: "确定",
-            cancelButtonText: "取消",
-            confirmButtonColor: "#DD6B55",
-        },
-            function (isConfirm) {
-                if (isConfirm) {
-                    api.ThawPoint(FrozenID, function (success, obj) {
-                        if (obj.ResultCode == 0) {
-                            getProxyProviderGroup('YE888');
-                            parent.warningAlert("解冻成功");
-                            getTableResult();
-                        } else {
-                            var message = ""
-                            parent.warningAlert("解冻失败！失败代码:" + obj.ResultCode);
-                            getTableResult();
+    function CreateExcel() {
+        if (Table == null) {
+            parent.warningAlert("没有汇出资料");
+            return;
+        }
+
+        if (Table.rows().data().length > 0) {
+            var exceldata = [['日期', '订单号','商户订单号' ,'支付通道', '类型', '异动额度', '异动前额度(商户)', '异动后额度(商户)', '异动前额度(通道)', '异动后额度(通道)']];
+            var TableData = Table.rows().data();  
+            for (var i = 0; i < TableData.length; i++) {
+                var data = TableData[i];
+             
+                var CreateDate = data.CreateDate.replace("T", " ");
+                var OperatorType = "";
+     
+                if (data.OperatorType == 0) {
+                    OperatorType = '代付';
+                } else if (data.OperatorType == 1) {
+                    OperatorType = '代收';
+                } else if (data.OperatorType == 3) {
+                    OperatorType = '人工调帐';
+                    if (data.TransactionOrder.includes("OP")) {
+                        if (data.Value > 0) {
+                            OperatorType = '冲正';
                         }
-                    });
-                }
-            });
-        //swal({
-        //    title: "代付渠道供应商",
-        //    text: strswaltext,
-        //    html: true,
-        //    confirmButtonText: "确认"
-        //});
+                    }
 
+                    if (data.TransactionOrder.includes("IP")) {
+                        if (data.Value < 0) {
+                            OperatorType = '冲正';
+                        }
+                    }
+                }
+                else {
+                    OperatorType = '';
+                }
+
+                var tmpArray = new Array(CreateDate, data.TransactionOrder,  data.DownOrderID,data.ServiceTypeName, OperatorType, data.Value, data.BeforeValue, data.BeforeValue + data.Value, data.BeforeValueByService, data.ValueByService + data.BeforeValueByService);
+                exceldata.push(tmpArray);
+            }
+
+            var sheet = XLSX.utils.aoa_to_sheet(exceldata);
+            openDownloadDialog(sheet2blob(sheet), dateTimeStr() + '.xlsx');
+        } else {
+            parent.warningAlert("没有汇出资料");
+        }
+    }
+
+    function dateTimeStr() {
+        var dateTime = new Date();
+        var year = dateTime.getFullYear();
+        var month = dateTime.getMonth() + 1;//js從0開始取
+        var date = dateTime.getDate();
+
+
+        if (month < 10) {
+            month = "0" + month;
+        }
+        if (date < 10) {
+            date = "0" + date;
+        }
+
+
+
+        return "VPay_" + year + "-" + month + "-" + date + " ";
+    }
+
+    function openDownloadDialog(url, saveName) {
+        if (typeof url == 'object' && url instanceof Blob) {
+            url = URL.createObjectURL(url); // 创建blob地址
+        }
+        var aLink = document.createElement('a');
+        aLink.href = url;
+        aLink.download = saveName || ''; // HTML5新增的属性，指定保存文件名，可以不要后缀，注意，file:///模式下不会生效
+        var event;
+        if (window.MouseEvent) event = new MouseEvent('click');
+        else {
+            event = document.createEvent('MouseEvents');
+            event.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+        }
+        aLink.dispatchEvent(event);
+    }
+
+    function sheet2blob(sheet, sheetName) {
+        sheetName = sheetName || 'sheet1';
+        var workbook = {
+            SheetNames: [sheetName],
+            Sheets: {}
+        };
+        workbook.Sheets[sheetName] = sheet;
+        // 生成excel的配置项
+        var wopts = {
+            bookType: 'xlsx', // 要生成的文件类型
+            bookSST: false, // 是否生成Shared String Table，官方解释是，如果开启生成速度会下降，但在低版本IOS设备上有更好的兼容性
+            type: 'binary'
+        };
+        var wbout = XLSX.write(workbook, wopts);
+        var blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
+        // 字符串转ArrayBuffer
+        function s2ab(s) {
+            var buf = new ArrayBuffer(s.length);
+            var view = new Uint8Array(buf);
+            for (var i = 0; i != s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+            return buf;
+        }
+        return blob;
     }
 </script>

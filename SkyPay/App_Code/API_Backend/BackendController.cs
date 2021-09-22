@@ -7603,6 +7603,34 @@ public class BackendController : ApiController
         return retValue;
     }
 
+    [HttpPost]
+    [ActionName("GetAgentCompanyServicePointLogResultByCompany")]
+    public CompanyServicePointLog GetAgentCompanyServicePointLogResultByCompany([FromBody] FromBody.PaymentTable SearchData)
+    {
+        CompanyServicePointLog retValue = new CompanyServicePointLog();
+        BackendDB backendDB = new BackendDB();
+        RedisCache.BIDContext.BIDInfo AdminData = null;
+        if (!RedisCache.BIDContext.CheckBIDExist(SearchData.BID))
+        {
+            retValue.ResultCode = APIResult.enumResult.SessionError;
+            return retValue;
+        }
+        else
+        {
+            AdminData = RedisCache.BIDContext.GetBIDInfo(SearchData.BID);
+        }
+
+        retValue.CompanyServicePointLogs = backendDB.GetCompanyServicePointLogResultByCompany(SearchData);
+        if (retValue.CompanyServicePointLogs != null)
+        {
+            retValue.ResultCode = APIResult.enumResult.OK;
+        }
+        else
+        {
+            retValue.ResultCode = APIResult.enumResult.NoData;
+        }
+        return retValue;
+    }
 
     [HttpPost]
     [ActionName("GetCompanyServicePointLogResultByCompany")]

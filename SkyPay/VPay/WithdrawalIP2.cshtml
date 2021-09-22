@@ -1160,14 +1160,14 @@ if ('@CheckLoginPermission' == 'false') {
 
                                 //}
                                 if (i == 0) {
-                                    tmpHtml += '<i data-name="' + rowdata.CompanyCode + "_" + rowdata.withdrawalIP + '" data-ip="' + rowdata.withdrawalIP + '" class="zmdi zmdi-plus" style="margin-top: 7px;margin-right: 5px;" onclick="addImage(this)"></i><input data-type="update" onchange="pictureChange(this)"  data-name="' + ImageName+ '"  data-ip="' + rowdata.withdrawalIP + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><img  src = "/Backend/GetFileFromSharedFolder.cshtml?FileType=WithdrawalIP&FileName=' + imageNames[i] + '" style = "height: 50px" />';
+                                    tmpHtml += '<i data-name="' + rowdata.CompanyCode + "_" + rowdata.withdrawalIP + '" data-ip="' + rowdata.withdrawalIP + '" class="zmdi zmdi-plus" style="margin-top: 7px;margin-right: 5px;" onclick="addImage(this)"></i><input data-type="update" onchange="pictureChange(this)"  data-name="' + ImageName + '"  data-ip="' + rowdata.withdrawalIP + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><img  src = "/VPay/GetFileFromSharedFolder.cshtml?FileType=WithdrawalIP&FileName=' + imageNames[i] + '" style = "height: 50px" />';
                                 } else {
-                                    tmpHtml += '<br/><input data-type="update" onchange="pictureChange(this)" data-name="' + ImageName + '"  data-ip="' + rowdata.withdrawalIP + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><img  src = "/Backend/GetFileFromSharedFolder.cshtml?FileType=WithdrawalIP&FileName='  + imageNames[i] + '" style = "height: 50px" />';
+                                    tmpHtml += '<br/><input data-type="update" onchange="pictureChange(this)" data-name="' + ImageName + '"  data-ip="' + rowdata.withdrawalIP + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><img  src = "/VPay/GetFileFromSharedFolder.cshtml?FileType=WithdrawalIP&FileName='  + imageNames[i] + '" style = "height: 50px" />';
                                 }
                             }
                             return tmpHtml;
                         } else {
-                            return '<i class="zmdi zmdi-plus" style="margin-top: 7px;margin-right: 5px;"  onclick="addImage(this)"></i><input  data-type="create" onchange="pictureChange(this)" data-ip="' + rowdata.withdrawalIP + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><img  src = "/Backend/GetFileFromSharedFolder.cshtml?FileType=WithdrawalIP&FileName="" style = "height: 50px" />';
+                            return '<i class="zmdi zmdi-plus" style="margin-top: 7px;margin-right: 5px;"  onclick="addImage(this)"></i><input  data-type="create" onchange="pictureChange(this)" data-ip="' + rowdata.withdrawalIP + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><img  src = "/VPay/GetFileFromSharedFolder.cshtml?FileType=WithdrawalIP&FileName="" style = "height: 50px" />';
                         }
                     }
                 },
@@ -1198,7 +1198,7 @@ if ('@CheckLoginPermission' == 'false') {
 
     function addImage(obj) {
         var ip = $(obj).data('ip');
-        $(obj).parent().append('<br/><input  data-type="create" onchange="pictureChange(this)" data-ip="' + ip + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><img  src = "/Backend/GetFileFromSharedFolder.cshtml?FileType=WithdrawalIP&FileName="" style = "height: 50px" />');
+        $(obj).parent().append('<br/><input  data-type="create" onchange="pictureChange(this)" data-ip="' + ip + '" type="file" style="border-radius:0px;border:0px;"  accept="image/gif, image/jpeg, image/png" /><img  src = "/VPay/GetFileFromSharedFolder.cshtml?FileType=WithdrawalIP&FileName="" style = "height: 50px" />');
     }
 
     function getWithdrawalIPresult() {
