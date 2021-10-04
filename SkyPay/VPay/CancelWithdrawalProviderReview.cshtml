@@ -1161,12 +1161,11 @@
                                 parent.CloseActivePage(window.frameElement.id.split('_')[1]);
                             });
                             break;
+                        case 6:
+                            parent.warningAlert(obj.Message);
+                            break;
                         case 7:
                             parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                            break;
-                        case 8:
-                            message = "服务类型重复";
-                            parent.warningAlert(message);
                             break;
                         default:
                             parent.warningAlert('目前订单状态无法取消');

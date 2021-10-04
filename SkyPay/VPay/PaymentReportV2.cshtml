@@ -1409,7 +1409,8 @@ if ('@CheckLoginPermission' == 'false') {
                             return data;
                         }
                     }
-                },
+                    },
+
                 {
                     "title": "提交方式", "data": "SubmitType",
                     "render": function (data, display, rowdata) {
@@ -1422,17 +1423,7 @@ if ('@CheckLoginPermission' == 'false') {
                         }
                     }
                 },
-                //{ "title": "上游手续费率(%)", "data": "CostRate" },
-                //{
-                //    "title": "上游手续费", "data": "PartialOrderAmount",
-                //    "render": function (data, display, rowdata) {
-                //        if (data != 0) {
-                //            return (rowdata.PartialOrderAmount * rowdata.CostRate * 0.01) + rowdata.CostCharge;
-                //        } else {
-                //            return data;
-                //        }
-                //    }
-                //},
+                { "title": "会员实名", "data": "UserName" },
 
                 {
                     "title": "提交时间", "data": "CreateDate2"
@@ -1494,7 +1485,7 @@ if ('@CheckLoginPermission' == 'false') {
             processing: true,
             retrieve: true,
             selected: true,
-            order: [[12, "desc"]],
+            order: [[13, "desc"]],
             scrollX: true,
             autoWidth: false,
             language: chineseTableLang

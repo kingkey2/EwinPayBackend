@@ -1007,7 +1007,8 @@
                                 <div class="row" style="background-color:#66FFFF;line-height: 30px;">
                                     <span style="font-weight:900;color:#0000AA;font-size:15px;margin-left:5px"> 毛利 : </span><span style="font-size:15px;margin-left:5px" id="lab_TotalProfitAmount"></span>
                                     <span style="font-weight:900;color:#227700;font-size:15px;margin-left:5px"> 总佣金: </span><span style="font-size:15px;margin-left:5px" id="lab_TotalAgentAmount"></span>
-                                    <span style="font-weight:900;color:#227700;font-size:15px;margin-left:5px"> 净利: </span><span style="font-size:15px;margin-left:5px" id="lab_TotalNetIncome"></span>                                  
+                                    <span style="font-weight:900;color:#227700;font-size:15px;margin-left:5px"> 净利: </span><span style="font-size:15px;margin-left:5px" id="lab_TotalNetIncome"></span>
+                                    <span style="font-weight:900;color:#0000AA;font-size:15px;margin-left:5px"> 毛利(提现) : </span><span style="font-size:15px;margin-left:5px" id="lab_TotalProfitWithdrawAmount"></span>
                                 </div>
                                 <div id="div_table_SummaryCompanyByDateTable">
                                     <table class="table table-bordered table-striped table-hover dataTable nowrap" id="table_SummaryCompanyByDateTable" style="width:100%"></table>
@@ -1444,7 +1445,8 @@
         $('#lab_TotalProfitAmount').text(toCurrency(Number(data.TotalProviderNetAmount) - Number(data.TotalNetAmount)));
         $('#lab_TotalAgentAmount').text(toCurrency(data.TotalPayAgentAmount));
         $('#lab_TotalNetIncome').text(toCurrency(Number(data.TotalProviderNetAmount) - Number(data.TotalNetAmount) - Number(data.TotalPayAgentAmount)));
-
+        $('#lab_TotalProfitWithdrawAmount').text(toCurrency(data.TotalNetWithdrawAmount));
+ 
     }
 
 

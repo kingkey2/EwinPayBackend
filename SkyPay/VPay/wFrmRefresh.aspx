@@ -6,25 +6,29 @@
 <head runat="server">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <meta http-equiv="refresh" content="30"/>
-    <script src="assets/js/jquery-3.3.1.min.js"></script>
-   
-    <script src="assets/js/BackendJS/BackendAPI.js?20200326"></script>
+ <script src="assets/js/BackendJS/BackendAPI.js?20210209"></script>
 
+</head>  
+<script>
 
-</head>    
- <script>
-    $(document).ready(function () {
-        pageLoad();
-    });
-
-     function pageLoad() {
-         api = parent.api;
-          api.updateBID(function (success, obj) {
-            if (obj.ResultCode == 7) {
-                errorAlert("(BID)您已斷線請重新登入", "Login.cshtml");
-            }
-        })
+     function init() {
+         pageLoad();
      }
+
+    function pageLoad() {
+        api = parent.api;
+
+        if (api) {
+            api.updateBID(function (success, obj) {
+                if (obj.ResultCode == 7) {
+                    parent.errorAlert("您已斷線請重新登入", "Login.cshtml");
+                }
+            })
+        }
+   
+     }
+
+     window.onload = init;
  </script>
 <body>
     <form id="form1" runat="server">

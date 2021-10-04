@@ -3543,10 +3543,10 @@ public class BackendController : ApiController
         }
 
 
-        DBreturn = backendDB.CancelWithdrawalProviderReview(fromBody.PaymentSerial, AdminData.AdminID);
+        DBreturn = backendDB.CancelWithdrawalProviderReview(fromBody.PaymentSerial);
 
 
-        if (DBreturn >= 1)
+        if (DBreturn == 0)
         {
             string IP = backendFunction.CheckIPInTW(CodingControl.GetUserIP());
             int AdminOP = backendDB.InsertAdminOPLog(AdminData.forCompanyID, AdminData.AdminID, 1, "取消上游审核,单号:" + fromBody.PaymentSerial, IP);
@@ -3557,6 +3557,20 @@ public class BackendController : ApiController
         }
         else
         {
+            if (DBreturn == -1)
+            {
+                retValue.Message = "订单不存在";
+            } else if (DBreturn == -2) {
+                retValue.Message = "订单状态有误";
+            }
+            else if (DBreturn == -3)
+            {
+                retValue.Message = "锁定失败";
+            }
+            else if (DBreturn == -4)
+            {
+                retValue.Message = "此订单非专属供应商订单";
+            }
             retValue.ResultCode = APIResult.enumResult.Error;
         }
 
@@ -7762,6 +7776,7 @@ public class BackendController : ApiController
                 retValue.TotalAmount += data.SummaryAmount;
                 retValue.TotalNetAmount += data.SummaryNetAmount;
                 retValue.TotalProviderNetAmount += data.SummaryProviderNetAmount;
+                retValue.TotalNetWithdrawAmount += (data.SummaryCompanyWithdrawalChargeAmount - data.SummaryProviderWithdrawalChargeAmount);
             }
         }
 
@@ -13551,6 +13566,7 @@ public class BackendController : ApiController
         public decimal TotalProviderNetAmount;
         public decimal TotalPayAgentAmount;
         public decimal TotalAgentAmount;
+        public decimal TotalNetWithdrawAmount;
     }
 
     public class SummaryCompanyByDateFlot : APIResult

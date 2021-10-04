@@ -8780,6 +8780,14 @@ public class BackendDB
             return returnValue;
         }
 
+        if (WithdrawData.Status == 2|| WithdrawData.Status == 3)
+        {
+            returnValue.WithdrawalData = GetWithdrawalByWithdrawSerialByAdmin(WithdrawSerial);
+            returnValue.Message = "订单已完成";
+            returnValue.Status = -2;
+            return returnValue;
+        }
+
         if (Status != 3)
         {
             //取得供應商代付手續費
@@ -13713,6 +13721,9 @@ public class BackendDB
             case "ProviderName":
                 SS += " Order By T.ProviderName ";
                 break;
+            case "UserName":
+                SS += " Order By T.UserName ";
+                break;
             case "ServiceTypeName":
                 SS += " Order By T.ServiceTypeName ";
                 break;
@@ -14931,26 +14942,25 @@ public class BackendDB
         return returnValue;
     }
 
-    public int CancelWithdrawalProviderReview(string WithdrawSerial, int AdminID)
+    public int CancelWithdrawalProviderReview(string WithdrawSerial)
     {
 
-        DBViewModel.UpdateWithdrawalResult returnValue = new DBViewModel.UpdateWithdrawalResult();
         String SS = String.Empty;
         SqlCommand DBCmd;
-        int updateCount = 0;
+        int ReturnValue = 0;
 
 
-        SS += " UPDATE Withdrawal  SET Status=0,HandleByAdminID=0";
-
-        SS += " WHERE WithdrawSerial=@WithdrawSerial AND Status=1";
-
+        SS = "spCancelWithdrawalReview";
         DBCmd = new System.Data.SqlClient.SqlCommand();
         DBCmd.CommandText = SS;
-        DBCmd.CommandType = CommandType.Text;
+        DBCmd.CommandType = CommandType.StoredProcedure;
+        DBCmd.Parameters.Add("@Return", SqlDbType.VarChar).Direction = System.Data.ParameterDirection.ReturnValue;
         DBCmd.Parameters.Add("@WithdrawSerial", SqlDbType.VarChar).Value = WithdrawSerial;
-        updateCount = DBAccess.ExecuteDB(DBConnStr, DBCmd);
+        DBAccess.ExecuteDB(DBConnStr, DBCmd);
 
-        return updateCount;
+        ReturnValue = (int)DBCmd.Parameters["@Return"].Value;
+
+        return ReturnValue;
     }
 
     public List<DBModel.Withdrawal> GetQueryWithdrawal()

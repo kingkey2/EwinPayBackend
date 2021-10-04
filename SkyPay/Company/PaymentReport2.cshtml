@@ -470,7 +470,7 @@ if ('@CheckLoginPermission' == 'false') {
             }
 
             if (obj.ResultCode == 0) {
-                isFirstSearch = true;
+               
                 if (!isCreatedTable) {
                     isCreatedTable = true;
                     //建立資料顯示Table
@@ -486,24 +486,22 @@ if ('@CheckLoginPermission' == 'false') {
                 Table.columns.adjust();
             }
             else {
-                if (isFirstSearch) {
-                    var message = ""
-                    switch (obj.ResultCode) {
-                        case 5:
-                            message = "没有资料";
-                            warningAlert(message);
-                            break;
-                        case 7:
-                            errorAlert("您已断线请重新登入", "Login.cshtml");
-                            break;
-                        default:
-                            message = "其他错误";
-                            warningAlert(message);
-                            break;
-                    }
-
+              
+                var message = ""
+                switch (obj.ResultCode) {
+                    case 5:
+                        message = "没有资料";
+                        warningAlert(message);
+                        break;
+                    case 7:
+                        errorAlert("您已断线请重新登入", "Login.cshtml");
+                        break;
+                    default:
+                        message = "其他错误";
+                        warningAlert(message);
+                        break;
                 }
-                isFirstSearch = true;
+
                 $('#count1').text('');
                 $('#count2').text('');
                 $('#count3').text('');
