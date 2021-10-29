@@ -2953,10 +2953,13 @@
     }
 
     function checkCompanyServiceExist(data, selectedServiceType) {
+        data = data.filter(function (element) {
+            return element.State == 0 && element.CurrencyType == 'CNY';
+        });
 
         if (data) {
             var selecteddata = data.find(function (element) {
-                return element.CurrencyType == 'CNY' && element.ServiceType == selectedServiceType;
+                return  element.ServiceType == selectedServiceType;
             });
 
             if (selecteddata) {
@@ -2975,7 +2978,7 @@
     }
 
     function createCompanyServiceSelect(data) {
-
+        
         if (data) {
             $("#modal_select_companyservicepoint").append('<option value="-1">' + '选择扣款通道' + '</option>');
 

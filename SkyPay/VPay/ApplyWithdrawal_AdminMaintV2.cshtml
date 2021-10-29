@@ -2954,10 +2954,14 @@
     }
 
     function checkCompanyServiceExist(data, selectedServiceType) {
+        debugger;
+        data = data.filter(function (element) {
+            return element.State == 0 && element.CurrencyType == 'CNY';
+        });
 
         if (data) {
             var selecteddata = data.find(function (element) {
-                return element.CurrencyType == 'CNY' && element.ServiceType == selectedServiceType;
+                return element.ServiceType == selectedServiceType;
             });
 
             if (selecteddata) {

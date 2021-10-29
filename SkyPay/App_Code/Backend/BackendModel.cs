@@ -1891,6 +1891,7 @@ public class DBViewModel {
         public decimal Charge { get; set; }
         public decimal WithdrawalPoint { get; set; }
         public int FrozenServiceCount { get; set; }
+        public int State { get; set; }
         public decimal FrozenServicePoint { get; set; }
 
     }

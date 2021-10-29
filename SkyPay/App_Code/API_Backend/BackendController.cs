@@ -3486,6 +3486,100 @@ public class BackendController : ApiController
         return retValue;
     }
 
+
+    [HttpPost]
+    [ActionName("CancelWithdrawalReviewToFail")]
+    public APIResult CancelWithdrawalReviewToFail([FromBody] FromBody.PaymentSet fromBody)
+    {
+        APIResult retValue = new APIResult();
+        BackendDB backendDB = new BackendDB();
+        int DBreturn;
+        //驗證權限
+        RedisCache.BIDContext.BIDInfo AdminData;
+
+
+
+        if (!RedisCache.BIDContext.CheckBIDExist(fromBody.BID))
+        {
+            retValue.ResultCode = APIResult.enumResult.SessionError;
+            return retValue;
+        }
+        else
+        {
+            AdminData = RedisCache.BIDContext.GetBIDInfo(fromBody.BID);
+        }
+
+        if (!Pay.IsTestSite)
+        {
+            if (!CodingControl.CheckXForwardedFor())
+            {
+                backendDB.InsertBotSendLog(AdminData.CompanyCode, "公司代碼:" + AdminData.CompanyCode + ",偵測到非反代IP活動：" + CodingControl.GetXForwardedFor());
+                RedisCache.BIDContext.ClearBID(fromBody.BID);
+                retValue.ResultCode = APIResult.enumResult.VerificationError;
+                retValue.Message = "";
+                return retValue;
+            }
+        }
+
+        if (AdminData.CompanyType != 0)
+        {
+            retValue.ResultCode = APIResult.enumResult.VerificationError;
+            return retValue;
+        }
+
+        if (!backendDB.CheckLoginIP(CodingControl.GetUserIP(), AdminData.CompanyCode))
+        {
+            RedisCache.BIDContext.ClearBID(fromBody.BID);
+            retValue.ResultCode = APIResult.enumResult.VerificationError;
+            retValue.Message = "";
+            return retValue;
+        }
+
+        BackendFunction backendFunction = new BackendFunction();
+
+        if (!backendFunction.CheckPassword(fromBody.Password, AdminData.AdminID))
+        {
+            retValue.ResultCode = APIResult.enumResult.PasswordEmpty;
+            return retValue;
+        }
+
+
+        DBreturn = backendDB.CancelWithdrawalReviewToFail(fromBody.PaymentSerial, AdminData.AdminID);
+
+
+        if (DBreturn == 0)
+        {
+            string IP = backendFunction.CheckIPInTW(CodingControl.GetUserIP());
+            int AdminOP = backendDB.InsertAdminOPLog(AdminData.forCompanyID, AdminData.AdminID, 1, "取消上游审核,单号:" + fromBody.PaymentSerial, IP);
+            string XForwardIP = CodingControl.GetXForwardedFor();
+            CodingControl.WriteXFowardForIP(AdminOP);
+
+            retValue.ResultCode = APIResult.enumResult.OK;
+        }
+        else
+        {
+            if (DBreturn == -1)
+            {
+                retValue.Message = "订单不存在";
+            }
+            else if (DBreturn == -2)
+            {
+                retValue.Message = "订单状态有误";
+            }
+            else if (DBreturn == -3)
+            {
+                retValue.Message = "锁定失败";
+            }
+            else if (DBreturn == -4)
+            {
+                retValue.Message = "此订单非专属供应商订单";
+            }
+            retValue.ResultCode = APIResult.enumResult.Error;
+        }
+
+        return retValue;
+    }
+
     [HttpPost]
     [ActionName("CancelWithdrawalProviderReview")]
     public APIResult CancelWithdrawalProviderReview([FromBody] FromBody.PaymentSet fromBody)

@@ -6633,9 +6633,10 @@ public class BackendDB
         SqlCommand DBCmd = null;
         DataTable DT;
 
-        SS = " SELECT CompanyServicePoint.*,ServiceTypeName,WithdrawLimit.MaxLimit,WithdrawLimit.MinLimit,WithdrawLimit.Charge" +
+        SS = " SELECT CompanyServicePoint.*,CompanyService.State,ServiceTypeName,WithdrawLimit.MaxLimit,WithdrawLimit.MinLimit,WithdrawLimit.Charge" +
              " FROM  CompanyServicePoint" +
              " LEFT JOIN ServiceType ON CompanyServicePoint.ServiceType=ServiceType.ServiceType" +
+             " LEFT JOIN CompanyService ON CompanyService.ServiceType=CompanyServicePoint.ServiceType And CompanyService.CurrencyType=CompanyServicePoint.CurrencyType And CompanyService.forCompanyID=CompanyServicePoint.CompanyID " +
              " LEFT JOIN WithdrawLimit ON WithdrawLimit.ServiceType=CompanyServicePoint.ServiceType And WithdrawLimit.CurrencyType=@CurrencyType And WithdrawLimit.WithdrawLimitType=1 And WithdrawLimit.forCompanyID=@CompanyID" +
              " WHERE CompanyServicePoint.CompanyID = @CompanyID" +
              " AND CompanyServicePoint.CurrencyType = @CurrencyType";
@@ -14941,6 +14942,29 @@ public class BackendDB
 
         return returnValue;
     }
+
+    public int CancelWithdrawalReviewToFail(string WithdrawSerial,int AdminID)
+    {
+
+        String SS = String.Empty;
+        SqlCommand DBCmd;
+        int ReturnValue = 0;
+
+
+        SS = "spCancelWithdrawalReviewToFail";
+        DBCmd = new System.Data.SqlClient.SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = CommandType.StoredProcedure;
+        DBCmd.Parameters.Add("@Return", SqlDbType.VarChar).Direction = System.Data.ParameterDirection.ReturnValue;
+        DBCmd.Parameters.Add("@forAdminID", SqlDbType.Int).Value = AdminID;
+        DBCmd.Parameters.Add("@WithdrawSerial", SqlDbType.VarChar).Value = WithdrawSerial;
+        DBAccess.ExecuteDB(DBConnStr, DBCmd);
+
+        ReturnValue = (int)DBCmd.Parameters["@Return"].Value;
+
+        return ReturnValue;
+    }
+
 
     public int CancelWithdrawalProviderReview(string WithdrawSerial)
     {
