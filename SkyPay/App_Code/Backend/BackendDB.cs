@@ -14943,26 +14943,174 @@ public class BackendDB
         return returnValue;
     }
 
-    public int CancelWithdrawalReviewToFail(string WithdrawSerial,int AdminID)
+    /// <summary>
+    /// 提现单進行中转成功
+    /// </summary>
+    /// <param name="WithdrawSerial"></param>
+    /// <param name="AdminID"></param>
+    /// <returns></returns>
+    public string CancelWithdrawalReviewToSuccess(string WithdrawSerial, int AdminID)
+    {
+        string returnValue = "其他错误";
+        String SS = String.Empty;
+        SqlCommand DBCmd;
+        int DBreturn = -6;//其他錯誤
+        var WithdrawalData = GetWithdrawalByWithdrawSerial(WithdrawSerial);
+        //找不到訂單資訊
+        if (WithdrawalData != null && WithdrawalData.WithdrawSerial != "")
+        {
+            if (WithdrawalData.Status == 1)
+            {
+                //扣除公司額度
+                SS = "spCancelWithdrawalReviewToSuccess";
+                DBCmd = new System.Data.SqlClient.SqlCommand();
+                DBCmd.CommandText = SS;
+                DBCmd.CommandType = CommandType.StoredProcedure;
+                DBCmd.Parameters.Add("@WithdrawSerial", SqlDbType.VarChar).Value = WithdrawSerial;
+                DBCmd.Parameters.Add("@Return", SqlDbType.VarChar).Direction = System.Data.ParameterDirection.ReturnValue;
+                DBAccess.ExecuteDB(DBConnStr, DBCmd);
+                DBreturn = (int)DBCmd.Parameters["@Return"].Value;
+
+                if (DBreturn == 0)
+                {
+                    returnValue = "审核完成";
+                    //手動到後台下發
+                    SS = " UPDATE Withdrawal  SET ConfirmByAdminID=@AdminID " +
+                         " WHERE WithdrawSerial=@WithdrawSerial";
+
+                    DBCmd = new System.Data.SqlClient.SqlCommand();
+                    DBCmd.CommandText = SS;
+                    DBCmd.CommandType = CommandType.Text;
+                    DBCmd.Parameters.Add("@AdminID", SqlDbType.Int).Value = AdminID;
+                    DBCmd.Parameters.Add("@WithdrawSerial", SqlDbType.VarChar).Value = WithdrawSerial;
+                    DBAccess.ExecuteDB(DBConnStr, DBCmd);
+                    //如果不是后台申请提现,发送API回调
+                    if (WithdrawalData.FloatType != 0)
+                    {
+                        if (!(WithdrawalData.DownUrl == "https://www.baidu.com/" || WithdrawalData.DownUrl == "http://baidu.com"))
+                        {
+                            ReSendWithdrawal(WithdrawalData.WithdrawSerial, false);
+                        }
+                    }
+                }
+                else {
+                    switch (DBreturn)
+                    {
+                        case -1:
+                            returnValue = "订单不存在";
+                            break;
+                        case -2:
+                            returnValue = "订单状态有误";
+                            break;
+                        case -3:
+                            returnValue = "锁定失败";
+                            break;
+                        case -4:
+                            returnValue = "商户钱包有误";
+                            break;
+                        case -5:
+                            returnValue = "商户余额不足";
+                            break;
+                        case -6:
+                            returnValue = "家扣点失败";
+                            break;
+                        case -7:
+                            returnValue = "订单非在可充值状态";
+                            break;
+                        default:
+                            returnValue = "其他错误";
+                            break;
+                    }
+                }
+            }
+            else
+            {
+                returnValue = "訂單狀態錯誤";
+            }
+        }
+        else
+        {
+            returnValue = "訂單狀態錯誤";
+        }
+
+        return returnValue;
+    }
+
+    /// <summary>
+    /// 提现单進行中转失败
+    /// </summary>
+    /// <param name="WithdrawSerial"></param>
+    /// <param name="AdminID"></param>
+    /// <returns></returns>
+    public string CancelWithdrawalReviewToFail(string WithdrawSerial,int AdminID)
     {
 
         String SS = String.Empty;
         SqlCommand DBCmd;
-        int ReturnValue = 0;
+        string returnValue;
+        int DBreturn = -6;
+        var WithdrawalData = GetWithdrawalByWithdrawSerial(WithdrawSerial);
+        //找不到訂單資訊
+        if (WithdrawalData != null && WithdrawalData.WithdrawSerial != "")
+        {
+            if (WithdrawalData.Status == 1)
+            {
+                //扣除公司額度
+                SS = "spCancelWithdrawalReviewToFail";
+                DBCmd = new System.Data.SqlClient.SqlCommand();
+                DBCmd.CommandText = SS;
+                DBCmd.CommandType = CommandType.StoredProcedure;
+                DBCmd.Parameters.Add("@Return", SqlDbType.VarChar).Direction = System.Data.ParameterDirection.ReturnValue;
+                DBCmd.Parameters.Add("@forAdminID", SqlDbType.Int).Value = AdminID;
+                DBCmd.Parameters.Add("@WithdrawSerial", SqlDbType.VarChar).Value = WithdrawSerial;
+                DBAccess.ExecuteDB(DBConnStr, DBCmd);
 
+                DBreturn = (int)DBCmd.Parameters["@Return"].Value;
 
-        SS = "spCancelWithdrawalReviewToFail";
-        DBCmd = new System.Data.SqlClient.SqlCommand();
-        DBCmd.CommandText = SS;
-        DBCmd.CommandType = CommandType.StoredProcedure;
-        DBCmd.Parameters.Add("@Return", SqlDbType.VarChar).Direction = System.Data.ParameterDirection.ReturnValue;
-        DBCmd.Parameters.Add("@forAdminID", SqlDbType.Int).Value = AdminID;
-        DBCmd.Parameters.Add("@WithdrawSerial", SqlDbType.VarChar).Value = WithdrawSerial;
-        DBAccess.ExecuteDB(DBConnStr, DBCmd);
+                if (DBreturn == 0)
+                {
+                    returnValue = "审核完成";
+                    //如果不是后台申请提现,发送API回调
+                    if (WithdrawalData.FloatType != 0)
+                    {
+                        if (!(WithdrawalData.DownUrl == "https://www.baidu.com/" || WithdrawalData.DownUrl == "http://baidu.com"))
+                        {
+                            ReSendWithdrawal(WithdrawalData.WithdrawSerial, false);
+                        }
+                    }
+                }
+                else {
+                    switch (DBreturn)
+                    {
+                        case -1:
+                            returnValue = "订单不存在";
+                            break;
+                        case -2:
+                            returnValue = "订单状态有误";
+                            break;
+                        case -3:
+                            returnValue = "锁定失败";
+                            break;
+                        case -4:
+                            returnValue = "此订单非专属供应商订单";
+                            break;
+                        default:
+                            returnValue = "其他错误";
+                            break;
+                    }
+                }
+            }
+            else
+            {
+                returnValue = "訂單狀態錯誤";
+            }
+        }
+        else
+        {
+            returnValue = "訂單狀態錯誤";
+        }
 
-        ReturnValue = (int)DBCmd.Parameters["@Return"].Value;
-
-        return ReturnValue;
+        return returnValue;
     }
 
 

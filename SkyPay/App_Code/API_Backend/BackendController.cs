@@ -898,7 +898,7 @@ public class BackendController : ApiController
     {
         LoginResult loginResult = new LoginResult();
         BackendDB backendDB = new BackendDB();
-
+ 
         BackendFunction backendFunction = new BackendFunction();
         if (!Pay.IsTestSite)
         {
@@ -977,21 +977,17 @@ public class BackendController : ApiController
 
 
             }
+            loginResult.CheckGoogleKeySuccess = true;
 
             if (loginResult.ResultCode == APIResult.enumResult.OK)
             {
-                //RedisCache.BIDContext.ClearBID(BID);
-                //HttpContext.Current.Session["AdminData"] = JsonConvert.SerializeObject(loginResult);
-                //HttpContext.Current.Session["AdminData"] = loginResult;
-
-                //loginResult.BID = RedisCache.BIDContext.CreateBID(admin.CompanyCode, admin.LoginAccount, admin.RealName, admin.forAdminRoleID, CodingControl.GetUserIP(), loginResult.CheckGoogleKeySuccess);
+               
                 HttpContext.Current.Response.Cookies.Add(new HttpCookie("BID", RedisCache.BIDContext.CreateBID(admin.CompanyCode, admin.LoginAccount, admin.RealName, admin.forAdminRoleID, CodingControl.GetUserIP(), loginResult.CheckGoogleKeySuccess)));
                 string IP = backendFunction.CheckIPInTW(CodingControl.GetUserIP());
 
                 int AdminOP = backendDB.InsertAdminOPLog(admin.forCompanyID, admin.AdminID, 0, fromBody.LoginAccount + ",登入成功", IP);
                 string XForwardIP = CodingControl.GetXForwardedFor();
                 CodingControl.WriteXFowardForIP(AdminOP);
-                //RedisCache.UserAccount.UpdateSIDByID(admin.LoginAccount, HttpContext.Current.Session.SessionID);
             }
             else
             {
@@ -3486,6 +3482,84 @@ public class BackendController : ApiController
         return retValue;
     }
 
+    [HttpPost]
+    [ActionName("CancelWithdrawalReviewToSuccess")]
+    public APIResult CancelWithdrawalReviewToSuccess([FromBody] FromBody.PaymentSet fromBody)
+    {
+        APIResult retValue = new APIResult();
+        BackendDB backendDB = new BackendDB();
+        string DBreturn;
+        //驗證權限
+        RedisCache.BIDContext.BIDInfo AdminData;
+
+
+
+        if (!RedisCache.BIDContext.CheckBIDExist(fromBody.BID))
+        {
+            retValue.ResultCode = APIResult.enumResult.SessionError;
+            return retValue;
+        }
+        else
+        {
+            AdminData = RedisCache.BIDContext.GetBIDInfo(fromBody.BID);
+        }
+
+        if (!Pay.IsTestSite)
+        {
+            if (!CodingControl.CheckXForwardedFor())
+            {
+                backendDB.InsertBotSendLog(AdminData.CompanyCode, "公司代碼:" + AdminData.CompanyCode + ",偵測到非反代IP活動：" + CodingControl.GetXForwardedFor());
+                RedisCache.BIDContext.ClearBID(fromBody.BID);
+                retValue.ResultCode = APIResult.enumResult.VerificationError;
+                retValue.Message = "";
+                return retValue;
+            }
+        }
+
+        if (AdminData.CompanyType != 0)
+        {
+            retValue.ResultCode = APIResult.enumResult.VerificationError;
+            return retValue;
+        }
+
+        if (!backendDB.CheckLoginIP(CodingControl.GetUserIP(), AdminData.CompanyCode))
+        {
+            RedisCache.BIDContext.ClearBID(fromBody.BID);
+            retValue.ResultCode = APIResult.enumResult.VerificationError;
+            retValue.Message = "";
+            return retValue;
+        }
+
+        BackendFunction backendFunction = new BackendFunction();
+
+        if (!backendFunction.CheckPassword(fromBody.Password, AdminData.AdminID))
+        {
+            retValue.ResultCode = APIResult.enumResult.PasswordEmpty;
+            return retValue;
+        }
+
+
+        DBreturn = backendDB.CancelWithdrawalReviewToSuccess(fromBody.PaymentSerial, AdminData.AdminID);
+
+
+        if (DBreturn == "审核完成")
+        {
+            string IP = backendFunction.CheckIPInTW(CodingControl.GetUserIP());
+            int AdminOP = backendDB.InsertAdminOPLog(AdminData.forCompanyID, AdminData.AdminID, 1, "进行中转成功(提现),单号:" + fromBody.PaymentSerial, IP);
+            string XForwardIP = CodingControl.GetXForwardedFor();
+            CodingControl.WriteXFowardForIP(AdminOP);
+
+            retValue.ResultCode = APIResult.enumResult.OK;
+        }
+        else
+        {
+            retValue.Message = DBreturn;
+            retValue.ResultCode = APIResult.enumResult.Error;
+        }
+
+        return retValue;
+    }
+
 
     [HttpPost]
     [ActionName("CancelWithdrawalReviewToFail")]
@@ -3493,7 +3567,7 @@ public class BackendController : ApiController
     {
         APIResult retValue = new APIResult();
         BackendDB backendDB = new BackendDB();
-        int DBreturn;
+        string DBreturn;
         //驗證權限
         RedisCache.BIDContext.BIDInfo AdminData;
 
@@ -3547,10 +3621,10 @@ public class BackendController : ApiController
         DBreturn = backendDB.CancelWithdrawalReviewToFail(fromBody.PaymentSerial, AdminData.AdminID);
 
 
-        if (DBreturn == 0)
+        if (DBreturn == "审核完成")
         {
             string IP = backendFunction.CheckIPInTW(CodingControl.GetUserIP());
-            int AdminOP = backendDB.InsertAdminOPLog(AdminData.forCompanyID, AdminData.AdminID, 1, "取消上游审核,单号:" + fromBody.PaymentSerial, IP);
+            int AdminOP = backendDB.InsertAdminOPLog(AdminData.forCompanyID, AdminData.AdminID, 1, "进行中转失败(提现),单号:" + fromBody.PaymentSerial, IP);
             string XForwardIP = CodingControl.GetXForwardedFor();
             CodingControl.WriteXFowardForIP(AdminOP);
 
@@ -3558,22 +3632,7 @@ public class BackendController : ApiController
         }
         else
         {
-            if (DBreturn == -1)
-            {
-                retValue.Message = "订单不存在";
-            }
-            else if (DBreturn == -2)
-            {
-                retValue.Message = "订单状态有误";
-            }
-            else if (DBreturn == -3)
-            {
-                retValue.Message = "锁定失败";
-            }
-            else if (DBreturn == -4)
-            {
-                retValue.Message = "此订单非专属供应商订单";
-            }
+            retValue.Message = DBreturn;
             retValue.ResultCode = APIResult.enumResult.Error;
         }
 

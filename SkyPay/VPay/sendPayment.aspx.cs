@@ -35,7 +35,10 @@ namespace SkyPay.Backend
                 ReturnURL = "http://vpay.dev4.mts.idv.tw" + "/api/CallBack/TestCompanyReturn?result=AAA";
                 URL = "http://vpay.dev4.mts.idv.tw" + "/api/Gate/RequirePaying";
                 CompanyKey = "81a5ad6e8048459590f47a13c4a48e09";
-
+                ///"http://cn.thespeedpay.com/Result.cshtml?
+                //ReturnURL = "http://cn.thespeedpay.com" + "/api/CallBack/TestCompanyReturn?result=AAA";
+                //URL = "http://cn.thespeedpay.com" + "/api/Gate/RequirePaying";
+                //CompanyKey = "e2c377e5a6f14019990cc21947e737f1";
             }
             else
             {
@@ -55,12 +58,12 @@ namespace SkyPay.Backend
             data.Add("OrderDate", OrderDate.ToString("yyyy-MM-dd HH:mm:ss"));
             data.Add("OrderAmount", OrderAmount.ToString("#.##"));
             data.Add("RevolveURL", ReturnURL);
-            data.Add("UserName", "");
+            data.Add("UserName", "测试");
             data.Add("Sign", Sign);
-
+            var jsondata= Newtonsoft.Json.JsonConvert.SerializeObject(data);
             RedirectAndPOST(this.Page, URL, data);
         }
-
+    
         public static void RedirectAndPOST(System.Web.UI.Page page, string destinationUrl,
                                        System.Collections.Specialized.NameValueCollection data)
         {

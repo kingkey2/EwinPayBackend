@@ -326,7 +326,7 @@ public class CodingControl
     {
         string json = GetWebTextContent("https://api.cloudflare.com/client/v4/ips");
         JObject IPListJO = JObject.Parse(json);
-
+        
         JObject IP_LIST = JObject.Parse(IPListJO["result"].ToString());
         string[] ipv4_cidrs = IP_LIST["ipv4_cidrs"].ToString().Replace("[", "").Replace("]", "").Replace("\r\n", "").Replace("\"", "").Replace(" ", "").Split(',');
 

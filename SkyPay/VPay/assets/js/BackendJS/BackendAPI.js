@@ -3193,6 +3193,32 @@ var BackendAPI = function (BID, APIUrl) {
         });
     };
 
+    this.cancelWithdrawalReviewToSuccess = function (transactionSerial, password, cb) {
+        var url = APIUrl + "/CancelWithdrawalReviewToSuccess";
+        var postData;
+
+        postData = {
+            BID: BID,
+            PaymentSerial: transactionSerial,
+            Password: password
+
+        };
+
+        callServiceByPost(url, postData, function (success, text) {
+            if (success == true) {
+                var obj = getJSON(text);
+
+                if (cb) {
+                    cb(true, obj);
+                }
+            } else {
+                if (cb) {
+                    cb(false, text);
+                }
+            }
+        });
+    };
+
     this.cancelWithdrawalReviewToFail = function (transactionSerial, password, cb) {
         var url = APIUrl + "/CancelWithdrawalReviewToFail";
         var postData;

@@ -928,7 +928,7 @@
     <div class="block-header paper-wrap">
         <div class="row">
             <div class="col col-lg-3 col-md-3 col-sm-3">
-                <h2>进行中转失败(提现)</h2>
+                <h2>进行中转成功(提现)</h2>
             </div>
             <div class="col col-lg-9 col-md-9 col-sm-9">
                 <div class="tips">
@@ -1143,7 +1143,7 @@
 
         //#endregion
         parent.wrapperFadeIn();
-        api.cancelWithdrawalReviewToFail(transactionSerial, password, function (success, obj) {
+        api.cancelWithdrawalReviewToSuccess(transactionSerial, password, function (success, obj) {
             if (success) {
                 if (obj.ResultCode == 0) {
                     parent.successAlert3("修改完成");

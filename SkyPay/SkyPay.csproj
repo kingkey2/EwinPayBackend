@@ -307,7 +307,6 @@
     <Content Include="Company\assets\js\tree.min.js" />
     <Content Include="Company\assets\js\wizard.min.js" />
     <Content Include="Company\assets\swf\flashExport.swf" />
-    <Content Include="Company\TEST.html" />
     <Content Include="document\api_data.js" />
     <Content Include="document\api_project.js" />
     <Content Include="document\bootstrap.min.css" />
@@ -903,11 +902,13 @@
     <Content Include="VPay\CompanyFrozenPointHistory.cshtml" />
     <Content Include="VPay\AgentCompanyServicePointLogByCompany.cshtml" />
     <Content Include="VPay\CancelWithdrawalReviewToFail.cshtml" />
+    <Content Include="VPay\CancelWithdrawalReviewToSuccess.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
     <None Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
+      <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <ItemGroup />
