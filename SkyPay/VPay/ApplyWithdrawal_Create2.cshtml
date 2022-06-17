@@ -968,7 +968,7 @@
 
 
         <!-- Basic Examples -->
-        <div class="row clearfix">
+        <div class="row clearfix" style="display:none;">
             <div class="col-lg-12">
                 <div class="card">
                     <div class="header">
@@ -1025,7 +1025,7 @@
                     </div>
                     <label style="margin-top:5px">通道名称 : <span id="WithdrawalCreateModal_ServiceTypeName"></span></label><br />
                     <label>通道可用额度 : <span style="color:red" id="WithdrawalCreateModal_ServiceTypePoint"></span> 限额: <span style="color:red" id="WithdrawalCreateModal_MaxLimit"></span> 手续费: <span style="color:red" id="WithdrawalCreateModal_Charge"></span></label><br />
-
+                    <label style="margin-top:5px">幣別 : <span id="WithdrawalCreateModal_CurrencyType"></span></label><br />
                     <input style="display:none" type="text" id="WithdrawalCreateModal_ServiceType" class="form-control">
                     <input style="display:none" type="text" id="WithdrawalCreateModal_WithdrawID" class="form-control">
                     <label for="WithdrawalCreateModal_BankName">银行名称 : </label>
@@ -1112,7 +1112,7 @@
     function getCompanyServicePointResult() {
 
         api.getCanUseCompanyServicePoint(function (success, obj) {
-
+        
             if (obj.ResultCode == 0) {
                 companyServicePointResult = obj.CompanyServicePoints;
 
@@ -1183,6 +1183,9 @@
                     "title": "支付方式", "data": "ServiceTypeName"
                 },
                 {
+                    "title": "幣別", "data": "CurrencyType"
+                },
+                {
                     "title": "通道代码", "data": "ServiceType"
                 },
                 {
@@ -1231,7 +1234,7 @@
                     "title": "操作", "data": "ServiceType",
                     "render": function (data, display, rowdata) {
                         //withdrawalCreate(serviceType, serviceTypeName, amount)
-                        return '<button data-servicetype="' + data + '" data-servicetype="' + rowdata.ServiceType + '" onclick="withdrawalCreate(this)">申请提现</button>';
+                        return '<button data-servicetype="' + data + '" data-servicetype="' + rowdata.ServiceType + '"  data-currencytype="' + rowdata.CurrencyType + '" onclick="withdrawalCreate(this)">申请提现</button>';
                     }
                 }
             ],
@@ -1254,14 +1257,14 @@
 
     function withdrawalCreate(btnobj) {
         var serviceType = $(btnobj).data('servicetype');
-        getCanUseCompanyServicePointByService(serviceType, function (data) {
+        var currencyType = $(btnobj).data('currencytype');
+        getCanUseCompanyServicePointByService(serviceType, currencyType, function (data) {
             withdrawalCreateModalAdd(data);
         });
     }
 
-    function getCanUseCompanyServicePointByService(serviceType,cb) {
-
-        api.getCanUseCompanyServicePointByService(serviceType,function (success, obj) {
+    function getCanUseCompanyServicePointByService(serviceType, currencyType, cb) {
+        api.getCanUseCompanyServicePointByService(serviceType,currencyType,function (success, obj) {
 
             if (obj.ResultCode == 0) {
                 cb(obj.CompanyServicePoint);
@@ -1438,12 +1441,15 @@
         var minlimit = companyServicePointData.MinLimit;
         var maxlimit = companyServicePointData.MaxLimit;
         var charge = companyServicePointData.Charge;
+        var currencytype = companyServicePointData.CurrencyType;
         modifyType = "add";
         //清空欄位
         $("#select_BankCard").val("0");
         $("#select_CurrencyType").val("0");
         $('#WithdrawalCreateModal_ServiceTypeName').text(serviceTypeName);
         $('#WithdrawalCreateModal_ServiceTypePoint').text(systempointvalue);
+        $('#WithdrawalCreateModal_CurrencyType').text(currencytype);
+        
         $('#WithdrawalCreateModal_ServiceType').val(servicetype);
         $('#WithdrawalCreateModal_MaxLimit').text(`${minlimit}~${maxlimit}`);
         $('#WithdrawalCreateModal_Charge').text(charge);
@@ -1488,43 +1494,43 @@
         $('#WithdrawalCreateModal .modal-content').css('margin-top', '250px');
     })
 
-    function modifyWithdrawal(rowdata) {
+    //function modifyWithdrawal(rowdata) {
 
-        getCanUseCompanyServicePointByService(rowdata.ServiceType, function (returnValue) {
+    //    getCanUseCompanyServicePointByService(rowdata.ServiceType, function (returnValue) {
 
-            modifyType = "update";
-            //清空欄位
-            $("#WithdrawalCreateModal_WithdrawID").val(rowdata.WithdrawID);
-            $('#WithdrawalCreateModal_ServiceTypeName').text(returnValue.ServiceTypeName);
-            $('#WithdrawalCreateModal_ServiceTypePoint').text(returnValue.CanUsePoint - returnValue.FrozenPoint + rowdata.Amount + rowdata.CollectCharge);
-            $('#WithdrawalCreateModal_MaxLimit').text(`${returnValue.MinLimit}~${returnValue.MaxLimit}`);
-            $('#WithdrawalCreateModal_Charge').text(returnValue.Charge);
-            $('#WithdrawalCreateModal_ServiceType').val(rowdata.ServiceType);
-            $("#select_BankCard").val("0");
-            $("#select_CurrencyType").val(rowdata.CurrencyType);
-            $('#select_BankCard').selectpicker('refresh');
-            $('#select_CurrencyType').selectpicker('refresh');
-            var options = $('#select_CurrencyType option:selected');
-            var pointvalue = options.attr('data-point');
-            $('#showPointValue').text("    (可提领金额 : " + toCurrency(returnValue.CanUsePoint - returnValue.FrozenPoint) + ")");
-            $('#WithdrawalCreateModal_BankName').val(rowdata.BankName);
-            $('#WithdrawalCreateModal_BankBranchName').val(rowdata.BankBranchName);
-            $('#WithdrawalCreateModal_BankCardName').val(rowdata.BankCardName);
-            $('#WithdrawalCreateModal_OwnProvince').val(rowdata.OwnProvince);
-            $('#WithdrawalCreateModal_OwnCity').val(rowdata.OwnCity);
-            $('#WithdrawalCreateModal_BankCard').val(rowdata.BankCard);
-            $('#WithdrawalCreateModal_Amount').val(toCurrency(rowdata.Amount));
-            //彈出視窗
-            $('#WithdrawalCreateModal').css('display', 'block');
-            $('#WithdrawalCreateModal').css('overflow-x', 'hidden');
-            $('#WithdrawalCreateModal').css('overflow-y', 'auto');
-            $('#WithdrawalCreateModal').css('opacity', 1);
-            $('#WithdrawalCreateModal .modal-content').css('margin-top', '250px');
+    //        modifyType = "update";
+    //        //清空欄位
+    //        $("#WithdrawalCreateModal_WithdrawID").val(rowdata.WithdrawID);
+    //        $('#WithdrawalCreateModal_ServiceTypeName').text(returnValue.ServiceTypeName);
+    //        $('#WithdrawalCreateModal_ServiceTypePoint').text(returnValue.CanUsePoint - returnValue.FrozenPoint + rowdata.Amount + rowdata.CollectCharge);
+    //        $('#WithdrawalCreateModal_MaxLimit').text(`${returnValue.MinLimit}~${returnValue.MaxLimit}`);
+    //        $('#WithdrawalCreateModal_Charge').text(returnValue.Charge);
+    //        $('#WithdrawalCreateModal_ServiceType').val(rowdata.ServiceType);
+    //        $("#select_BankCard").val("0");
+    //        $("#select_CurrencyType").val(rowdata.CurrencyType);
+    //        $('#select_BankCard').selectpicker('refresh');
+    //        $('#select_CurrencyType').selectpicker('refresh');
+    //        var options = $('#select_CurrencyType option:selected');
+    //        var pointvalue = options.attr('data-point');
+    //        $('#showPointValue').text("    (可提领金额 : " + toCurrency(returnValue.CanUsePoint - returnValue.FrozenPoint) + ")");
+    //        $('#WithdrawalCreateModal_BankName').val(rowdata.BankName);
+    //        $('#WithdrawalCreateModal_BankBranchName').val(rowdata.BankBranchName);
+    //        $('#WithdrawalCreateModal_BankCardName').val(rowdata.BankCardName);
+    //        $('#WithdrawalCreateModal_OwnProvince').val(rowdata.OwnProvince);
+    //        $('#WithdrawalCreateModal_OwnCity').val(rowdata.OwnCity);
+    //        $('#WithdrawalCreateModal_BankCard').val(rowdata.BankCard);
+    //        $('#WithdrawalCreateModal_Amount').val(toCurrency(rowdata.Amount));
+    //        //彈出視窗
+    //        $('#WithdrawalCreateModal').css('display', 'block');
+    //        $('#WithdrawalCreateModal').css('overflow-x', 'hidden');
+    //        $('#WithdrawalCreateModal').css('overflow-y', 'auto');
+    //        $('#WithdrawalCreateModal').css('opacity', 1);
+    //        $('#WithdrawalCreateModal .modal-content').css('margin-top', '250px');
 
-        });
+    //    });
 
 
-    }
+    //}
 
     function CreateWithdrawalStatusSelect() {
         //流程狀態，0=建立/1=進行中/2=成功/3=失敗/99=全部
@@ -1690,26 +1696,15 @@
         api.getCompanyPointTableResult(AdminObject.forCompanyID, function (success, obj) {
 
             if (obj.ResultCode == 0) {
-                var boolCNY = false;
                 $("#select_CurrencyType").children().remove();
                 //$("#select_CurrencyType").append('<option value="0"> -- 請選擇提領幣別 -- </option>');
                 $.each(obj.CompanyPoints, function (i, item) {
-                    if (obj.CompanyPoints[i].CurrencyType == "CNY") {
-                        boolCNY = true;
                         var canUsePoint = obj.CompanyPoints[i].PointValue - obj.CompanyPoints[i].LockPointValue - obj.CompanyPoints[i].FrozenPoint;
                         $("#select_CurrencyType").append('<option data-point=' + canUsePoint + ' value="' + obj.CompanyPoints[i].CurrencyType + '">' + obj.CompanyPoints[i].CurrencyType + '</option>');
                         $('#showPointValue').text("    (可提领金额 : " + toCurrency(canUsePoint) + ")");
-                    }
+                 
                 })
-                if (!boolCNY) {
-                    parent.errorAlertCallback("尚未拥有可提领钱包,请联系客服", function () {
-                        parent.ChangePage("Home");
-                        parent.CloseActivePage(window.frameElement.id.split('_')[1]);
-                    });
-
-                    return;
-                }
-
+             
                 $('#select_CurrencyType').selectpicker('refresh');
 
                 //綁定 change 事件
@@ -1827,10 +1822,9 @@
         api.getCompanyPointAndCompanyServicePointResult(function (s, o) {
             if (s) {
                 if (o.ResultCode == 0) {
-
                     parent.wrapperFadeOut();
                     tmpCompanyPoint = o.CompanyPoints.find(function (element) {
-                        return element.CurrencyType == 'CNY';
+                        return element.CurrencyType == $('#WithdrawalCreateModal_CurrencyType').text();
                     });
 
                     //总钱包检查
@@ -1852,52 +1846,53 @@
                     //通道余额检查
 
                     tmpServiceCompanyPoint = o.CompanyServicePoints.find(function (element) {
-                        return element.CurrencyType == 'CNY' && element.ServiceType == $('#WithdrawalCreateModal_ServiceType').val();
+                        return element.CurrencyType == $('#WithdrawalCreateModal_CurrencyType').text() && element.ServiceType == $('#WithdrawalCreateModal_ServiceType').val();
                     });
-;
+                    ;
 
-                        if (!tmpServiceCompanyPoint) {
-                            parent.warningAlert("取得支付通道额度错误,请联系系统商");
-                        }
+                    if (!tmpServiceCompanyPoint) {
+                        parent.warningAlert("取得支付通道额度错误,请联系系统商");
+                    }
 
-                        if (tmpServiceCompanyPoint.MinLimit == 0 || tmpServiceCompanyPoint.MaxLimit == 0) {
-                            parent.warningAlert("尚未设定提现限额,请联系系统商");
-                        }
+                    if (tmpServiceCompanyPoint.MinLimit == 0 || tmpServiceCompanyPoint.MaxLimit == 0) {
+                        parent.warningAlert("尚未设定提现限额,请联系系统商");
+                    }
 
 
-                        if (tmpServiceCompanyPoint.MinLimit > toNumber($('#WithdrawalCreateModal_Amount').val())) {
-                            parent.warningAlert("单笔最低金额 < " + toCurrency(tmpServiceCompanyPoint.MinLimit) + " : 单笔限额最低 " + toCurrency(tmpServiceCompanyPoint.MinLimit) + "，请重新输入");
-                            return;
-                        }
+                    if (tmpServiceCompanyPoint.MinLimit > toNumber($('#WithdrawalCreateModal_Amount').val())) {
+                        parent.warningAlert("单笔最低金额 < " + toCurrency(tmpServiceCompanyPoint.MinLimit) + " : 单笔限额最低 " + toCurrency(tmpServiceCompanyPoint.MinLimit) + "，请重新输入");
+                        return;
+                    }
 
-                        if (tmpServiceCompanyPoint.MaxLimit < toNumber($('#WithdrawalCreateModal_Amount').val())) {
-                            parent.warningAlert("单日单笔最高金额 > " + toCurrency(tmpServiceCompanyPoint.MaxLimit) + " : 单笔限额最高 " + toCurrency(tmpServiceCompanyPoint.MaxLimit) + "，请重新输入");
-                            return;
-                        }
+                    if (tmpServiceCompanyPoint.MaxLimit < toNumber($('#WithdrawalCreateModal_Amount').val())) {
+                        parent.warningAlert("单日单笔最高金额 > " + toCurrency(tmpServiceCompanyPoint.MaxLimit) + " : 单笔限额最高 " + toCurrency(tmpServiceCompanyPoint.MaxLimit) + "，请重新输入");
+                        return;
+                    }
 
-                        if (toNumber($('#WithdrawalCreateModal_Amount').val()) + tmpServiceCompanyPoint.Charge > parseFloat(tmpServiceCompanyPoint.CanUsePoint - tmpServiceCompanyPoint.FrozenPoint)) {
-                            parent.warningAlert("支付通道可用余额不足");
-                            return;
-                        }
+                    if (toNumber($('#WithdrawalCreateModal_Amount').val()) + tmpServiceCompanyPoint.Charge > parseFloat(tmpServiceCompanyPoint.CanUsePoint - tmpServiceCompanyPoint.FrozenPoint)) {
+                        parent.warningAlert("支付通道可用余额不足");
+                        return;
+                    }
+                    var array_data = [];
+                    var obj = new Object();
+                    obj.BankName = $('#WithdrawalCreateModal_BankName').val().trim();
+                    obj.BankBranchName = $('#WithdrawalCreateModal_BankBranchName').val().trim();
+                    obj.BankCardName = $('#WithdrawalCreateModal_BankCardName').val().trim();
+                    obj.OwnProvince = $('#WithdrawalCreateModal_OwnProvince').val().trim();
+                    obj.OwnCity = $('#WithdrawalCreateModal_OwnCity').val().trim();
+                    obj.BankCard = $('#WithdrawalCreateModal_BankCard').val().trim();
+                    obj.CurrencyType = $('#WithdrawalCreateModal_CurrencyType').text();
+                    obj.ServiceType = $("#WithdrawalCreateModal_ServiceType").val();
+                    obj.Amount = toNumber($('#WithdrawalCreateModal_Amount').val());
 
-                        var data = {
-                            "银行名称": $('#WithdrawalCreateModal_BankName').val().trim(),
-                            "支行名称": $('#WithdrawalCreateModal_BankBranchName').val().trim(),
-                            "持卡人姓名": $('#WithdrawalCreateModal_BankCardName').val().trim(),
-                            "省份": $('#WithdrawalCreateModal_OwnProvince').val().trim(),
-                            "城市": $('#WithdrawalCreateModal_OwnCity').val().trim(),
-                            "卡号": $('#WithdrawalCreateModal_BankCard').val().trim(),
-                            "币别": 'CNY',
-                            "金额": toNumber($('#WithdrawalCreateModal_Amount').val()),
-                            "通道代码": $("#WithdrawalCreateModal_ServiceType").val()
-                        };
+                    array_data.push(obj);
 
-                        if (modifyType == 'add') {
-                            tmpWithdrawalCreate(data, true);
-                        } else if (modifyType == 'update') {
-                            data["序号"] = $("#WithdrawalCreateModal_WithdrawID").val();
-                            tmpWithdrawalUpdate(data);
-                        }
+                    if (array_data.length == 0) {
+                        parent.warningAlert("没有要新增的资料");
+                        return;
+                    } else {
+                        confirmGoogleKey(array_data);
+                    }
                 } else {
                     switch (o.ResultCode) {
                         case 5:
@@ -1918,6 +1913,8 @@
                 return;
             }
         });
+
+       
 
     }
 
@@ -2161,9 +2158,8 @@
             if (s) {
                 if (o.ResultCode == 0) {
                     companyPointData = o.CompanyPoints;
-                    createWithdrawalTable();
+                    //createWithdrawalTable();
                     $.each(o.CompanyPoints, function (i, item) {
-
                         var canUsePoint = toCurrency(o.CompanyPoints[i].PointValue - o.CompanyPoints[i].LockPointValue - o.CompanyPoints[i].FrozenPoint);
                         strCompanyPointDetail +=
                             '<div class="card wallet" >' +
@@ -2743,46 +2739,49 @@
                     return false
                 }
                 $('.sweet-alert').find('.confirm').attr("disabled", true);
-
+                parent.wrapperFadeIn();
                 api.WithdrawalCreate(array_data, inputValue, function (s, o) {
-                            if (s) {
-                                if (o.ResultCode == 0) {
-                                    var failCount = array_data.length - o.Message;
+                    if (s) {
+                        parent.wrapperFadeOut();
+                        if (o.ResultCode == 0) {
+                            var failCount = array_data.length - o.Message;
 
-                                    parent.successAlert3("申请完成,成功笔数" + o.Message + ",失败笔数:" + failCount, function () {
+                            parent.successAlert3("申请完成,成功笔数" + o.Message + ",失败笔数:" + failCount, function () {
+                                parent.refreshPage(window.frameElement.id.split('_')[1]);
+                            });
+
+                        } else {
+                            switch (o.ResultCode) {
+
+                                case 7:
+                                    parent.errorAlert("您已断线请重新登入", "Login.cshtml");
+                                    break;
+                                case 13:
+                                    parent.warningAlert(o.Message);
+                                    break;
+                                case 14:
+                                    parent.warningAlert(o.Message);
+                                    break;
+                                case 15:
+                                    parent.warningAlert(o.Message);
+                                    break;
+                                default:
+                                    parent.successAlert3("目前没有可申请订单,5分钟内只能提交一张相同银行卡资讯订单", function () {
                                         parent.refreshPage(window.frameElement.id.split('_')[1]);
                                     });
 
-                                } else {
-                                    switch (o.ResultCode) {
-
-                                        case 7:
-                                            parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                                            break;
-                                        case 13:
-                                            parent.warningAlert(o.Message);
-                                            break;
-                                        case 14:
-                                            parent.warningAlert(o.Message);
-                                            break;
-                                        case 15:
-                                            parent.warningAlert(o.Message);
-                                            break;
-                                        default:
-                                            parent.successAlert3("目前没有可申请订单,5分钟内只能提交一张相同银行卡资讯订单" , function () {
-                                                parent.refreshPage(window.frameElement.id.split('_')[1]);
-                                            });
-
-                                            break;
-                                    }
-                                }
-                                $('.sweet-alert').find('.confirm').attr("disabled", false);
-
-                            } else {
-                                $('.sweet-alert').find('.confirm').attr("disabled", false);
-
+                                    break;
                             }
-                        });
+                        }
+                        $('.sweet-alert').find('.confirm').attr("disabled", false);
+
+                    } else {
+                        parent.wrapperFadeOut();
+                        $('.sweet-alert').find('.confirm').attr("disabled", false);
+
+                    }
+                });
+
 
             });
     }

@@ -203,7 +203,7 @@ public class DBModel {
         public string ProviderGroups { get; set; }
         public int CheckCompanyWithdrawType { get; set; }
         public string Description { get; set; }
-
+        public string CurrencyType { get; set; }
     }
 
     public class CompanyWithKey {

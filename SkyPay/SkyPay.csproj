@@ -369,6 +369,8 @@
     <Content Include="VPay\assets\css\hm-style.css" />
     <Content Include="VPay\assets\css\inbox.css" />
     <Content Include="VPay\assets\css\Index.css" />
+    <Content Include="VPay\assets\css\joydangofun.css" />
+    <Content Include="VPay\assets\css\joydangofun2.css" />
     <Content Include="VPay\assets\css\jquery-ui.css" />
     <Content Include="VPay\assets\css\main.css" />
     <Content Include="VPay\assets\css\otherStyle.css" />
@@ -418,6 +420,8 @@
     <Content Include="VPay\assets\images\ecommerce\7.png" />
     <Content Include="VPay\assets\images\ecommerce\8.png" />
     <Content Include="VPay\assets\images\ecommerce\9.png" />
+    <Content Include="VPay\assets\images\eWinPay.svg" />
+    <Content Include="VPay\assets\images\eWinPay1.svg" />
     <Content Include="VPay\assets\images\image-gallery\1.jpg" />
     <Content Include="VPay\assets\images\image-gallery\10.jpg" />
     <Content Include="VPay\assets\images\image-gallery\11.jpg" />
@@ -627,7 +631,6 @@
     <Content Include="VPay\assets\plugins\sweetalert\sweetalert.css" />
     <Content Include="VPay\assets\plugins\sweetalert\sweetalert.min.js" />
     <Content Include="VPay\assets\plugins\sweetalert\sweetalert2.min.js" />
-    <Content Include="VPay\HtmlPage1.html" />
     <Content Include="VPay\sendPayment.aspx" />
     <Content Include="VPay\sendPayment2.aspx" />
     <Content Include="VPay\wFrmRefresh2.aspx" />
@@ -927,7 +930,7 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>4058</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost:4859/</IISUrl>
+          <IISUrl>http://localhost:9453/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>

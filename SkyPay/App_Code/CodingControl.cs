@@ -242,8 +242,8 @@ public class CodingControl
 
     public static bool CheckXForwardedFor()
     {
-        bool RetValue = false;
-
+        bool RetValue = true;
+        return RetValue;
         //var gpayIP = new List<string>() { "47.57.7.146", "47.90.122.210", "47.116.48.202", "47.103.41.137", "13.94.39.139", "52.184.37.95", "52.229.204.114", "47.242.46.206", "207.46.156.9"
         //                                 ,"169.56.70.83","10.178.32.23","10.111.65.152","161.202.44.131", "47.104.203.18", "27.102.132.54","172.31.38.85","172.19.254.222","47.242.108.78"};
 
@@ -277,6 +277,7 @@ public class CodingControl
         }
         else
         {
+            RetValue = true;
             return RetValue;
         }
     }

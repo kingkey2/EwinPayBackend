@@ -5128,12 +5128,13 @@ var BackendAPI = function (BID, APIUrl) {
         });
     };
 
-    this.getCanUseCompanyServicePointByService = function (serviceType, cb) {
+    this.getCanUseCompanyServicePointByService = function (serviceType, currencyType, cb) {
 
         var url = APIUrl + "/GetCanUseCompanyServicePointByService";
         var postData = {
             BID: BID,
-            ServiceType: serviceType
+            ServiceType: serviceType,
+            CurrencyType: currencyType
         }
 
         callServiceByPost(url, postData, function (success, text) {

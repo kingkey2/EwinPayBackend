@@ -1123,8 +1123,9 @@
         $("#select_ServiceType").append('<option value="0">' + "全部" + '</option>');
         if (servicetypedata) {
             $.each(servicetypedata, function (i, item) {
-
-                $("#select_ServiceType").append('<option value="' + servicetypedata[i].ServiceType + '">' + servicetypedata[i].ServiceTypeName + '</option>');
+                if (servicetypedata[i].ServiceType == "JOOB01") {
+                    $("#select_ServiceType").append('<option value="' + servicetypedata[i].ServiceType + '">' + servicetypedata[i].ServiceTypeName + '</option>');
+                }
             })   
         }
 
@@ -1313,7 +1314,9 @@
                     $(".select_serviceType").empty();
                     $(".select_serviceType").append('<option value="-1">' + "尚未选择" + '</option>');
                     for (var i = 0; i < serviceTypeData.length; i++) {
-                        $(".select_serviceType").append('<option value="' + serviceTypeData[i].ServiceType + '">' + serviceTypeData[i].ServiceTypeName + '</option>');
+                        if (serviceTypeData[i].ServiceType == "JOOB01") {
+                            $(".select_serviceType").append('<option value="' + serviceTypeData[i].ServiceType + '">' + serviceTypeData[i].ServiceTypeName + '</option>');
+                        }
                     }
                 }
 

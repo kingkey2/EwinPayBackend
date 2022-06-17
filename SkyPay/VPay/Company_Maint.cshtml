@@ -1999,11 +1999,11 @@
 
                         $.each(o.CompanyPoints, function (i, item) {
 
-                            if (o.CompanyPoints[i].CurrencyType=='CNY') {
+                            //if (o.CompanyPoints[i].CurrencyType=='CNY') {
                                 var canUsePoint = o.CompanyPoints[i].PointValue - o.CompanyPoints[i].LockPointValue - o.CompanyPoints[i].FrozenPoint;
 
                                 strCompanyPointDetail += '<strong style="font-size:18px" class="text-muted">帐户金额： ' + toCurrency(o.CompanyPoints[i].PointValue) + ', 可用金额 : ' + toCurrency(canUsePoint) + ', 不可用金额 : ' + toCurrency(o.CompanyPoints[i].LockPointValue) + ', </br>冻结金额 : ' + toCurrency(o.CompanyPoints[i].FrozenPoint) + '代付余额 : ' + toCurrency(o.CompanyPoints[i].AutoWithdrawAmount) + '</strong > ';
-                            }
+                            //}
                         })
 
                         $("#divCompanyPointDetail").html(strCompanyPointDetail);

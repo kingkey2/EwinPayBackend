@@ -2617,7 +2617,7 @@
         $('#modal_ServiceTypeName').text('');
         $('#modal_ServiceType').text('');
 
-        getProviderCodeResult2(data.forCompanyID, data.ServiceType);
+        getProviderCodeResult2(data.forCompanyID, data.ServiceType, data.CurrencyType);
 
         $('#modal_CompanyName').text(data.CompanyName);
         $('#modal_WithdrawSerial').text(data.WithdrawSerial);
@@ -2893,7 +2893,7 @@
         $('#WithdrawalModal').modal('hide');
     }
 
-    function getProviderCodeResult2(companyid, serviceType) {
+    function getProviderCodeResult2(companyid, serviceType,currencyType) {
         $('#modal_select_providercode').find('option').remove();
         $('#modal_select_companyservicepoint').find('option').remove();
         api.getAllProviderPoint(companyid, function (success, obj) {
@@ -2910,7 +2910,7 @@
                 });
 
                 createProviderSelect2(providerDataSort);
-                checkCompanyServiceExist(obj.CompanyServicePointResults, serviceType);
+                checkCompanyServiceExist(obj.CompanyServicePointResults, serviceType, currencyType);
                 parent.wrapperFadeOut();
             } else {
                 var message = ""
@@ -2953,10 +2953,10 @@
         });
     }
 
-    function checkCompanyServiceExist(data, selectedServiceType) {
-        debugger;
+    function checkCompanyServiceExist(data, selectedServiceType,currencyType) {
+     
         data = data.filter(function (element) {
-            return element.State == 0 && element.CurrencyType == 'CNY';
+            return element.State == 0 && element.CurrencyType == currencyType;
         });
 
         if (data) {

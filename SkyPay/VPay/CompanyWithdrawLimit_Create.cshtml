@@ -983,7 +983,7 @@
 <script>
     var EditData = parent.CheckTempDataType("CompanyWithdrawLimitCreate");
     var companyid = EditData.data.CompanyID;
-
+    var companyServiceData;
     $(document).ready(function () {
         pageLoad();
     });
@@ -1094,7 +1094,7 @@ if ('@CheckLoginPermission' == 'false') {
         parent.ChangePage(EditData.data.backID);
         parent.CloseActivePage(window.frameElement.name);
     })
-
+  
     function getCurrencyType() {
         api.getCompanyPointTableResult(companyid, function (s, o) {
             if (s) {
@@ -1106,6 +1106,7 @@ if ('@CheckLoginPermission' == 'false') {
                     })
 
                     $('#select_CurrencyType').selectpicker('refresh');
+
                     getCompanyServiceTableResult();
                 } else {
                     switch (o.ResultCode) {
@@ -1131,13 +1132,31 @@ if ('@CheckLoginPermission' == 'false') {
 
     }
 
+    $('#select_CurrencyType').change(function () {
+        if (companyServiceData) {
+
+            var data = companyServiceData.filter(function (v) {
+                return v.CurrencyType == $('#select_CurrencyType').val();
+            });
+            $("#select_ServiceType").children().remove();
+            $("#select_ServiceType").append('<option value="0"> -- 请选择扣款通道 -- </option>');
+            $.each(data, function (i, item) {
+                $("#select_ServiceType").append('<option value="' + data[i].ServiceType + '">' + data[i].ServiceTypeName + '</option>');
+            });
+ 
+            $('#select_ServiceType').selectpicker('refresh');
+        }
+    })
+
     function getCompanyServiceTableResult() {
-        api.getCompanyServiceTableResult(companyid, function (success, obj) {
+        api.getCompanyServiceTableResult(companyid ,function (success, obj) {
 
             if (obj.ResultCode == 0) {
+                companyServiceData = obj.CompanyServiceResults;
                 var data = obj.CompanyServiceResults.filter(function (v) {
                     return v.CurrencyType == $('#select_CurrencyType').val();
-                })
+                });
+
                 $("#select_ServiceType").append('<option value="0"> -- 请选择扣款通道 -- </option>');
                 $.each(data, function (i, item) {
                     $("#select_ServiceType").append('<option value="' + data[i].ServiceType + '">' + data[i].ServiceTypeName + '</option>');
@@ -1163,6 +1182,8 @@ if ('@CheckLoginPermission' == 'false') {
                         break;
                 }
             }
+
+          
 
             parent.wrapperFadeOut();
         });

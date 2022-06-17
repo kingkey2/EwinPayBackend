@@ -755,7 +755,6 @@ public class BackendDB
     #endregion
 
     #region ServiceType
-
     public string GetServiceTypeNameByServiceType(string ServiceType)
     {
         string returnValue = null;
@@ -767,6 +766,23 @@ public class BackendDB
         DBCmd.CommandText = SS;
         DBCmd.CommandType = System.Data.CommandType.Text;
         DBCmd.Parameters.Add("@ServiceType", SqlDbType.VarChar).Value = ServiceType;
+        returnValue = DBAccess.GetDBValue(DBConnStr, DBCmd).ToString();
+
+        return returnValue;
+    }
+
+    public string GetServiceTypeNameByServiceType(string ServiceType,string CurrencyType)
+    {
+        string returnValue = null;
+        string SS;
+        SqlCommand DBCmd = null;
+
+        SS = "SELECT ServiceTypeName FROM ServiceType WITH (NOLOCK) WHERE ServiceType =@ServiceType And CurrencyType=@CurrencyType";
+        DBCmd = new SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = System.Data.CommandType.Text;
+        DBCmd.Parameters.Add("@ServiceType", SqlDbType.VarChar).Value = ServiceType;
+        DBCmd.Parameters.Add("@CurrencyType", SqlDbType.VarChar).Value = CurrencyType;
         returnValue = DBAccess.GetDBValue(DBConnStr, DBCmd).ToString();
 
         return returnValue;
@@ -6228,9 +6244,9 @@ public class BackendDB
              " WHERE W.Status <> 2 AND W.Status <> 3 AND W.Status <> 8  AND W.Status <> 90 AND W.Status <> 91 " +
              " AND W.ProviderCode = PP.ProviderCode AND W.CurrencyType = PP.CurrencyType) AS WithdrawPoint " +
              " FROM ProviderCode PC " +
-             " LEFT JOIN ProviderPoint PP ON PC.ProviderCode = PP.ProviderCode And PP.CurrencyType = 'CNY' " +
+             " LEFT JOIN ProviderPoint PP ON PC.ProviderCode = PP.ProviderCode" +
              " LEFT JOIN(SELECT forProviderCode, SUM(ISNULL(ProviderFrozenAmount, 0)) ProviderFrozenAmount FROM FrozenPoint FP " +
-             " WHERE FP.CurrencyType = 'CNY' AND FP.Status = 0 " +
+             " WHERE  FP.Status = 0 " +
              " GROUP BY forProviderCode) FP ON FP.forProviderCode = PC.ProviderCode " +
              " LEFT JOIN (SELECT ProviderCode,SUM(ISNULL(Amount, 0)) WProfit FROM ProviderManualHistory FMH " +
              " WHERE FMH.Type = 2 " +
@@ -6265,7 +6281,7 @@ public class BackendDB
 
         SS = " SELECT SystemPointValue " +
              " FROM ProviderPoint " +
-             " WHERE CurrencyType = 'CNY' AND ProviderCode=@ProviderCode ";
+             " WHERE ProviderCode=@ProviderCode ";
 
         DBCmd = new SqlCommand();
         DBCmd.CommandText = SS;
@@ -6369,16 +6385,15 @@ public class BackendDB
              " ServiceTypeName,WithdrawLimit.MaxLimit,WithdrawLimit.MinLimit,WithdrawLimit.Charge, " +
              " CSP.*" +
              " FROM CompanyServicePoint AS CSP" +
-             " LEFT JOIN ServiceType ON CSP.ServiceType=ServiceType.ServiceType" +
+             " LEFT JOIN ServiceType ON CSP.ServiceType=ServiceType.ServiceType And CSP.CurrencyType=ServiceType.CurrencyType " +
              " LEFT JOIN WithdrawLimit ON WithdrawLimit.ServiceType=CSP.ServiceType And WithdrawLimit.CurrencyType= CSP.CurrencyType And WithdrawLimit.WithdrawLimitType=1 And CSP.CompanyID=WithdrawLimit.forCompanyID" +
-             " WHERE CSP.CompanyID = @CompanyID " +
-             " AND CSP.CurrencyType = @CurrencyType ";
+             " WHERE CSP.CompanyID = @CompanyID ";
 
         DBCmd = new System.Data.SqlClient.SqlCommand();
         DBCmd.CommandText = SS;
         DBCmd.CommandType = System.Data.CommandType.Text;
         DBCmd.Parameters.Add("@CompanyID", System.Data.SqlDbType.Int).Value = CompanyID;
-        DBCmd.Parameters.Add("@CurrencyType", System.Data.SqlDbType.VarChar).Value = "CNY";
+
         DT = DBAccess.GetDB(Pay.DBConnStr, DBCmd);
 
         if (DT != null)
@@ -6392,7 +6407,7 @@ public class BackendDB
         return returnValue;
     }
 
-    public DBViewModel.CompanyServicePointVM GetCanUseCompanyServicePointByService(int CompanyID, string ServiceType)
+    public DBViewModel.CompanyServicePointVM GetCanUseCompanyServicePointByService(int CompanyID, string ServiceType,string CurrencyType)
     {
         string SS;
         System.Data.SqlClient.SqlCommand DBCmd = null;
@@ -6425,7 +6440,7 @@ public class BackendDB
         DBCmd.CommandText = SS;
         DBCmd.CommandType = System.Data.CommandType.Text;
         DBCmd.Parameters.Add("@CompanyID", System.Data.SqlDbType.Int).Value = CompanyID;
-        DBCmd.Parameters.Add("@CurrencyType", System.Data.SqlDbType.VarChar).Value = "CNY";
+        DBCmd.Parameters.Add("@CurrencyType", System.Data.SqlDbType.VarChar).Value = CurrencyType;
         DBCmd.Parameters.Add("@ServiceType", System.Data.SqlDbType.VarChar).Value = ServiceType;
         DT = DBAccess.GetDB(Pay.DBConnStr, DBCmd);
 
@@ -6440,7 +6455,7 @@ public class BackendDB
         return returnValue;
     }
 
-    public List<DBViewModel.CompanyServicePointVM> GetCompanyServicePointByServiceType(int CompanyID, string ServiceType)
+    public List<DBViewModel.CompanyServicePointVM> GetCompanyServicePointByServiceType(int CompanyID, string ServiceType,string CurrencyType)
     {
         List<DBViewModel.CompanyServicePointVM> returnValue = null;
         string SS;
@@ -6458,7 +6473,7 @@ public class BackendDB
         DBCmd.CommandText = SS;
         DBCmd.CommandType = System.Data.CommandType.Text;
         DBCmd.Parameters.Add("@CompanyID", SqlDbType.Int).Value = CompanyID;
-        DBCmd.Parameters.Add("@CurrencyType", SqlDbType.VarChar).Value = "CNY";
+        DBCmd.Parameters.Add("@CurrencyType", SqlDbType.VarChar).Value = CurrencyType;
         DBCmd.Parameters.Add("@ServiceType", SqlDbType.VarChar).Value = ServiceType;
         DT = DBAccess.GetDB(DBConnStr, DBCmd);
 
@@ -6632,20 +6647,31 @@ public class BackendDB
         string SS;
         SqlCommand DBCmd = null;
         DataTable DT;
-
-        SS = " SELECT CompanyServicePoint.*,CompanyService.State,ServiceTypeName,WithdrawLimit.MaxLimit,WithdrawLimit.MinLimit,WithdrawLimit.Charge" +
-             " FROM  CompanyServicePoint" +
-             " LEFT JOIN ServiceType ON CompanyServicePoint.ServiceType=ServiceType.ServiceType" +
-             " LEFT JOIN CompanyService ON CompanyService.ServiceType=CompanyServicePoint.ServiceType And CompanyService.CurrencyType=CompanyServicePoint.CurrencyType And CompanyService.forCompanyID=CompanyServicePoint.CompanyID " +
-             " LEFT JOIN WithdrawLimit ON WithdrawLimit.ServiceType=CompanyServicePoint.ServiceType And WithdrawLimit.CurrencyType=@CurrencyType And WithdrawLimit.WithdrawLimitType=1 And WithdrawLimit.forCompanyID=@CompanyID" +
-             " WHERE CompanyServicePoint.CompanyID = @CompanyID" +
-             " AND CompanyServicePoint.CurrencyType = @CurrencyType";
+        if (string.IsNullOrEmpty(CurrencyType))
+        {
+            SS = " SELECT CompanyServicePoint.*,CompanyService.State,ServiceTypeName,WithdrawLimit.MaxLimit,WithdrawLimit.MinLimit,WithdrawLimit.Charge" +
+            " FROM  CompanyServicePoint" +
+            " LEFT JOIN ServiceType ON CompanyServicePoint.ServiceType=ServiceType.ServiceType" +
+            " LEFT JOIN CompanyService ON CompanyService.ServiceType=CompanyServicePoint.ServiceType And CompanyService.CurrencyType=CompanyServicePoint.CurrencyType And CompanyService.forCompanyID=CompanyServicePoint.CompanyID " +
+            " LEFT JOIN WithdrawLimit ON WithdrawLimit.ServiceType=CompanyServicePoint.ServiceType And WithdrawLimit.CurrencyType=@CurrencyType And WithdrawLimit.WithdrawLimitType=1 And WithdrawLimit.forCompanyID=@CompanyID" +
+            " WHERE CompanyServicePoint.CompanyID = @CompanyID";
+        }
+        else {
+            SS = " SELECT CompanyServicePoint.*,CompanyService.State,ServiceTypeName,WithdrawLimit.MaxLimit,WithdrawLimit.MinLimit,WithdrawLimit.Charge" +
+                " FROM  CompanyServicePoint" +
+                " LEFT JOIN ServiceType ON CompanyServicePoint.ServiceType=ServiceType.ServiceType" +
+                " LEFT JOIN CompanyService ON CompanyService.ServiceType=CompanyServicePoint.ServiceType And CompanyService.CurrencyType=CompanyServicePoint.CurrencyType And CompanyService.forCompanyID=CompanyServicePoint.CompanyID " +
+                " LEFT JOIN WithdrawLimit ON WithdrawLimit.ServiceType=CompanyServicePoint.ServiceType And WithdrawLimit.CurrencyType=@CurrencyType And WithdrawLimit.WithdrawLimitType=1 And WithdrawLimit.forCompanyID=@CompanyID" +
+                " WHERE CompanyServicePoint.CompanyID = @CompanyID" +
+                " AND CompanyServicePoint.CurrencyType = @CurrencyType";
+        }
+       
 
         DBCmd = new SqlCommand();
         DBCmd.CommandText = SS;
         DBCmd.CommandType = System.Data.CommandType.Text;
         DBCmd.Parameters.Add("@CompanyID", SqlDbType.Int).Value = CompanyID;
-        DBCmd.Parameters.Add("@CurrencyType", SqlDbType.VarChar).Value = "CNY";
+        DBCmd.Parameters.Add("@CurrencyType", SqlDbType.VarChar).Value = CurrencyType;
         DT = DBAccess.GetDB(DBConnStr, DBCmd);
 
 
@@ -7330,7 +7356,7 @@ public class BackendDB
 
                 //DBCmd.Parameters.Add("@CollectCharge", SqlDbType.Decimal).Value = Charge;
 
-                DBCmd.Parameters.Add("@Status", SqlDbType.Int).Value = 8;
+                DBCmd.Parameters.Add("@Status", SqlDbType.Int).Value = 0;
 
                 int.TryParse(DBAccess.GetDBValue(DBConnStr, DBCmd).ToString(), out WithdrawalID);
                 if (WithdrawalID != 0)
@@ -7648,28 +7674,7 @@ public class BackendDB
 
         CompanyCode = GetCompanyCodeByCompanyID(CompnayID);
         CompanyDescription = GetCompanyDescriptionByCompanyID(CompnayID);
-        //LPay2
-        if (AutoWithdrawalProviderCode == "LPay2")
-        {
-            ProxyProviderModel = GetProxyProviderResult(AutoWithdrawalProviderCode);
-            //0=上游手續費，API/1=提現手續費/2=代付手續費(下游)
-            var withdrawLimitResult = GetWithdrawLimitResultByCurrencyType("CNY", 0, "LPay2", 0);
-            if (withdrawLimitResult != null)
-            {
-                CostCharge = withdrawLimitResult.Charge;
-            }
-        }
-
-        if (AutoWithdrawalProviderCode == "YE888")
-        {
-            ProxyProviderModel = GetProxyProviderResult(AutoWithdrawalProviderCode);
-            //0=上游手續費，API/1=提現手續費/2=代付手續費(下游)
-            var withdrawLimitResult = GetWithdrawLimitResultByCurrencyType("CNY", 0, "YE888", 0);
-            if (withdrawLimitResult != null)
-            {
-                CostCharge = withdrawLimitResult.Charge;
-            }
-        }
+      
 
         var DistinctWithdrawalData = fromBody.WithdrawalData
     .GroupBy(m => new { m.BankCard, m.BankCardName, m.BankName })
@@ -7829,6 +7834,8 @@ public class BackendDB
 
         return returnValue;
     }
+
+     
 
     public int CheckWitdrawal(int WithdrawID, string BankCard, string BankCardName, string BankName)
     {
@@ -8828,7 +8835,7 @@ public class BackendDB
                 return returnValue;
             }
             //检查商户支付通道额度
-            var ServicePointModel = GetCompanyServicePointByServiceType(WithdrawData.forCompanyID, ServiceType);
+            var ServicePointModel = GetCompanyServicePointByServiceType(WithdrawData.forCompanyID, ServiceType, WithdrawData.CurrencyType);
             if (ServicePointModel == null)
             {
                 returnValue.WithdrawalData = WithdrawData;
@@ -9076,304 +9083,7 @@ public class BackendDB
 
     }
 
-    public DBViewModel.UpdateWithdrawalResult UpdateWithdrawalResultByWithdrawSerialForAdjustProfit(int Status, string WithdrawSerial, int AdminID, string ProviderCode, int WithdrawType, string ServiceType, int GroupID)
-    {
-        DBViewModel.UpdateWithdrawalResult returnValue = new DBViewModel.UpdateWithdrawalResult();
-        String SS = String.Empty;
-        SqlCommand DBCmd;
-        int DBreturn = -6;//其他錯誤
-        DBModel.Withdrawal WithdrawData = GetWithdrawalByWithdrawSerial(WithdrawSerial);
-        decimal Charge;
-
-        if (WithdrawData == null)
-        {
-            returnValue.WithdrawalData = WithdrawData;
-            returnValue.Message = "订单不存在";
-            returnValue.Status = -1;
-            return returnValue;
-        }
-
-        if (WithdrawData.Status == 1)
-        {
-            returnValue.WithdrawalData = GetWithdrawalByWithdrawSerialByAdmin(WithdrawSerial);
-            returnValue.Message = "订单审核中";
-            returnValue.Status = -2;
-            return returnValue;
-        }
-
-        if (Status != 3)
-        {
-            //取得供應商代付手續費
-            DBModel.WithdrawLimit _WithdrawLimit = new DBModel.WithdrawLimit()
-            {
-                CompanyID = WithdrawData.forCompanyID,
-                WithdrawLimitType = 0,
-                ProviderCode = ProviderCode
-            };
-
-            //0=上游手續費，API/1=提現手續費/2=代付手續費(下游)
-            var withdrawLimitResult = GetWithdrawLimitResultByCurrencyType(WithdrawData.CurrencyType, 0, ProviderCode, WithdrawData.forCompanyID);
-            if (withdrawLimitResult == null)
-            {
-                returnValue.WithdrawalData = WithdrawData;
-                returnValue.Message = "尚未定供应商手续费";
-                returnValue.Status = -1;
-                return returnValue;
-            }
-            Charge = withdrawLimitResult.Charge;
-
-            //检查供应商通道额度
-            var ProviderPointModel = GetProviderPointByProviderCode(ProviderCode);
-            if (ProviderPointModel == null)
-            {
-                returnValue.WithdrawalData = WithdrawData;
-                returnValue.Message = "供应商通道额度错误";
-                returnValue.Status = -1;
-                return returnValue;
-            }
-
-            if (WithdrawData.Amount + Charge > ProviderPointModel.SystemPointValue)
-            {
-                returnValue.WithdrawalData = WithdrawData;
-                returnValue.Message = "供应商通道额度不足";
-                returnValue.Status = -1;
-                return returnValue;
-            }
-            //检查商户支付通道额度
-            var ServicePointModel = GetCompanyServicePointByServiceType(WithdrawData.forCompanyID, ServiceType);
-            if (ServicePointModel == null)
-            {
-                returnValue.WithdrawalData = WithdrawData;
-                returnValue.Message = "商户支付通道额度错误";
-                returnValue.Status = -1;
-                return returnValue;
-            }
-
-            if (ServicePointModel.First().MaxLimit == 0 || ServicePointModel.First().MinLimit == 0)
-            {
-                returnValue.WithdrawalData = WithdrawData;
-                returnValue.Message = "尚未设定商户支付通道限额";
-                returnValue.Status = -1;
-                return returnValue;
-            }
-
-            WithdrawData.CollectCharge = ServicePointModel.First().Charge;
-
-            if (WithdrawData.Amount + ServicePointModel.First().Charge > ServicePointModel.First().SystemPointValue)
-            {
-                if (WithdrawData.FloatType == 1)
-                {
-                    int intModifyCompanyServicePointResult = ModifyCompanyServicePointByWithdrawal(WithdrawData.WithdrawID, ServiceType, WithdrawData.forCompanyID, WithdrawData.CurrencyType, WithdrawData.Amount + ServicePointModel.First().Charge);
-                    string tmpReturnStr = "";
-                    if (intModifyCompanyServicePointResult != 0)
-                    {
-                        switch (intModifyCompanyServicePointResult)
-                        {
-                            case -1:
-                                tmpReturnStr = "支付通道扣点失败";
-                                break;
-                            case -2:
-                                tmpReturnStr = "商户支付通道额度不足";
-                                break;
-                            case -3:
-                                tmpReturnStr = "商户钱包额度不足";
-                                break;
-                            case -4:
-                                tmpReturnStr = "商户钱包不存在";
-                                break;
-                            case -5:
-                                tmpReturnStr = "锁定失败";
-                                break;
-                            case -6:
-                                tmpReturnStr = "支付通道加点失败";
-                                break;
-                            default:
-                                break;
-                        }
-                        returnValue.WithdrawalData = WithdrawData;
-                        returnValue.Message = "支付通道调整额度失败,原因:" + tmpReturnStr;
-                        returnValue.Status = -1;
-                        return returnValue;
-                    }
-
-                }
-                else
-                {
-                    returnValue.WithdrawalData = WithdrawData;
-                    returnValue.Message = "商户支付通道额度不足";
-                    returnValue.Status = -1;
-                    return returnValue;
-                }
-
-            }
-
-            //修改訂單狀態為審核中
-            SS = " UPDATE Withdrawal  Set ConfirmByAdminID=@AdminID,ProviderCode=@ProviderCode,WithdrawType=@WithdrawType,Status=@Status,CollectCharge=@CollectCharge,CostCharge=@CostCharge,ServiceType=@ServiceType " +
-                 " WHERE WithdrawSerial=@WithdrawSerial";
-
-            DBCmd = new System.Data.SqlClient.SqlCommand();
-            DBCmd.CommandText = SS;
-            DBCmd.CommandType = CommandType.Text;
-            DBCmd.Parameters.Add("@AdminID", SqlDbType.Int).Value = AdminID;
-            DBCmd.Parameters.Add("@ProviderCode", SqlDbType.VarChar).Value = ProviderCode;
-            DBCmd.Parameters.Add("@ServiceType", SqlDbType.VarChar).Value = ServiceType;
-            DBCmd.Parameters.Add("@WithdrawType", SqlDbType.Int).Value = WithdrawType;
-            DBCmd.Parameters.Add("@CostCharge", SqlDbType.Int).Value = Charge;
-            DBCmd.Parameters.Add("@CollectCharge", SqlDbType.Int).Value = WithdrawData.CollectCharge;
-            DBCmd.Parameters.Add("@Status", SqlDbType.Int).Value = 1;
-            DBCmd.Parameters.Add("@WithdrawSerial", SqlDbType.VarChar).Value = WithdrawSerial;
-            DBreturn = DBAccess.ExecuteDB(DBConnStr, DBCmd);
-
-            if (DBreturn == 0)
-            {
-                returnValue.WithdrawalData = GetWithdrawalByWithdrawSerialByAdmin(WithdrawSerial);
-                returnValue.Message = "修改订单状态错误";
-                returnValue.Status = -3;
-                return returnValue;
-            }
-
-            WithdrawData.ProviderCode = ProviderCode;
-        }
-
-        //更改為失敗單
-        if (Status == 3)
-        {
-            SS = " UPDATE Withdrawal  SET Status=@Status,ConfirmByAdminID=@AdminID,FinishDate=@FinishDate" +
-                " WHERE WithdrawSerial=@WithdrawSerial";
-
-            DBCmd = new System.Data.SqlClient.SqlCommand();
-            DBCmd.CommandText = SS;
-            DBCmd.CommandType = CommandType.Text;
-            DBCmd.Parameters.Add("@Status", SqlDbType.Int).Value = Status;
-            DBCmd.Parameters.Add("@AdminID", SqlDbType.Int).Value = AdminID;
-            DBCmd.Parameters.Add("@WithdrawSerial", SqlDbType.VarChar).Value = WithdrawSerial;
-            DBCmd.Parameters.Add("@FinishDate", SqlDbType.DateTime).Value = DateTime.Now;
-            returnValue.Message = "审核完成";
-            DBAccess.ExecuteDB(DBConnStr, DBCmd);
-            returnValue.WithdrawalData = GetWithdrawalByWithdrawSerialByAdmin(WithdrawSerial);
-
-            //如果不是后台申请提现,发送API回调
-            if (WithdrawData.FloatType != 0)
-            {
-
-                if (!(WithdrawData.DownUrl == "https://www.baidu.com/" || WithdrawData.DownUrl == "http://baidu.com"))
-                {
-                    ReSendWithdrawal(WithdrawData.WithdrawSerial, false);
-                }
-            }
-
-            return returnValue;
-        }
-        else
-        {
-            if (WithdrawType == 0)
-            {
-                returnValue.Message = "审核完成";
-                returnValue.WithdrawalData = GetWithdrawalByWithdrawSerialByAdmin(WithdrawSerial);
-
-                var ProviderModel = GetProviderCodeResult(returnValue.WithdrawalData.ProviderCode);
-                if (ProviderModel != null)
-                {
-                    if (ProviderModel.First().CollectType == 1)
-                    {
-                        if (GetProxyProviderOrderByOrderSerial(WithdrawSerial, 1) == null)
-                        {
-                            InsertProxyProviderOrderWithDeductionProfit(WithdrawSerial, 1, 0, 0, GroupID);
-                        }
-                    }
-                }
-                return returnValue;
-            }
-            else if (WithdrawType == 1)
-            { //代付
-
-                bool autoPay = false;
-                var ProviderData = GetProviderCodeResult(WithdrawData.ProviderCode);
-                if (ProviderData != null)
-                {
-                    var ProviderAPIType = ProviderData.First().ProviderAPIType;
-
-                    if ((ProviderAPIType & 2) == 2)
-                    {
-                        autoPay = true;
-                    }
-                }
-                if (autoPay)
-                {
-                    //api自動代付
-                    string GPayApiUrl = System.Configuration.ConfigurationManager.AppSettings["GPayApiUrl"];
-                    string GPayBackendKey = System.Configuration.ConfigurationManager.AppSettings["GPayBackendKey"];
-                    #region SignCheck
-                    string strSign;
-                    string sign;
-                    APIResult returnRequireWithdrawal = null;
-
-                    strSign = string.Format("WithdrawSerial={0}&GPayBackendKey={1}"
-                    , WithdrawData.WithdrawSerial
-                    , GPayBackendKey
-                    );
-
-                    sign = CodingControl.GetSHA256(strSign);
-
-                    #endregion
-                    var _RequireWithdrawalSet = new DBModel.RequireWithdrawalSet();
-                    _RequireWithdrawalSet.WithdrawSerial = WithdrawData.WithdrawSerial;
-                    _RequireWithdrawalSet.Sign = sign;
-
-                    var strRequireWithdrawal = CodingControl.RequestJsonAPI(GPayApiUrl + "SendWithdraw", JsonConvert.SerializeObject(_RequireWithdrawalSet));
-
-                    if (!string.IsNullOrEmpty(strRequireWithdrawal))
-                    {
-                        returnRequireWithdrawal = JsonConvert.DeserializeObject<APIResult>(strRequireWithdrawal);
-                        //OK = 0,ERR = 1,SignErr = 2,Invalidate = 3(查無此單) //Success=4 (交易已完成)
-                        returnValue.Message = returnRequireWithdrawal.Message;
-
-                        if ((int)returnRequireWithdrawal.Status == 1 || (int)returnRequireWithdrawal.Status == 2 || (int)returnRequireWithdrawal.Status == 3)
-                        {
-                            UpdateWithdrawalStatus(WithdrawSerial, 0);
-                            returnValue.Message = returnRequireWithdrawal.Message;
-                            returnValue.WithdrawalData = GetWithdrawalByWithdrawSerialByAdmin(WithdrawSerial);
-                            return returnValue;
-                        }
-                        else
-                        {
-                            returnValue.Message = "审核完成";
-                            returnValue.WithdrawalData = GetWithdrawalByWithdrawSerialByAdmin(WithdrawSerial);
-                            return returnValue;
-                        }
-                    }
-                    else
-                    {
-                        UpdateWithdrawalStatus(WithdrawSerial, 0);
-                        returnValue.Message = "API代付失败";
-                        returnValue.WithdrawalData = GetWithdrawalByWithdrawSerialByAdmin(WithdrawSerial);
-                        returnValue.Status = -4;
-                        return returnValue;
-                    }
-                }
-                else
-                {
-                    //更改訂單狀態回建立狀態
-                    UpdateWithdrawalStatus(WithdrawSerial, 0);
-                    returnValue.Message = "供应商尚未开启API代付";
-                    returnValue.WithdrawalData = GetWithdrawalByWithdrawSerialByAdmin(WithdrawSerial);
-                    returnValue.Status = -5;
-                    return returnValue;
-                }
-            }
-            else
-            {
-                //更改訂單狀態回建立狀態
-                UpdateWithdrawalStatus(WithdrawSerial, 0);
-                returnValue.WithdrawalData = GetWithdrawalByWithdrawSerialByAdmin(WithdrawSerial);
-                returnValue.Message = "订单状态错误";
-                returnValue.Status = -3;
-                return returnValue;
-            }
-        }
-
-    }
-
+  
     public int ModifyCompanyServicePointByWithdrawal(int WithdrawID, string ServiceType, int CompanyID, string CurrencyType, decimal FinishtAmount)
     {
         int DBreturn = -9;
@@ -9519,6 +9229,21 @@ public class BackendDB
         if ((int)DBCmd.Parameters["@RETURN"].Value == 0)
         {
             DBreturn = (int)DBCmd.Parameters["@WithdrawID"].Value;
+            int WithdrawalID = DBreturn;
+            if (WithdrawalID != 0)
+                {
+                    string WithdrawSerial = "OP" + System.DateTime.Now.ToString("yyyyMMddHHmm") + (new string('0', 10 - WithdrawalID.ToString().Length) + WithdrawalID.ToString());
+                    SS = "UPDATE Withdrawal  SET WithdrawSerial=@WithdrawSerial " +
+                    " WHERE WithdrawID=@WithdrawID";
+
+                    DBCmd = new System.Data.SqlClient.SqlCommand();
+                    DBCmd.CommandText = SS;
+                    DBCmd.CommandType = CommandType.Text;
+                    DBCmd.Parameters.Add("@WithdrawID", SqlDbType.Int).Value = WithdrawalID;
+                    DBCmd.Parameters.Add("@WithdrawSerial", SqlDbType.VarChar).Value = WithdrawSerial;
+                    DBAccess.ExecuteDB(DBConnStr, DBCmd);
+            }
+
             return DBreturn;
         }
         else
@@ -15400,14 +15125,14 @@ public class BackendDB
              " Select  ',' + ProviderName" +
              " From GPayRelation GP LEFT JOIN" +
              " ProviderCode PC ON PC.ProviderCode = GP.ProviderCode" +
-             " where forCompanyID = @CompanyID AND GP.ServiceType = CP.ServiceType AND GP.CurrencyType = 'CNY'" +
+             " where forCompanyID = @CompanyID AND GP.ServiceType = CP.ServiceType AND GP.CurrencyType = 'JPY'" +
              " For Xml Path(''))" +
              " , 1, 1, '') as ProviderName,PS.State ProviderState " +
              " From CompanyService CP" +
              " LEFT JOIN ServiceType ST ON ST.ServiceType=CP.ServiceType" +
              "  LEFT JOIN GPayRelation GR ON GR.forCompanyID = CP.forCompanyID AND GR.ServiceType = CP.ServiceType " +
              " LEFT JOIN ProviderService PS ON GR.ServiceType = PS.ServiceType AND GR.ProviderCode = PS.ProviderCode " +
-             " where  CP.forCompanyID = @CompanyID And CP.CurrencyType = 'CNY'";
+             " where  CP.forCompanyID = @CompanyID And CP.CurrencyType = 'JPY'";
 
         DBCmd = new System.Data.SqlClient.SqlCommand();
         DBCmd.CommandText = SS;
