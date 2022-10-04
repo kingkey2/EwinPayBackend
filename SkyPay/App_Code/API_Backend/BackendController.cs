@@ -513,6 +513,47 @@ public class BackendController : ApiController
 
     [HttpGet]
     [HttpPost]
+    [ActionName("GetBankData")]
+    public BankDatas GetBankData([FromBody] string BID)
+    {
+        BankDatas retValue = new BankDatas() { BankDataList=new List<BankData>() };
+        BackendDB backendDB = new BackendDB();
+        if (!RedisCache.BIDContext.CheckBIDExist(BID))
+        {
+            retValue.ResultCode = APIResult.enumResult.SessionError;
+            return retValue;
+        }
+
+        RedisCache.BIDContext.BIDInfo AdminData = RedisCache.BIDContext.GetBIDInfo(BID);
+
+        //if (AdminData.CompanyType != 0)
+        //{
+        //    retValue.ResultCode = APIResult.enumResult.VerificationError;
+        //    return retValue;
+        //}
+
+        var BankArray = new BackendFunction().GetWithdrawBankSettingData();
+
+        if (BankArray != null)
+        {
+            for (int i = 0; i < BankArray.Count; i++)
+            {
+                var BankData = new BankData();
+                BankData.BankCode = BankArray[i]["BankCode"].ToString();
+                BankData.BankName = BankArray[i]["BankName"].ToString();
+                retValue.BankDataList.Add(BankData);
+            }
+        }
+        else {
+            retValue.ResultCode = APIResult.enumResult.NoData;
+            return retValue;
+        }
+      
+        return retValue;
+    }
+
+    [HttpGet]
+    [HttpPost]
     [ActionName("GetCompanyAllServiceDetailData")]
     public GetCompanyAllServiceDetail GetCompanyAllServiceDetailData([FromBody] FromBody.Company fromBody)
     {
@@ -929,28 +970,33 @@ public class BackendController : ApiController
             if (admin.CompanyType == 0 || admin.CompanyType == 3)
             {
                 var adminModel = backendDB.GetAdminByLoginAccountWithGoogleKey(admin.LoginAccount);
-                //if (false)
-                if (string.IsNullOrEmpty(adminModel.GoogleKey))
+                if (!Pay.IsTestSite)
                 {
-                    loginResult.Message = "尚未绑定 Google 验证器";
-                    loginResult.ResultCode = APIResult.enumResult.GoogleKeyError;
-                    loginResult.CheckGoogleKeySuccess = false;
-
-                }
-                else
-                {
-                    //檢查google認證
-                    //if(true)
-                    if (backendFunction.CheckGoogleKey(adminModel.GoogleKey, fromBody.UserKey))
+                    if (string.IsNullOrEmpty(adminModel.GoogleKey))
                     {
-                        loginResult.ResultCode = APIResult.enumResult.OK;
-                        loginResult.CheckGoogleKeySuccess = true;
+                        loginResult.Message = "尚未绑定 Google 验证器";
+                        loginResult.ResultCode = APIResult.enumResult.GoogleKeyError;
+                        loginResult.CheckGoogleKeySuccess = false;
+
                     }
                     else
                     {
-                        loginResult.ResultCode = APIResult.enumResult.GoogleKeyError;
-                        return loginResult;
+                        //檢查google認證
+                        if (backendFunction.CheckGoogleKey(adminModel.GoogleKey, fromBody.UserKey))
+                        {
+                            loginResult.ResultCode = APIResult.enumResult.OK;
+                            loginResult.CheckGoogleKeySuccess = true;
+                        }
+                        else
+                        {
+                            loginResult.ResultCode = APIResult.enumResult.GoogleKeyError;
+                            return loginResult;
+                        }
                     }
+                }
+                else {
+                    loginResult.ResultCode = APIResult.enumResult.OK;
+                    loginResult.CheckGoogleKeySuccess = true;
                 }
             }
             else
@@ -964,17 +1010,25 @@ public class BackendController : ApiController
                 }
                 else
                 {
-                    //檢查google認證
-                    if (backendFunction.CheckGoogleKey(companyModel.GoogleKey, fromBody.UserKey))
+                    if (!Pay.IsTestSite)
                     {
+                        //檢查google認證
+                        if (backendFunction.CheckGoogleKey(companyModel.GoogleKey, fromBody.UserKey))
+                        {
+                            loginResult.ResultCode = APIResult.enumResult.OK;
+                            loginResult.CheckGoogleKeySuccess = true;
+                        }
+                        else
+                        {
+                            loginResult.ResultCode = APIResult.enumResult.GoogleKeyError;
+                            return loginResult;
+                        }
+                    }
+                    else {
                         loginResult.ResultCode = APIResult.enumResult.OK;
                         loginResult.CheckGoogleKeySuccess = true;
                     }
-                    else
-                    {
-                        loginResult.ResultCode = APIResult.enumResult.GoogleKeyError;
-                        return loginResult;
-                    }
+                  
                 }
 
 
@@ -10580,14 +10634,23 @@ CompanyServicePoint _CompanyServicePointResult = new CompanyServicePoint();
 
         if (_Table != null)
         {
-
             _PaymentTableResult.draw = fromBody.draw;
             _PaymentTableResult.recordsTotal = _Table.First().TotalCount;
             _PaymentTableResult.recordsFiltered = _Table.First().TotalCount;
             _PaymentTableResult.IsAutoLoad = fromBody.IsAutoLoad;
             _PaymentTableResult.data = _Table;//分頁後的資料 
 
-            _PaymentTableResult.TotalAmount = backendDB.GetWithdrawalBySearchFilter(fromBody);
+            var getWithdrawalBySearchFilter= backendDB.GetWithdrawalBySearchFilter(fromBody);
+            if (getWithdrawalBySearchFilter != null)
+            {
+                _PaymentTableResult.TotalAmount = getWithdrawalBySearchFilter.TotalAmount;
+                _PaymentTableResult.TotalHandlingFee = getWithdrawalBySearchFilter.TotalHandlingFee;
+            }
+            else {
+                _PaymentTableResult.TotalAmount = 0;
+                _PaymentTableResult.TotalHandlingFee = 0;
+            }
+           
             //DBModel.StatisticsPaymentAmount DbReturn = backendDB.GetPaymentPointBySearchFilter(fromBody);
             //if (DbReturn != null)
             //{
@@ -12207,8 +12270,8 @@ CompanyServicePoint _CompanyServicePointResult = new CompanyServicePoint();
             retValue.Message = "";
             return retValue;
         }
-
-        if (backendDB.InsertProviderManualHistory(Model, AdminData.AdminID) == 0)
+        var DBreturn = backendDB.InsertProviderManualHistory(Model, AdminData.AdminID);
+        if (DBreturn == 0)
         {
             string strProviderName = "";
             string strType = "";
@@ -12230,6 +12293,39 @@ CompanyServicePoint _CompanyServicePointResult = new CompanyServicePoint();
         }
         else
         {
+            switch (DBreturn)
+            {
+                case -1:
+                    retValue.Message = "後台操作人員不存在";
+                    break;
+                case -2:
+                    retValue.Message = "供應商不存在";
+                    break;
+                case -3:
+                    retValue.Message = "缺少相關說明";
+                    break;
+                case -4:
+                    retValue.Message = "";
+                    break;
+                case -5:
+                    retValue.Message = "鎖定失敗";
+                    break;
+                case -6:
+                    retValue.Message = "異動記錄新增失敗";
+                    break;
+                case -7:
+                    retValue.Message = "加扣點失敗";
+                    break;
+                case -8:
+                    retValue.Message = "數值異常";
+                    break;
+                case -9:
+                    retValue.Message = "供應商錢包不存在";
+                    break;
+                default:
+                    retValue.Message = "其他錯誤";
+                    break;
+            }
             retValue.ResultCode = APIResult.enumResult.Error;
         }
 
@@ -12387,8 +12483,8 @@ CompanyServicePoint _CompanyServicePointResult = new CompanyServicePoint();
             retValue.Message = "";
             return retValue;
         }
-
-        if (backendDB.InsertCompanyManualHistory(Model, AdminData.AdminID) == 0)
+        var DBreturn = backendDB.InsertCompanyManualHistory(Model, AdminData.AdminID);
+        if (DBreturn == 0)
         {
             retValue.ResultCode = APIResult.enumResult.OK;
             string strCompanyName = "";
@@ -12412,7 +12508,149 @@ CompanyServicePoint _CompanyServicePointResult = new CompanyServicePoint();
         }
         else
         {
+            switch (DBreturn)
+            {
+                case -1:
+                    retValue.Message = "後台操作人員不存在";
+                    break;
+                case -2:
+                    retValue.Message = "商戶錢包不存在";
+                    break;
+                case -3:
+                    retValue.Message = "商戶支付方式有誤";
+                    break;
+                case -4:
+                    retValue.Message = "缺少相關說明";
+                    break;
+                case -5:
+                    retValue.Message = "鎖定失敗";
+                    break;
+                case -6:
+                    retValue.Message = "異動記錄新增失敗";
+                    break;
+                case -7:
+                    retValue.Message = "加扣點失敗";
+                    break;
+                default:
+                    retValue.Message = "其他錯誤";
+                    break;
+            }
             retValue.ResultCode = APIResult.enumResult.Error;
+        }
+
+        return retValue;
+    }
+
+    [HttpPost]
+    [ActionName("InsertManualHistory")]
+    public APIResult InsertManualHistory([FromBody] FromBody.CompanyManualHistory Model)
+    {
+        APIResult retValue = new APIResult();
+        BackendDB backendDB = new BackendDB();
+
+
+        //驗證權限
+        RedisCache.BIDContext.BIDInfo AdminData;
+        if (!RedisCache.BIDContext.CheckBIDExist(Model.BID))
+        {
+            retValue.ResultCode = APIResult.enumResult.SessionError;
+            return retValue;
+        }
+        else
+        {
+            AdminData = RedisCache.BIDContext.GetBIDInfo(Model.BID);
+        }
+
+        if (!Pay.IsTestSite)
+        {
+            if (!CodingControl.CheckXForwardedFor())
+            {
+                backendDB.InsertBotSendLog(AdminData.CompanyCode, "公司代碼:" + AdminData.CompanyCode + ",偵測到非反代IP活動：" + CodingControl.GetXForwardedFor());
+                RedisCache.BIDContext.ClearBID(Model.BID);
+                retValue.ResultCode = APIResult.enumResult.VerificationError;
+                retValue.Message = "";
+                return retValue;
+            }
+        }
+
+        if (AdminData.CompanyType != 0)
+        {
+            retValue.ResultCode = APIResult.enumResult.VerificationError;
+            return retValue;
+        }
+
+        if (!backendDB.CheckLoginIP(CodingControl.GetUserIP(), AdminData.CompanyCode))
+        {
+            RedisCache.BIDContext.ClearBID(Model.BID);
+            retValue.ResultCode = APIResult.enumResult.VerificationError;
+            retValue.Message = "";
+            return retValue;
+        }
+        var DBreturn= backendDB.InsertManualHistory(Model, AdminData.AdminID);
+        if (DBreturn == 0)
+        {
+            retValue.ResultCode = APIResult.enumResult.OK;
+            string strCompanyName = "";
+            string strServiceTypeName = "";
+            string strType = "";
+            if (Model.Type == 0)
+            {
+                strType = "代收";
+            }
+            else if (Model.Type == 1)
+            {
+                strType = "代付";
+            }
+            strCompanyName = backendDB.GetCompanyNameByCompanyID(Model.forCompanyID);
+            var strProviderName = backendDB.GetProviderNameByProviderCode(Model.ProviderCode);
+            strServiceTypeName = backendDB.GetServiceTypeNameByServiceType(Model.ServiceType, Model.CurrencyType);
+            BackendFunction backendFunction = new BackendFunction();
+            string IP = backendFunction.CheckIPInTW(CodingControl.GetUserIP());
+            int AdminOP = backendDB.InsertAdminOPLog(AdminData.forCompanyID, AdminData.AdminID, 1, "人工提存-金额修改,商户名称:" + strCompanyName + ",渠道名称:" + strProviderName + ",类型:" + strType + ",币别:" + Model.CurrencyType + ",额度:" + Model.Amount + ",对应单号:" + Model.TransactionSerial, IP);
+            string XForwardIP = CodingControl.GetXForwardedFor();
+            CodingControl.WriteXFowardForIP(AdminOP);
+        }
+        else
+        {
+            retValue.ResultCode = APIResult.enumResult.Error;
+            switch (DBreturn)
+            { case -1:
+                    retValue.Message = "後台操作人員不存在";
+                    break;
+                case -2:
+                    retValue.Message = "商戶錢包不存在";
+                    break;
+                case -3:
+                    retValue.Message = "商戶支付方式有誤";
+                    break;
+                case -4:
+                    retValue.Message = "缺少相關說明";
+                    break;
+                case -5:
+                    retValue.Message = "鎖定失敗";
+                    break;
+                case -6:
+                    retValue.Message = "異動記錄新增失敗";
+                    break;
+                case -7:
+                    retValue.Message = "加扣點失敗";
+                    break;
+                case -8:
+                    retValue.Message = "供應商不存在";
+                    break;
+                case -9:
+                    retValue.Message = "供應商錢包不存在";
+                    break;
+                case -10:
+                    retValue.Message = "供應商加扣點失敗";
+                    break;
+                case -11:
+                    retValue.Message = "供應商異動記錄新增失敗";
+                    break;
+                default:
+                    retValue.Message = "其他錯誤";
+                    break;
+            }
         }
 
         return retValue;
@@ -13479,6 +13717,17 @@ CompanyServicePoint _CompanyServicePointResult = new CompanyServicePoint();
         public List<DBViewModel.CompanyServiceTableResult> CompanyServiceResults;
         public List<DBModel.WithdrawLimit> WithdrawLimits;
         public List<DBModel.WithdrawLimit> WithdrawRelations;
+    }
+
+    public class BankData
+    {
+        public string BankName;
+        public string BankCode;
+    }
+
+    public class BankDatas : APIResult
+    {
+        public List<BankData> BankDataList;
     }
 
     public class AdminRoleTableResult : APIResult

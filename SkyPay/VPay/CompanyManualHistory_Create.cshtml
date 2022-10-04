@@ -939,15 +939,7 @@
                     <div class="header"></div>
                     <div class="body">
                         <form>
-                            <label for="TransactionSerial" style="display:block">平台单号:</label>
-                            <div class="form-group">
-
-                                <input style="width:20%;display:inline-block;" type="text" id="TransactionSerial" class="form-control percent">
-                                <button type="button" id="orderSearch">查询</button>
-                                <div style="width:70%;margin-top:5px;margin-left:5px" id="orderDetail"></div>
-
-                            </div>
-
+ 
                             <label>商户 :</label>
                             <select class="form-control show-tick" id="select_company"></select>
                             <label>支付类型 :</label>
@@ -1011,133 +1003,10 @@ if ('@CheckLoginPermission' == 'false') {
             parent.wrapperFadeOut();
         }
 
-        //订单查询
-
-        $("#orderSearch").on("click", function () {
-            var TransactionSerial = $("#TransactionSerial").val().trim();
-            if (TransactionSerial == "") {
-                parent.warningAlert('尚未填写单号');
-                return;
-            }
-            if (!(TransactionSerial.indexOf('IP') >= 0 || TransactionSerial.indexOf('OP') >= 0)) {
-                parent.warningAlert('订单须为 IP 或 OP 开头');
-                return;
-            }
-
-            api.getOrderByCompanyManualHistory(TransactionSerial, function (success, obj) {
-                if (success) {
-                    if (obj.ResultCode == 0) {
-                        if (TransactionSerial.indexOf('IP') >= 0) {
-                            var strStatus = "";
-                            switch (obj.Result.ProcessStatus) {
-                                case 0:
-                                    strStatus = '未处理';
-                                    break;
-                                case 1:
-                                    strStatus = '未处理';
-                                    break;
-                                case 2:
-                                    strStatus = '交易成功，未返回';
-                                    break;
-                                case 3:
-                                    strStatus = '交易失败';
-                                    break;
-                                case 4:
-                                    strStatus = '交易成功，已返回';
-                                    break;
-                                case 5:
-                                    strStatus = '供应商资料不一致';
-                                    break;
-                                case 6:
-                                    strStatus = '系统问题';
-                                    break;
-                                case 7:
-                                    strStatus = '补单';
-                                    break;
-                                default:
-                                    strStatus = '';
-                                    break;
-                            }
-
-                            var strFinishDate = "";
-                            if (obj.Result.FinishDate2 == null) {
-                                strFinishDate = "未完成";
-                            } else {
-                                strFinishDate = obj.Result.FinishDate2;
-                            }
-                            var handAmount = (obj.Result.PartialOrderAmount * obj.Result.CollectRate * 0.01) - obj.Result.CollectCharge;
-                            $('#orderDetail').html(`商户 :<span font- style="color:magenta;font-weight:900"> ${obj.Result.CompanyName}</span>,渠道 :<span font- style="color:magenta;font-weight:900"> ${obj.Result.ProviderName}</span>,支付方式 :<span font- style="color:magenta;font-weight:900"> ${obj.Result.ServiceTypeName}</span>,<br />申请金额 :<span font- style="color:magenta;font-weight:900"> ${obj.Result.OrderAmount}</span>,费率(%) :<span font- style="color:magenta;font-weight:900"> ${obj.Result.CollectRate}</span>,手续费 :<span font- style="color:magenta;font-weight:900"> ${handAmount}</span>,实际金额 :<span font- style="color:magenta;font-weight:900"> ${obj.Result.PaymentAmount}</span>,<br />提交时间 :<span font- style="color:magenta;font-weight:900"> ${obj.Result.CreateDate2}</span>,完成日期 :<span font- style="color:magenta;font-weight:900"> ${strFinishDate}</span>`);
-
-                        } else {
-                            var strStatus = "";
-                            switch (obj.Result.ProcessStatus) {
-                                case 0:
-                                    strStatus = '未处理';
-                                    break;
-                                case 1:
-                                    strStatus = '进行中';
-                                    break;
-                                case 2:
-                                    strStatus = '成功';
-                                    break;
-                                case 3:
-                                    strStatus = '失敗';
-                                    break;
-                                case 9:
-                                    strStatus = '审核退回';
-                                    break;
-                                case 13:
-                                    strStatus = '重审';
-                                    break;
-                                case 14:
-                                    strStatus = '系统问题单';
-                                    break;
-                                default:
-                                    return '';
-                                    break;
-                            }
-                            var strWithdrawType = "";
-                            if (obj.Result.Accounting == 0) {
-                                strWithdrawType = '手动';
-                            } else {
-                                strWithdrawType = 'API代付';
-                            }
-                            var strFinishDate = "";
-                            if (obj.Result.FinishDate2 == null) {
-                                strFinishDate = "未完成";
-                            } else {
-                                strFinishDate = obj.Result.FinishDate2;
-                            }
-                            $('#orderDetail').html(`状态 :<span font- style="color:magenta;font-weight:900"> ${strStatus}</span>,付款方式 :<span font- style="color:magenta;font-weight:900"> ${strWithdrawType}</span>,渠道 :<span font- style="color:magenta;font-weight:900"> ${obj.Result.ProviderName}</span>,商户 :<span font- style="color:magenta;font-weight:900"> ${obj.Result.CompanyName}</span>,<br />申请金额 :<span font- style="color:magenta;font-weight:900"> ${obj.Result.OrderAmount}</span>,手续费 :<span font- style="color:magenta;font-weight:900"> ${obj.Result.CollectCharge}</span>,<br />提交时间 :<span font- style="color:magenta;font-weight:900"> ${obj.Result.CreateDate2}</span>,完成日期 :<span font- style="color:magenta;font-weight:900"> ${strFinishDate}</span>`);
-                        }
-                    } else {
-                        var message = ""
-                        switch (obj.ResultCode) {
-                            case 4:
-                                parent.errorAlertCallback("权限不足", function () {
-                                    parent.ChangePage("Home");
-                                    parent.CloseActivePage(window.frameElement.id.split('_')[1]);
-                                });
-                                break;
-                            case 7:
-                                parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                                break;
-                            case 5:
-                                message = "没有资料";
-                                break;
-                            default:
-                                message = "其他错误";
-                                break;
-                        }
-
-                        parent.warningAlert(message);
-                    }
-                }
-            });
-        })
+    
         //儲存
         $("#btn_Save").on("click", function () {
-            var TransactionSerial = $("#TransactionSerial").val().trim();
+            var TransactionSerial = '';
             var Amount = $("#Amount").val().trim();
             var Description = $("#Description").val().trim();
             var Type = $('input[name=Type]:checked').val();
@@ -1148,11 +1017,6 @@ if ('@CheckLoginPermission' == 'false') {
             //#region 驗證
             if (company == -99 || servicetype == -99) {
                 parent.warningAlert("选择正确商户或支付类型");
-                return;
-            }
-
-            if ($("#TransactionSerial").val().trim() == "") {
-                parent.warningAlert("请先输入单号");
                 return;
             }
 
@@ -1182,6 +1046,10 @@ if ('@CheckLoginPermission' == 'false') {
                                     parent.ChangePage("Home");
                                     parent.CloseActivePage(window.frameElement.id.split('_')[1]);
                                 });
+                                break;
+                            case 6:
+                                message = obj.Message;
+                                parent.warningAlert(message);
                                 break;
                             case 7:
                                 parent.errorAlert("您已断线请重新登入", "Login.cshtml");

@@ -715,11 +715,17 @@ public class DBModel {
         public DBModel.StatisticsPaymentAmount StatisticsPaymentAmount { get; set; }
         public int ResultCode;
         public decimal TotalAmount { get; set; }
-
+        public decimal TotalHandlingFee { get; set; }
     }
 
     public class WithdrawalV2 : Withdrawal {
         public int TotalCount { get; set; }
+    }
+
+    public class WithdrawalV2TotalAmount
+    {
+        public decimal TotalAmount { get; set; }
+        public decimal TotalHandlingFee { get; set; }
     }
 
     public enum WithdrawResultStatus {
@@ -836,6 +842,9 @@ public class DBModel {
         public string GroupName { get; set; }
         public int GroupID { get; set; }
         public string CompanyDescription { get; set; }
+        public decimal WithdrawRate { get; set; }
+        public int DecimalPlaces { get; set; }
+        
     }
 
     public class RiskControlWithdrawalTable {
@@ -1038,6 +1047,7 @@ public class DBModel {
         public string LoginAccount { get; set; }
         public string ServiceTypeName { get; set; }
         public string CompanyName { get; set; }
+        public string ProviderCode { get; set; }
     }
 
     public class FrozenPoint {

@@ -1,0 +1,1150 @@
+﻿{
+  "BankCodeSettings": [
+    {
+      "BankName": "三井住友銀行",
+      "BankCode": 1,
+      "Nissin": 1,
+      "coolemons": 9
+    },
+    {
+      "BankName": "みずほ銀行",
+      "BankCode": 2,
+      "Nissin": 2,
+      "coolemons": 1
+    },
+    {
+      "BankName": "東日本銀行",
+      "BankCode": 3,
+      "Nissin": 3,
+      "coolemons": -1
+    },
+    {
+      "BankName": "三菱UFJ銀行",
+      "BankCode": 4,
+      "Nissin": 4,
+      "coolemons": 5
+    },
+    {
+      "BankName": "りそな銀行",
+      "BankCode": 5,
+      "Nissin": 5,
+      "coolemons": 10
+    },
+    {
+      "BankName": "埼玉りそな銀行",
+      "BankCode": 6,
+      "Nissin": 6,
+      "coolemons": 17
+    },
+    {
+      "BankName": "ゆうちょ銀行",
+      "BankCode": 7,
+      "Nissin": 7,
+      "coolemons": 9900
+    },
+    {
+      "BankName": "PayPay銀行",
+      "BankCode": 8,
+      "Nissin": 8,
+      "coolemons": -1
+    },
+    {
+      "BankName": "セブン銀行",
+      "BankCode": 9,
+      "Nissin": 9,
+      "coolemons": -1
+    },
+    {
+      "BankName": "ソニー銀行",
+      "BankCode": 10,
+      "Nissin": 10,
+      "coolemons": 35
+    },
+    {
+      "BankName": "楽天銀行",
+      "BankCode": 11,
+      "Nissin": 11,
+      "coolemons": 36
+    },
+    {
+      "BankName": "日本振興銀行",
+      "BankCode": 12,
+      "Nissin": 12,
+      "coolemons": -1
+    },
+    {
+      "BankName": "住信SBIネット銀行",
+      "BankCode": 13,
+      "Nissin": 13,
+      "coolemons": 38
+    },
+    {
+      "BankName": "auじぶん銀行",
+      "BankCode": 14,
+      "Nissin": 14,
+      "coolemons": 39
+    },
+    {
+      "BankName": "イオン銀行",
+      "BankCode": 15,
+      "Nissin": 15,
+      "coolemons": -1
+    },
+    {
+      "BankName": "大和ネクスト銀行",
+      "BankCode": 16,
+      "Nissin": 16,
+      "coolemons": 41
+    },
+    {
+      "BankName": "ローソン銀行",
+      "BankCode": 17,
+      "Nissin": 17,
+      "coolemons": -1
+    },
+    {
+      "BankName": "GMOあおぞらネット銀行",
+      "BankCode": 18,
+      "Nissin": 18,
+      "coolemons": -1
+    },
+    {
+      "BankName": "沖縄銀行",
+      "BankCode": 19,
+      "Nissin": 19,
+      "coolemons": 188
+    },
+    {
+      "BankName": "山陰合同銀行",
+      "BankCode": 20,
+      "Nissin": 20,
+      "coolemons": 167
+    },
+    {
+      "BankName": "常陽銀行",
+      "BankCode": 21,
+      "Nissin": 21,
+      "coolemons": 130
+    },
+    {
+      "BankName": "SBJ銀行",
+      "BankCode": 22,
+      "Nissin": 23,
+      "coolemons": 472
+    },
+    {
+      "BankName": "みなと銀行",
+      "BankCode": 23,
+      "Nissin": 24,
+      "coolemons": -1
+    },
+    {
+      "BankName": "足利銀行",
+      "BankCode": 24,
+      "Nissin": 25,
+      "coolemons": 129
+    },
+    {
+      "BankName": "中国銀行",
+      "BankCode": 25,
+      "Nissin": 26,
+      "coolemons": 168
+    },
+    {
+      "BankName": "群馬銀行",
+      "BankCode": 26,
+      "Nissin": 27,
+      "coolemons": 128
+    },
+    {
+      "BankName": "尼崎信用金庫",
+      "BankCode": 27,
+      "Nissin": 28,
+      "coolemons": -1
+    },
+    {
+      "BankName": "山口銀行",
+      "BankCode": 28,
+      "Nissin": 29,
+      "coolemons": 170
+    },
+    {
+      "BankName": "福岡銀行",
+      "BankCode": 29,
+      "Nissin": 30,
+      "coolemons": 177
+    },
+    {
+      "BankName": "宮崎銀行",
+      "BankCode": 30,
+      "Nissin": 31,
+      "coolemons": 154
+    },
+    {
+      "BankName": "西日本シティ銀行",
+      "BankCode": 31,
+      "Nissin": 32,
+      "coolemons": 190
+    },
+    {
+      "BankName": "肥後銀行",
+      "BankCode": 32,
+      "Nissin": 33,
+      "coolemons": 182
+    },
+    {
+      "BankName": "京葉銀行",
+      "BankCode": 33,
+      "Nissin": 34,
+      "coolemons": -1
+    },
+    {
+      "BankName": "百十四銀行",
+      "BankCode": 34,
+      "Nissin": 35,
+      "coolemons": 173
+    },
+    {
+      "BankName": "広島信用金庫",
+      "BankCode": 35,
+      "Nissin": 36,
+      "coolemons": -1
+    },
+    {
+      "BankName": "関西みらい銀行",
+      "BankCode": 36,
+      "Nissin": 37,
+      "coolemons": -1
+    },
+    {
+      "BankName": "京都中央信用金庫",
+      "BankCode": 37,
+      "Nissin": 38,
+      "coolemons": -1
+    },
+    {
+      "BankName": "北國銀行",
+      "BankCode": 38,
+      "Nissin": 39,
+      "coolemons": 146
+    },
+    {
+      "BankName": "千葉銀行",
+      "BankCode": 39,
+      "Nissin": 40,
+      "coolemons": 134
+    },
+    {
+      "BankName": "佐賀銀行",
+      "BankCode": 40,
+      "Nissin": 41,
+      "coolemons": 179
+    },
+    {
+      "BankName": "大分銀行",
+      "BankCode": 41,
+      "Nissin": 42,
+      "coolemons": 183
+    },
+    {
+      "BankName": "さわやか信用金庫",
+      "BankCode": 42,
+      "Nissin": 43,
+      "coolemons": -1
+    },
+    {
+      "BankName": "北洋銀行",
+      "BankCode": 43,
+      "Nissin": 44,
+      "coolemons": -1
+    },
+    {
+      "BankName": "八十二銀行",
+      "BankCode": 44,
+      "Nissin": 45,
+      "coolemons": 143
+    },
+    {
+      "BankName": "大垣共立銀行",
+      "BankCode": 45,
+      "Nissin": 46,
+      "coolemons": 152
+    },
+    {
+      "BankName": "尾西信用金庫",
+      "BankCode": 46,
+      "Nissin": 47,
+      "coolemons": -1
+    },
+    {
+      "BankName": "愛媛信用金庫",
+      "BankCode": 47,
+      "Nissin": 48,
+      "coolemons": -1
+    },
+    {
+      "BankName": "岐阜信用金庫",
+      "BankCode": 48,
+      "Nissin": 49,
+      "coolemons": -1
+    },
+    {
+      "BankName": "福井銀行",
+      "BankCode": 49,
+      "Nissin": 50,
+      "coolemons": 147
+    },
+    {
+      "BankName": "金沢信用金庫",
+      "BankCode": 50,
+      "Nissin": 51,
+      "coolemons": -1
+    },
+    {
+      "BankName": "新生銀行",
+      "BankCode": 51,
+      "Nissin": 52,
+      "coolemons": 397
+    },
+    {
+      "BankName": "スルガ銀行",
+      "BankCode": 52,
+      "Nissin": 53,
+      "coolemons": 150
+    },
+    {
+      "BankName": "東京ベイ信用金庫",
+      "BankCode": 53,
+      "Nissin": 54,
+      "coolemons": -1
+    },
+    {
+      "BankName": "静岡銀行",
+      "BankCode": 54,
+      "Nissin": 55,
+      "coolemons": 149
+    },
+    {
+      "BankName": "横浜銀行",
+      "BankCode": 55,
+      "Nissin": 56,
+      "coolemons": 138
+    },
+    {
+      "BankName": "広島銀行",
+      "BankCode": 56,
+      "Nissin": 57,
+      "coolemons": 169
+    },
+    {
+      "BankName": "豊田信用金庫",
+      "BankCode": 57,
+      "Nissin": 58,
+      "coolemons": -1
+    },
+    {
+      "BankName": "三島信用銀行",
+      "BankCode": 58,
+      "Nissin": 59,
+      "coolemons": -1
+    },
+    {
+      "BankName": "高岡信用金庫",
+      "BankCode": 59,
+      "Nissin": 60,
+      "coolemons": -1
+    },
+    {
+      "BankName": "七十七銀行",
+      "BankCode": 60,
+      "Nissin": 61,
+      "coolemons": 125
+    },
+    {
+      "BankName": "南日本銀行",
+      "BankCode": 61,
+      "Nissin": 62,
+      "coolemons": -1
+    },
+    {
+      "BankName": "荘内銀行",
+      "BankCode": 62,
+      "Nissin": 63,
+      "coolemons": 121
+    },
+    {
+      "BankName": "十六銀行",
+      "BankCode": 63,
+      "Nissin": 64,
+      "coolemons": 153
+    },
+    {
+      "BankName": "山形銀行",
+      "BankCode": 64,
+      "Nissin": 65,
+      "coolemons": 122
+    },
+    {
+      "BankName": "青和信用組合",
+      "BankCode": 65,
+      "Nissin": 66,
+      "coolemons": -1
+    },
+    {
+      "BankName": "紀陽銀行",
+      "BankCode": 66,
+      "Nissin": 67,
+      "coolemons": 163
+    },
+    {
+      "BankName": "徳島大正銀行",
+      "BankCode": 67,
+      "Nissin": 68,
+      "coolemons": -1
+    },
+    {
+      "BankName": "のと共栄信用金庫",
+      "BankCode": 68,
+      "Nissin": 69,
+      "coolemons": -1
+    },
+    {
+      "BankName": "蒲郡信用金庫",
+      "BankCode": 69,
+      "Nissin": 70,
+      "coolemons": -1
+    },
+    {
+      "BankName": "鹿児島銀行",
+      "BankCode": 70,
+      "Nissin": 71,
+      "coolemons": 185
+    },
+    {
+      "BankName": "南都銀行",
+      "BankCode": 71,
+      "Nissin": 72,
+      "coolemons": 162
+    },
+    {
+      "BankName": "十八親和銀行",
+      "BankCode": 72,
+      "Nissin": 73,
+      "coolemons": -1
+    },
+    {
+      "BankName": "湘南信用金庫",
+      "BankCode": 73,
+      "Nissin": 74,
+      "coolemons": -1
+    },
+    {
+      "BankName": "北海道銀行",
+      "BankCode": 74,
+      "Nissin": 75,
+      "coolemons": 116
+    },
+    {
+      "BankName": "山梨中央銀行",
+      "BankCode": 75,
+      "Nissin": 76,
+      "coolemons": 142
+    },
+    {
+      "BankName": "滋賀銀行",
+      "BankCode": 76,
+      "Nissin": 77,
+      "coolemons": 157
+    },
+    {
+      "BankName": "みんなの銀行",
+      "BankCode": 77,
+      "Nissin": 78,
+      "coolemons": -1
+    },
+    {
+      "BankName": "京都銀行",
+      "BankCode": 78,
+      "Nissin": 79,
+      "coolemons": 158
+    },
+    {
+      "BankName": "みちのく銀行",
+      "BankCode": 79,
+      "Nissin": 80,
+      "coolemons": 118
+    },
+    {
+      "BankName": "碧海信用金庫",
+      "BankCode": 80,
+      "Nissin": 81,
+      "coolemons": -1
+    },
+    {
+      "BankName": "静岡市農業協同組合",
+      "BankCode": 81,
+      "Nissin": 82,
+      "coolemons": -1
+    },
+    {
+      "BankName": "きらぼし銀行",
+      "BankCode": 82,
+      "Nissin": 83,
+      "coolemons": -1
+    },
+    {
+      "BankName": "名古屋銀行",
+      "BankCode": 83,
+      "Nissin": 84,
+      "coolemons": -1
+    },
+    {
+      "BankName": "あおぞら銀行",
+      "BankCode": 84,
+      "Nissin": 85,
+      "coolemons": 398
+    },
+    {
+      "BankName": "東海労働金庫",
+      "BankCode": 85,
+      "Nissin": 86,
+      "coolemons": -1
+    },
+    {
+      "BankName": "長野銀行",
+      "BankCode": 86,
+      "Nissin": 87,
+      "coolemons": -1
+    },
+    {
+      "BankName": "山梨信用金庫",
+      "BankCode": 87,
+      "Nissin": 88,
+      "coolemons": -1
+    },
+    {
+      "BankName": "池田泉州銀行",
+      "BankCode": 88,
+      "Nissin": 89,
+      "coolemons": 161
+    },
+    {
+      "BankName": "北都銀行",
+      "BankCode": 89,
+      "Nissin": 90,
+      "coolemons": 120
+    },
+    {
+      "BankName": "琉球銀行",
+      "BankCode": 90,
+      "Nissin": 91,
+      "coolemons": 187
+    },
+    {
+      "BankName": "北陸銀行",
+      "BankCode": 91,
+      "Nissin": 92,
+      "coolemons": 144
+    },
+    {
+      "BankName": "秋田銀行",
+      "BankCode": 92,
+      "Nissin": 93,
+      "coolemons": 119
+    },
+    {
+      "BankName": "四国銀行",
+      "BankCode": 93,
+      "Nissin": 94,
+      "coolemons": 175
+    },
+    {
+      "BankName": "兵庫西農業協同組合",
+      "BankCode": 94,
+      "Nissin": 95,
+      "coolemons": -1
+    },
+    {
+      "BankName": "第四北越銀行",
+      "BankCode": 95,
+      "Nissin": 96,
+      "coolemons": -1
+    },
+    {
+      "BankName": "しずおか焼津信用金庫",
+      "BankCode": 96,
+      "Nissin": 97,
+      "coolemons": -1
+    },
+    {
+      "BankName": "筑波銀行",
+      "BankCode": 97,
+      "Nissin": 98,
+      "coolemons": 131
+    },
+    {
+      "BankName": "おかやま信用金庫",
+      "BankCode": 98,
+      "Nissin": 99,
+      "coolemons": -1
+    },
+    {
+      "BankName": "北おおさか信用金庫",
+      "BankCode": 99,
+      "Nissin": 100,
+      "coolemons": -1
+    },
+    {
+      "BankName": "埼玉縣信用金庫",
+      "BankCode": 100,
+      "Nissin": 101,
+      "coolemons": -1
+    },
+    {
+      "BankName": "大阪シティ信用金庫",
+      "BankCode": 101,
+      "Nissin": 102,
+      "coolemons": -1
+    },
+    {
+      "BankName": "東邦銀行",
+      "BankCode": 102,
+      "Nissin": 103,
+      "coolemons": 126
+    },
+    {
+      "BankName": "伊予銀行",
+      "BankCode": 103,
+      "Nissin": 104,
+      "coolemons": 174
+    },
+    {
+      "BankName": "愛媛銀行",
+      "BankCode": 104,
+      "Nissin": 105,
+      "coolemons": -1
+    },
+    {
+      "BankName": "播州信用金庫",
+      "BankCode": 105,
+      "Nissin": 106,
+      "coolemons": -1
+    },
+    {
+      "BankName": "岡崎信用金庫",
+      "BankCode": 106,
+      "Nissin": 107,
+      "coolemons": -1
+    },
+    {
+      "BankName": "いずみの農協",
+      "BankCode": 107,
+      "Nissin": 108,
+      "coolemons": -1
+    },
+    {
+      "BankName": "中央労働金庫",
+      "BankCode": 108,
+      "Nissin": 109,
+      "coolemons": -1
+    },
+    {
+      "BankName": "香川銀行",
+      "BankCode": 109,
+      "Nissin": 110,
+      "coolemons": -1
+    },
+    {
+      "BankName": "熊本銀行",
+      "BankCode": 110,
+      "Nissin": 111,
+      "coolemons": -1
+    },
+    {
+      "BankName": "かながわ信用金庫",
+      "BankCode": 111,
+      "Nissin": 112,
+      "coolemons": -1
+    },
+    {
+      "BankName": "九州労働金庫",
+      "BankCode": 112,
+      "Nissin": 113,
+      "coolemons": -1
+    },
+    {
+      "BankName": "上越信用金庫",
+      "BankCode": 113,
+      "Nissin": 114,
+      "coolemons": -1
+    },
+    {
+      "BankName": "福島信用金庫",
+      "BankCode": 114,
+      "Nissin": 115,
+      "coolemons": -1
+    },
+    {
+      "BankName": "三十三銀行",
+      "BankCode": 115,
+      "Nissin": 116,
+      "coolemons": -1
+    },
+    {
+      "BankName": "武蔵野銀行",
+      "BankCode": 116,
+      "Nissin": 117,
+      "coolemons": 133
+    },
+    {
+      "BankName": "北九州農業協同組合",
+      "BankCode": 117,
+      "Nissin": 118,
+      "coolemons": -1
+    },
+    {
+      "BankName": "日本海信用金庫",
+      "BankCode": 118,
+      "Nissin": 119,
+      "coolemons": -1
+    },
+    {
+      "BankName": "三井住友信託銀行",
+      "BankCode": 119,
+      "Nissin": 120,
+      "coolemons": 294
+    },
+    {
+      "BankName": "愛知銀行",
+      "BankCode": 120,
+      "Nissin": 121,
+      "coolemons": -1
+    },
+    {
+      "BankName": "桐生信用金庫",
+      "BankCode": 121,
+      "Nissin": 122,
+      "coolemons": -1
+    },
+    {
+      "BankName": "アイオー信用金庫",
+      "BankCode": 122,
+      "Nissin": 123,
+      "coolemons": -1
+    },
+    {
+      "BankName": "東濃信用金庫",
+      "BankCode": 123,
+      "Nissin": 124,
+      "coolemons": -1
+    },
+    {
+      "BankName": "豊川信用金庫",
+      "BankCode": 124,
+      "Nissin": 125,
+      "coolemons": -1
+    },
+    {
+      "BankName": "君津信用組合",
+      "BankCode": 125,
+      "Nissin": 126,
+      "coolemons": -1
+    },
+    {
+      "BankName": "富山第一銀行",
+      "BankCode": 126,
+      "Nissin": 127,
+      "coolemons": -1
+    },
+    {
+      "BankName": "東北銀行",
+      "BankCode": 127,
+      "Nissin": 128,
+      "coolemons": 124
+    },
+    {
+      "BankName": "栃木銀行",
+      "BankCode": 128,
+      "Nissin": 129,
+      "coolemons": -1
+    },
+    {
+      "BankName": "遠州信用金庫",
+      "BankCode": 129,
+      "Nissin": 130,
+      "coolemons": -1
+    },
+    {
+      "BankName": "中兵庫信用金庫",
+      "BankCode": 130,
+      "Nissin": 131,
+      "coolemons": -1
+    },
+    {
+      "BankName": "石動信用金庫",
+      "BankCode": 131,
+      "Nissin": 132,
+      "coolemons": -1
+    },
+    {
+      "BankName": "青森銀行",
+      "BankCode": 132,
+      "Nissin": 133,
+      "coolemons": 117
+    },
+    {
+      "BankName": "岩手銀行",
+      "BankCode": 133,
+      "Nissin": 134,
+      "coolemons": 123
+    },
+    {
+      "BankName": "帯広信用金庫",
+      "BankCode": 134,
+      "Nissin": 135,
+      "coolemons": -1
+    },
+    {
+      "BankName": "呉信用金庫",
+      "BankCode": 135,
+      "Nissin": 136,
+      "coolemons": -1
+    },
+    {
+      "BankName": "トマト銀行",
+      "BankCode": 136,
+      "Nissin": 137,
+      "coolemons": -1
+    },
+    {
+      "BankName": "日本銀行",
+      "BankCode": 137,
+      "Nissin": -1,
+      "coolemons": 0
+    },
+    {
+      "BankName": "千葉興業銀行",
+      "BankCode": 138,
+      "Nissin": -1,
+      "coolemons": 135
+    },
+    {
+      "BankName": "東京都民銀行",
+      "BankCode": 139,
+      "Nissin": -1,
+      "coolemons": 137
+    },
+    {
+      "BankName": "第四銀行",
+      "BankCode": 140,
+      "Nissin": -1,
+      "coolemons": 140
+    },
+    {
+      "BankName": "北越銀行",
+      "BankCode": 141,
+      "Nissin": -1,
+      "coolemons": 141
+    },
+    {
+      "BankName": "清水銀行",
+      "BankCode": 142,
+      "Nissin": -1,
+      "coolemons": 151
+    },
+    {
+      "BankName": "三重銀行",
+      "BankCode": 143,
+      "Nissin": -1,
+      "coolemons": 154
+    },
+    {
+      "BankName": "百五銀行",
+      "BankCode": 144,
+      "Nissin": -1,
+      "coolemons": 155
+    },
+    {
+      "BankName": "近畿大阪銀行",
+      "BankCode": 146,
+      "Nissin": -1,
+      "coolemons": 159
+    },
+    {
+      "BankName": "但馬銀行",
+      "BankCode": 147,
+      "Nissin": -1,
+      "coolemons": 164
+    },
+    {
+      "BankName": "鳥取銀行",
+      "BankCode": 148,
+      "Nissin": -1,
+      "coolemons": 166
+    },
+    {
+      "BankName": "阿波銀行",
+      "BankCode": 149,
+      "Nissin": -1,
+      "coolemons": 172
+    },
+    {
+      "BankName": "筑邦銀行",
+      "BankCode": 150,
+      "Nissin": -1,
+      "coolemons": 178
+    },
+    {
+      "BankName": "十八銀行",
+      "BankCode": 151,
+      "Nissin": -1,
+      "coolemons": 180
+    },
+    {
+      "BankName": "親和銀行",
+      "BankCode": 152,
+      "Nissin": -1,
+      "coolemons": 181
+    },
+    {
+      "BankName": "北九州銀行",
+      "BankCode": 154,
+      "Nissin": -1,
+      "coolemons": 191
+    },
+    {
+      "BankName": "三菱UFJ信託銀行",
+      "BankCode": 155,
+      "Nissin": -1,
+      "coolemons": 288
+    },
+    {
+      "BankName": "みずほ信託銀行",
+      "BankCode": 156,
+      "Nissin": -1,
+      "coolemons": 289
+    },
+    {
+      "BankName": "ニューヨークメロン信託銀行",
+      "BankCode": 157,
+      "Nissin": -1,
+      "coolemons": 295
+    },
+    {
+      "BankName": "日本マスタートラスト信託銀行",
+      "BankCode": 158,
+      "Nissin": -1,
+      "coolemons": 297
+    },
+    {
+      "BankName": "ステート・ストリート信託銀行",
+      "BankCode": 159,
+      "Nissin": -1,
+      "coolemons": 299
+    },
+    {
+      "BankName": "SMBC信託銀行",
+      "BankCode": 160,
+      "Nissin": -1,
+      "coolemons": 300
+    },
+    {
+      "BankName": "野村信託銀行株式会社",
+      "BankCode": 161,
+      "Nissin": -1,
+      "coolemons": 304
+    },
+    {
+      "BankName": "オリックス銀行",
+      "BankCode": 162,
+      "Nissin": -1,
+      "coolemons": 307
+    },
+    {
+      "BankName": "しんきん信託銀行",
+      "BankCode": 163,
+      "Nissin": -1,
+      "coolemons": 309
+    },
+    {
+      "BankName": "農中信託銀行",
+      "BankCode": 164,
+      "Nissin": -1,
+      "coolemons": 311
+    },
+    {
+      "BankName": "新生信託銀行",
+      "BankCode": 165,
+      "Nissin": -1,
+      "coolemons": 320
+    },
+    {
+      "BankName": "日証金信託銀行",
+      "BankCode": 166,
+      "Nissin": -1,
+      "coolemons": 321
+    },
+    {
+      "BankName": "新銀行東京",
+      "BankCode": 167,
+      "Nissin": -1,
+      "coolemons": 322
+    },
+    {
+      "BankName": "日本トラスティ・サービス信託銀行",
+      "BankCode": 168,
+      "Nissin": -1,
+      "coolemons": 324
+    },
+    {
+      "BankName": "資産管理サービス信託銀行",
+      "BankCode": 169,
+      "Nissin": -1,
+      "coolemons": 325
+    },
+    {
+      "BankName": "シティバンク、エヌ・エイ东京支店",
+      "BankCode": 170,
+      "Nissin": -1,
+      "coolemons": 401
+    },
+    {
+      "BankName": "JPモルガン・チェース银行",
+      "BankCode": 171,
+      "Nissin": -1,
+      "coolemons": 402
+    },
+    {
+      "BankName": "バンク・オブ・アメリカ・エヌ・エイ",
+      "BankCode": 172,
+      "Nissin": -1,
+      "coolemons": 403
+    },
+    {
+      "BankName": "香港上海銀行",
+      "BankCode": 173,
+      "Nissin": -1,
+      "coolemons": 411
+    },
+    {
+      "BankName": "スタンダードチャータード銀行",
+      "BankCode": 174,
+      "Nissin": -1,
+      "coolemons": 413
+    },
+    {
+      "BankName": "バークレイズ銀行",
+      "BankCode": 175,
+      "Nissin": -1,
+      "coolemons": 414
+    },
+    {
+      "BankName": "オランダ銀行",
+      "BankCode": 176,
+      "Nissin": -1,
+      "coolemons": 422
+    },
+    {
+      "BankName": "ハナ銀行",
+      "BankCode": 177,
+      "Nissin": -1,
+      "coolemons": 423
+    },
+    {
+      "BankName": "ハナインド银行",
+      "BankCode": 178,
+      "Nissin": -1,
+      "coolemons": 424
+    },
+    {
+      "BankName": "ニューヨーク銀行",
+      "BankCode": 179,
+      "Nissin": -1,
+      "coolemons": 442
+    },
+    {
+      "BankName": "ビー・エヌ・ピー・パリバ銀行",
+      "BankCode": 180,
+      "Nissin": -1,
+      "coolemons": 443
+    },
+    {
+      "BankName": "ソシエテ ジェネラル銀行",
+      "BankCode": 181,
+      "Nissin": -1,
+      "coolemons": 445
+    },
+    {
+      "BankName": "ユニオン・バンク",
+      "BankCode": 182,
+      "Nissin": -1,
+      "coolemons": 454
+    },
+    {
+      "BankName": "ウリィ银行",
+      "BankCode": 183,
+      "Nissin": -1,
+      "coolemons": 477
+    },
+    {
+      "BankName": "韓国産業銀行",
+      "BankCode": 184,
+      "Nissin": -1,
+      "coolemons": 603
+    },
+    {
+      "BankName": "彰化商業銀行",
+      "BankCode": 185,
+      "Nissin": -1,
+      "coolemons": 607
+    },
+    {
+      "BankName": "第一商業銀行",
+      "BankCode": 186,
+      "Nissin": -1,
+      "coolemons": 611
+    },
+    {
+      "BankName": "台湾銀行",
+      "BankCode": 187,
+      "Nissin": -1,
+      "coolemons": 612
+    },
+    {
+      "BankName": "交通銀行",
+      "BankCode": 188,
+      "Nissin": -1,
+      "coolemons": 615
+    },
+    {
+      "BankName": "メトロポリタン銀行",
+      "BankCode": 189,
+      "Nissin": -1,
+      "coolemons": 616
+    },
+    {
+      "BankName": "中国工商銀行",
+      "BankCode": 190,
+      "Nissin": -1,
+      "coolemons": 619
+    },
+    {
+      "BankName": "国民銀行",
+      "BankCode": 191,
+      "Nissin": -1,
+      "coolemons": 624
+    },
+    {
+      "BankName": "ビルバオ・ビスカヤ・アルヘンタリア銀行",
+      "BankCode": 192,
+      "Nissin": -1,
+      "coolemons": 627
+    },
+    {
+      "BankName": "その他",
+      "BankCode": 999,
+      "Nissin": 999,
+      "coolemons": -1
+    }
+  ]
+}

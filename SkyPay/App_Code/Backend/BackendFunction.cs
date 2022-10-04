@@ -6,9 +6,30 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Web;
 using Google.Authenticator;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
-    public class BackendFunction {
-        public DBModel.Admin TestCheckLogin(FromBody.Login login)
+public class BackendFunction {
+    public  JArray GetWithdrawBankSettingData()
+    {
+        JArray RetValue;
+        //初始化設定檔資料
+        string path = Pay.ProviderSettingPath + "\\" + "withdrawBank.json";
+        string jsonContent;
+        string jsonArrayContent;
+        using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+        {
+            using (StreamReader sr = new StreamReader(stream))
+            {
+                jsonContent = sr.ReadToEnd();
+            }
+        }
+        jsonArrayContent = JsonConvert.DeserializeObject<JObject>(jsonContent)["BankCodeSettings"].ToString();
+        RetValue = JsonConvert.DeserializeObject<JArray>(jsonArrayContent);
+        return RetValue;
+    }
+
+    public DBModel.Admin TestCheckLogin(FromBody.Login login)
         {
 
             BackendDB backendDB = new BackendDB();

@@ -976,10 +976,6 @@
                                         <select class="show-tick" id="select_providercode" data-live-search="true"></select>
                                     </span>
 
-                                    <h6 style="margin-top: 10px;margin-right: 10px;margin-left: 15px;"> 366群组 : </h6>
-                                    <select class="show-tick" id="select_proxyProviderGroup"></select>
-
-
                                 </div>
 
                                 <div class="row" style="margin-bottom: 10px;margin-top:10px">
@@ -1033,13 +1029,13 @@
 
                             </div>
                             <div class="col col-lg-7 col-md-7 col-sm-7">
-                                <div>
+                                @*<div>
                                     <button style="margin-left: 15px;" class="btn btn-raised btn-primary btn-round waves-effect" type="button" id="btnEditGroupWeight">调整群组权重</button>
                                     <span style="margin-left:5px;font-size:larger">群组可用余额:</span>
                                     <span id="AllProviderGroupValue" style="margin-left:5px;color:green"></span>
                                     <span style="margin-left:25px;font-size:larger">商户占存:</span>
                                     <span id="AllCompanyOB003Value" style="margin-left:5px;color:green"></span>
-                                </div>
+                                </div>*@
 
                                 <table align="left" id="ProxyGroupTableForTotalAmount1" style="width:50%;border-top:1px #cccccc solid;border-right:0px #cccccc solid;border-left:1px #cccccc solid;border:1px #cccccc solid;" cellpadding="10" border="1">
                                     <thead>
@@ -1063,12 +1059,9 @@
                         <div class="row" style="background-color: #99FF99;line-height: 30px;">
                             <span style="font-weight:900;color:#227700;font-size:15px;margin-left:5px"> 总笔数 : </span><span style="font-size:15px;margin-left:5px" id="count1"></span>
                             <span style="font-weight:900;color:#227700;font-size:15px;margin-left:5px"> 提现总金额 : </span><span style="font-size:15px;margin-left:5px" id="count2"></span>
+                            <span style="font-weight:900;color:#227700;font-size:15px;margin-left:5px"> 手續費 : </span><span style="font-size:15px;margin-left:5px" id="count3"></span>
                         </div>
-                        <div class="row" style="margin-bottom: 10px;">
-                            <h6 style="margin-top: 10px;margin-right: 10px;margin-left: 15px;"> 更换订单群组<span style="color:red"> ( 换页,查询,排序后需重新勾选 ) </span> : </h6>
-                            <select class="show-tick" id="select_changeProxyProviderGroup"></select>
-                            <button style="margin-left: 15px;" class="btn btn-raised btn-warning btn-round waves-effect" type="button" id="btnchangeProxyProviderGroups">确认更换群组</button>
-                        </div>
+
                         <div id="div_table_WithdrawalTable">
                             <table style="width:100%" class="table table-bordered table-striped table-hover dataTable nowrap" id="table_WithdrawalTable"></table>
                         </div>
@@ -1168,8 +1161,6 @@
 
         CreateWithdrawalStatusSelect();
         CreateCompanySelect();
-        getProxyProviderGroup();
-        getProxyProviderGroupWithdrawalAmount();
         createWithdrawalTable2();
         getProviderCodeResult();
         reciprocal();
@@ -1270,9 +1261,11 @@
 
             $('#count1').text(data.length);
             $('#count2').text(data.TotalAmount);
+            $('#count3').text(data.TotalHandlingFee);
         } else {
             $('#count1').text('');
             $('#count2').text('');
+            $('#count3').text('');
         }
 
     }
@@ -1295,40 +1288,6 @@
         isCreatedTable = true;
 
         Table = $("#table_WithdrawalTable").DataTable({
-            "drawCallback": function (settings, json) {
-                if (proxyProviderGroupData) {
-                    $(".select_proxyProviderGroupData").empty();
-                    $(".select_proxyProviderGroupData").append('<option value="-1">' + "更换群组" + '</option>');
-                    for (var i = 0; i < proxyProviderGroupData.length; i++) {
-                        if (proxyProviderGroupData[i].State == 0) {
-                            $(".select_proxyProviderGroupData").append('<option value="' + proxyProviderGroupData[i].GroupID + '">' + proxyProviderGroupData[i].GroupName + '</option>');
-                        }
-                    }
-                }
-                $(".select_proxyProviderGroupData").change(function () {
-                    if ($(this).val() != "-1") {
-                        var rowdata = $(this).parent().parent();
-                        var withdrawSerial = rowdata.find('td').eq(1).html();
-                        var groupID = $(this).val();
-                        swal({
-                            title: "是否更换审核群组至 " + $('option:selected', this).text(),
-                            type: "warning",
-                            showCancelButton: true,
-                            closeOnConfirm: true,
-                            confirmButtonText: "确定",
-                            cancelButtonText: "取消",
-                            confirmButtonColor: "#DD6B55"
-                        },
-                            function (isConfirm) {
-                                if (isConfirm) {
-                                    changeProviderGroupByAdmin(groupID, withdrawSerial);
-                                }
-                            });
-                    }
-
-                });
-
-            },
             columns: [
                 {
                     "title": "审核", "data": "Status",
@@ -1519,7 +1478,20 @@
                         return rowdata.CurrencyType + "</br>" + rowdata.Amount;
                     }
                 },
-                { "title": "手续费", "data": "CollectCharge" },
+                { "title": "手续费", "data": "CollectCharge",
+                    "render": function (data, display, rowdata) {
+                        if (rowdata.Status == 2) {
+                            if (rowdata.DecimalPlaces == 1) {
+                                return toCurrency(Math.floor((rowdata.Amount * rowdata.WithdrawRate * 0.01) + rowdata.CollectCharge));
+                            } else {
+                                return toCurrency((rowdata.Amount * rowdata.WithdrawRate * 0.01) + rowdata.CollectCharge);
+                            }
+                         
+                        } else {
+                            return 0;
+                        }    
+                    }
+                },
                 {
                     "title": "建立日期", "data": "CreateDate",
                     "render": function (data, display, rowdata) {
@@ -1620,6 +1592,17 @@
 
                 $('#count1').text(toCurrency(d.recordsTotal));
                 $('#count2').text(toCurrency(d.TotalAmount));
+                $('#count3').text(toCurrency(d.TotalHandlingFee));
+                var amount = 0;
+           
+                for (var i = 0; i < d.data.length; i++) {
+                    var data = d.data[i];
+                    if (data.Status==2) {
+                        amount += (data.Amount * data.WithdrawRate * 0.01) + data.CollectCharge;
+                    }
+                }
+
+                //$('#count3').text(toCurrency(amount));
             }
             else {
                 var message = "";
@@ -1874,8 +1857,21 @@
                         return rowdata.CurrencyType + "</br>" + rowdata.Amount;
                     }
                 },
+                {
+                    "title": "手续费", "data": "CollectCharge",
+                    "render": function (data, display, rowdata) {
+                        if (rowdata.Status == 2) {
+                            if (rowdata.DecimalPlaces == 1) {
+                                return toCurrency(Math.floor((rowdata.Amount * rowdata.WithdrawRate * 0.01) + rowdata.CollectCharge));
+                            } else {
+                                return toCurrency((rowdata.Amount * rowdata.WithdrawRate * 0.01) + rowdata.CollectCharge);
+                            }
 
-                { "title": "手续费", "data": "CollectCharge" },
+                        } else {
+                            return 0;
+                        }
+                    }
+                },
                 {
                     "title": "建立日期", "data": "CreateDate",
                     "render": function (data, display, rowdata) {
@@ -2005,112 +2001,6 @@
 
     }
 
-      function getProxyProviderGroupWithdrawalAmount() {
-        getAllCompanyServicePoint();
-
-          api.getProxyProviderGroupOnWithdrawalAmountResultByAdmin("YE888", function (success, obj) {//LPay2
-            if (obj.ResultCode == 0) {
-                $('#ProxyGroupTableForTotalAmount1>tbody').empty();
-                $('#ProxyGroupTableForTotalAmount2>tbody').empty();
-                $('#ProxyGroupTableForTotalAmount1>thead').empty();
-                $('#ProxyGroupTableForTotalAmount2>thead').empty();
-                //建立群组资讯Table
-                var groupData = obj.Results;
-                var allProviderGroupValue = 0;
-                var tmpTrTa = (`<tr><th  style="font-size:15px;text-align:center;">群组(权重)</th><th style="font-size:15px;color:green;text-align:center;">可用额度</th><th style="font-size:15px;color:red;text-align:center;">提领金额</th><th style="font-size:15px;color:blue;text-align:center;">笔数</th><th style="font-size:15px;color:gray;text-align:center;">充值费率</th></tr>`)
-                $('#ProxyGroupTableForTotalAmount1>thead').append(tmpTrTa);
-                $('#ProxyGroupTableForTotalAmount2>thead').append(tmpTrTa);
-                var tableCount = Math.round(groupData.length / 2);
-                for (var i = 0; i < groupData.length; i++) {
-                    if (groupData[i].State == 0) {
-                        tmpTrTa = (`<tr><td style="font-size:15px;">${groupData[i].GroupName}(${groupData[i].Weight})</td><td><span style="font-size:15px;color:green;float:right;">${toCurrency(groupData[i].CanUsePoint2)}</span></td><td><span style="font-size:15px;color:red;float:right;">${toCurrency(groupData[i].CanUsePoint)}</span></td><td><span style="font-size:15px;color:blue;float:right;">${toCurrency(groupData[i].WithdrawalCount)}</span></td><td><span style="font-size:15px;color:gray;float:right;">${toCurrency(groupData[i].PaymentRate)}</span></td></tr>`);
-                    } else {
-                        tmpTrTa = (`<tr style="background-color: rgba(0, 0, 0, .05);"><td style="font-size:15px;">${groupData[i].GroupName}(${groupData[i].Weight})</td><td><span style="font-size:15px;color:green;float:right;">${toCurrency(groupData[i].CanUsePoint2)}</span></td><td><span style="font-size:15px;color:red;float:right;">${toCurrency(groupData[i].CanUsePoint)}</span></td><td><span style="font-size:15px;color:blue;float:right;">${toCurrency(groupData[i].WithdrawalCount)}</span></td><td><span style="font-size:15px;color:gray;float:right;">${toCurrency(groupData[i].PaymentRate)}</span></td></tr>`);
-                    }
-
-                    if (i < tableCount) {
-                        $('#ProxyGroupTableForTotalAmount1>tbody').append(tmpTrTa);
-                    } else {
-                        $('#ProxyGroupTableForTotalAmount2>tbody').append(tmpTrTa);
-                    }
-                    allProviderGroupValue += (groupData[i].CanUsePoint2 - groupData[i].CanUsePoint);
-                }
-
-                $('#AllProviderGroupValue').text(toCurrency(allProviderGroupValue));
-            } else {
-                var message = ""
-                switch (obj.ResultCode) {
-                    case 7:
-                        parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                        break;
-                    case 5:
-
-                        break;
-                    case 4:
-                        parent.errorAlertCallback("权限不足", function () {
-                            parent.ChangePage("Home");
-                            parent.CloseActivePage(window.frameElement.id.split('_')[1]);
-                        });
-                        break;
-                    default:
-                        message = "其他错误";
-                        parent.warningAlert(message);
-                        break;
-                }
-            }
-        });
-
-    }
-
-    function getProxyProviderGroup() {
-        api.getProxyProviderGroupTableResultByAdmin("YE888", function (success, obj) {//LPay2
-            if (obj.ResultCode == 0) {
-                $('#select_proxyProviderGroup').append('<option value="0">' + "未选择" + '</option>');
-                $('#select_changeProxyProviderGroup').append('<option value="0">' + "未选择" + '</option>');
-                //绑定下拉选单
-                proxyProviderGroupData = obj.Results.filter(o => o.State==0);
-                for (var i = 0; i < obj.Results.length; i++) {
-                    $('#select_proxyProviderGroup').append('<option value="' + obj.Results[i].GroupID + '">' + obj.Results[i].GroupName + '</option>');
-                    $('#select_changeProxyProviderGroup').append('<option value="' + obj.Results[i].GroupID + '">' + obj.Results[i].GroupName + '</option>');
-                }
-                $('#select_proxyProviderGroup').selectpicker('refresh');
-                $('#select_changeProxyProviderGroup').selectpicker('refresh');
-            } else {
-                var message = ""
-                switch (obj.ResultCode) {
-                    case 7:
-                        parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                        break;
-                    case 5:
-
-                        break;
-                    case 4:
-                        parent.errorAlertCallback("权限不足", function () {
-                            parent.ChangePage("Home");
-                            parent.CloseActivePage(window.frameElement.id.split('_')[1]);
-                        });
-                        break;
-                    default:
-                        message = "其他错误";
-                        parent.warningAlert(message);
-                        break;
-                }
-            }
-        });
-
-    }
-
-    $('#select_proxyProviderGroup').change(function () {
-        if ($(this).val() != 0) {
-            $('#select_providercode').val("YE888");
-            $('#select_providercode').selectpicker('refresh');
-        }
-        else {
-            $('#select_providercode').val("0");
-            $('#select_providercode').selectpicker('refresh');
-        }
-    })
-
     $('#select_providercode').change(function () {
         if ($(this).val() != "YE888") {
             $('#select_proxyProviderGroup').val("0");
@@ -2153,6 +2043,7 @@
                 else {
                     $('#count1').text('');
                     $('#count2').text('');
+                    $('#count3').text('');
                     switch (obj.ResultCode) {
                         case 4:
                             parent.errorAlertCallback("权限不足", function () {
@@ -2240,6 +2131,7 @@
                 } else {
                     $('#count1').text('');
                     $('#count2').text('');
+                    $('#count3').text('');
                     switch (obj.ResultCode) {
                         case 4:
                             parent.errorAlertCallback("权限不足", function () {
@@ -2304,143 +2196,18 @@
 
 
     $('#btnsearch').click(function () {
-        getProxyProviderGroupWithdrawalAmount();
+        
         IsSearchWaitReview = false;
         IsAutoLoad = false;
         Table.draw();
     })
 
     $('#btnsearch2').click(function () {
-        getProxyProviderGroupWithdrawalAmount();
+        
         IsSearchWaitReview = true;
         IsAutoLoad = false;
         Table.draw();
     });
-
-    $('#btnchangeProxyProviderGroups').click(function () {
-    
-        if ($('#select_changeProxyProviderGroup').val() == "0") {
-            parent.warningAlert("尚未选择更换群组");
-            return false;
-        }
-
-        var groupid = $('#select_changeProxyProviderGroup').val();
-
-        var checkdata= $('#table_WithdrawalTable').find('.changeProviderGroupCheckBox:checked');
-
-        if (checkdata.length == 0) {
-            parent.warningAlert("尚未勾选订单");
-            return false;
-        }
-
-        var withdrawserials = [];
-        for (var i = 0; i < checkdata.length; i++) {
-            var withdrawserial = $(checkdata[i]).data('withdrawserial');
-            withdrawserials.push(withdrawserial);
-        }
-        parent.wrapperFadeIn();
-        api.changeProviderGroupWithdrawalsByAdmin(groupid, withdrawserials, function (success, obj) {
-         
-            if (success) {
-                parent.wrapperFadeOut();
-                if (obj.ResultCode == 0) {
-
-                    var returndatas = obj.Withdrawals;
-                    for (var i = 0; i < returndatas.length; i++) {
-                        modifyRowValueByFirstConfirm(returndatas[i].WithdrawSerial, returndatas[i]);
-                    }
-                    if (obj.SuccessCount > 0) {
-                        parent.successAlert4('<span style="color:green">成功笔数:' + obj.SuccessCount + '</span></br><span style="color:red">失败笔数:' + obj.FailCount + '</span>');
-                    } else {
-                        parent.successAlert4('<span style="color:red">失败笔数:' + obj.FailCount + '</span>');
-                    }
-
-              
-                } else {
-                    var message = ""
-                    switch (obj.ResultCode) {
-                        case 7:
-                            parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                            break;
-                        case 4:
-                            parent.errorAlertCallback("权限不足", function () {
-                                parent.ChangePage("Home");
-                                parent.CloseActivePage(window.frameElement.id.split('_')[1]);
-                            });
-                            break;
-                        case 5:
-                            parent.warningAlert("没有要处理的订单");
-                            break;
-
-
-                        default:
-                            message = "其他错误(更换群组)";
-                            parent.warningAlert(message);
-                            break;
-                    }   
-                }
-            }
-            else {
-                parent.warningAlert("网路异常");
-                parent.wrapperFadeOut();
-            }
-          
-        });
-    });
-    
-
-    $('#btnEditGroupWeight').click(function () {
-        api.getProxyProviderGroupWeightByAdmin("YE888", function (success, obj) {//LPay2
-            $('#editGroupModalTable>tbody').empty();
-            //$('#editGroupModalBody').empty();
-            if (obj.ResultCode == 0) {
-                //建立群组资讯Table
-                var data = obj.Results;
-
-                for (var i = 0; i < data.length; i++) {
-                    //if (data[i].State == 0) {
-                       // var spanHtml = "";
-                       // spanHtml = "<span style='color:blue'>启用</span>";
-                        if (data[i].State == 0) {
-                            spanHtml = `<input style="margin-right:5px;" class="GroupStatus" type="checkbox" checked = "checked"/>`;
-                        } else {
-                            spanHtml = `<input style="margin-right:5px;" class="GroupStatus" type="checkbox" />`;
-                    }
-
-                    tmpTrTa = (`<tr><td style="font-size:15px;">${spanHtml}${data[i].GroupName}</td>
-                                <td style="font-size:15px;"><input class="GroupWeightValue"  data-groupname="${data[i].GroupName}" data-id="${data[i].GroupID}" value="${data[i].Weight}" style="margin-left:5px;margin-bottom: 5px;"/></td>
-                                <td><input data-rule="currency" class="GroupMinAmount thousand-symbols" data-id="${data[i].GroupID}" value="${data[i].MinAmount}" style="margin-left:5px;margin-bottom: 5px;max-width:80px;"/> ~ <input data-rule="currency" class="GroupMaxAmount thousand-symbols" data-id="${data[i].GroupID}" value="${data[i].MaxAmount}" style="margin-left:5px;margin-bottom: 5px;max-width:80px;"/>
-                                <td style="font-size:15px;"><input class="GroupPaymentRate"  data-groupname="${data[i].GroupName}" data-id="${data[i].GroupID}" value="${data[i].PaymentRate}" style="margin-left:5px;margin-bottom: 5px;"/></td>
-                                </tr>`);
-
-                    $('#editGroupModalTable>tbody').append(tmpTrTa);
-                    //$('#editGroupModalBody').append(`<input class="GroupWeightValue"  data-groupname="${data[i].GroupName}" data-id="${data[i].GroupID}" value="${data[i].Weight}" style="margin-left:5px;margin-bottom: 5px;"/> 限额 : <input data-rule="currency" class="GroupMinAmount thousand-symbols" data-id="${data[i].GroupID}" value="${data[i].MinAmount}" style="margin-left:5px;margin-bottom: 5px;"/> ~ <input data-rule="currency" class="GroupMaxAmount thousand-symbols" data-id="${data[i].GroupID}" value="${data[i].MaxAmount}" style="margin-left:5px;margin-bottom: 5px;"/></span>`);
-                    //}
-                }
-
-                new AutoNumeric.multiple('.thousand-symbols', 'floatPos', { allowDecimalPadding: false, decimalPlaces: 4, modifyValueOnWheel: false });
-                $('#editGroupModal').modal('show');
-            } else {
-                var message = ""
-                switch (obj.ResultCode) {
-                    case 7:
-                        parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                        break;
-                    case 4:
-                        parent.errorAlertCallback("权限不足", function () {
-                            parent.ChangePage("Home");
-                            parent.CloseActivePage(window.frameElement.id.split('_')[1]);
-                        });
-                        break;
-                    default:
-                        message = "其他错误";
-                        parent.warningAlert(message);
-                        break;
-                }
-            }
-        });
-    });
-
 
     function CreateWithdrawalStatusSelect() {
         //下發狀態，0=建立/1=進行中/2=成功/3=失敗/4=審核確認中/5=匯款處理中/6=匯款完成，成功，審核中/7=匯款完成，失敗，審核中
@@ -2451,7 +2218,7 @@
         $("#select_Status").append('<option value="2">成功</option>');
         $("#select_Status").append('<option value="3">失败</option>');
         $("#select_Status").append('<option value="9">审核退回</option>');
-        $("#select_Status").append('<option value="13">重审</option>');
+        $("#select_Status").append('<option value="13">重审</option>'); 
         $("#select_Status").append('<option value="14">系统问题单</option>');
         $("#select_Status").val(99);
         $('#select_Status').selectpicker('refresh');
@@ -2629,7 +2396,7 @@
         $('#modal_BankCardName').text(data.BankCardName);
         $('#modal_OwnCity').text(data.OwnCity);
         $('#modal_OwnProvince').text(data.OwnProvince);
-        $('input[name="PayType"]')[0].checked = true;
+        $('input[name="PayType"]')[1].checked = true;
         $('#WithdrawalModal').modal('show');
     }
 
@@ -2670,7 +2437,7 @@
             '</div>' +
             '</div>';
         $('#WithdrawalModalContent').append(dochtml);
-        $('input[name="PayType"]')[0].checked = true;
+        $('input[name="PayType"]')[1].checked = true;
         $('input[type=radio][name=PayType]').change(function () {
             if (this.value == 0) {
                 $('#div_select_providercode').find("[data-supportapi=false]").each(function () {
@@ -3075,93 +2842,6 @@
         $('#WithdrawalRecordModal').modal('hide');
     }
 
-    function editGroupWeight() {
-
-        var GroupModalTableData = $('#editGroupModalTable>tbody').find('tr');
-        var array = [];
-        for (var i = 0; i < GroupModalTableData.length; i++) {
-            GroupModalTableDataRow = $('#editGroupModalTable>tbody').find('tr').eq(i);
-            var state = 0;
-            var groupID = GroupModalTableDataRow.find('.GroupWeightValue').data('id');
-            var groupName = GroupModalTableDataRow.find('.GroupWeightValue').data('groupname');
-            var weight = GroupModalTableDataRow.find('.GroupWeightValue').val();
-            var groupStatus = GroupModalTableDataRow.find("input[class='GroupStatus']");
-            var maxAmount = GroupModalTableDataRow.find(".GroupMaxAmount").val();
-            var minAmount = GroupModalTableDataRow.find(".GroupMinAmount").val();
-            var paymentRate = GroupModalTableDataRow.find(".GroupPaymentRate").val();
-
-            if (toNumber(minAmount) > toNumber(maxAmount)) {
-                parent.warningAlert(`最低金额大于最高金额(${groupName})`);
-                return;
-            }
-
-            if ($(groupStatus).prop('checked')) {
-                state = 0;
-            } else {
-                state = 1;
-            }
-
-            if (weight < 0) {
-                parent.warningAlert("权重不能小于0");
-                return false;
-            }
-
-            var object = new Object();
-            object.GroupID = groupID;
-            object.Weight = weight;
-            object.State = state;
-            object.MinAmount = minAmount;
-            object.MaxAmount = maxAmount;
-            object.forProviderCode = "YE888";
-            object.PaymentRate = paymentRate;
-            array.push(object);
-        }
-
-        parent.wrapperFadeIn();
-
-        api.updateProxyProviderGroupWeight(array, function (success, obj) {
-            if (success) {
-                parent.wrapperFadeOut();
-
-                if (obj.ResultCode == 0) {
-                    $('#editGroupModal').modal('hide');
-                    parent.successAlert3("修改完成", function () {
-                        getProxyProviderGroupWithdrawalAmount();
-                    });
-
-                }
-                else {
-                    var message = ""
-                    switch (obj.ResultCode) {
-                        case 7:
-                            parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                            break;
-                        case 4:
-                            parent.errorAlertCallback("权限不足", function () {
-                                parent.ChangePage("Home");
-                                parent.CloseActivePage(window.frameElement.id.split('_')[1]);
-                            });
-                            break;
-                        case 6:
-                            parent.warningAlert(obj.Message);
-                            break;
-                        default:
-                            parent.warningAlert(obj.Message);
-                            break;
-                    }
-                }
-            } else {
-                parent.warningAlert("网路异常");
-                parent.wrapperFadeOut();
-            }
-        });
-
-    }
-
-    function editGroupcontentcancel() {
-        $('#editGroupModal').modal('hide');
-    }
-
     function ReSendWithdrawal(objbtn, isReSendWithdraw) {
         var withdrawSerial = $($(objbtn).parent().parent().find('td')[1]).html();
 
@@ -3312,7 +2992,7 @@
             var enddate = dateinputval[1] + ":59.999";
             var status = $('#select_Status').val();
             var providerCode = $('#select_providercode').val();
-            var groupID = $('#select_proxyProviderGroup').val();
+            var groupID = 0;
             parent.wrapperFadeIn();
             api.getWithdrawalAdminTableResult(withdrawSerial, companyid, startdate, enddate, status, providerCode, groupID, function (success, obj) {
                 if (success) {
@@ -3331,10 +3011,19 @@
                             var Status = "";
                             var WithdrawType = "";
                             var netincome = 0;
+                            var collectCharge = 0;
                             if (data.FinishDate2 != null) {
                                 FinishDate = data.FinishDate2;
                             }
 
+                            if (data.Status == 2) {
+                                if (data.DecimalPlaces == 1) {
+                                    collectCharge= Math.floor((data.Amount * data.WithdrawRate * 0.01) + data.CollectCharge);
+                                } else {
+                                    collectCharge= (data.Amount * data.WithdrawRate * 0.01) + data.CollectCharge;
+                                }
+                            } 
+                     
                             if (data.WithdrawType == 0) {
                                 if (data.Status == 1) {
                                     if (data.forProviderCode) {
@@ -3358,37 +3047,37 @@
                                 WithdrawType = '';
                             }
 
-                            //switch (data.Status) {
-                            //    case 0:
-                            //        Status = '未处理';
-                            //        break;
-                            //    case 1:
-                            //        Status = '进行中';
-                            //        break;
-                            //    case 2:
-                            //        Status = '成功';
-                            //        break;
-                            //    case 3:
-                            //        Status = '失败';
-                            //        break;
-                            //    case 9:
-                            //        Status = '审核退回';
-                            //        break;
-                            //    case 13:
-                            //        Status = '重审';
-                            //        break;
-                            //    case 14:
-                            //        Status = '系统问题单';
-                            //        break;
+                            switch (data.Status) {
+                                case 0:
+                                    Status = '未处理';
+                                    break;
+                                case 1:
+                                    Status = '进行中';
+                                    break;
+                                case 2:
+                                    Status = '成功';
+                                    break;
+                                case 3:
+                                    Status = '失败';
+                                    break;
+                                case 9:
+                                    Status = '审核退回';
+                                    break;
+                                case 13:
+                                    Status = '重审';
+                                    break;
+                                case 14:
+                                    Status = '系统问题单';
+                                    break;
 
-                            //    default:
-                            //        Status =  '';
-                            //        break;
-                            //}
+                                default:
+                                    Status =  '';
+                                    break;
+                            }
 
                             BankCard = data.BankName + "/" + data.BankCard + "/" + data.BankCardName;
                             OwnCity = `${data.OwnCity}/${data.OwnProvince}/${data.BankBranchName}`;
-                            var tmpArray = new Array(data.WithdrawSerial, data.DownOrderID, Status, WithdrawType, data.ProviderName, data.CompanyName, BankCard, data.Amount, data.CollectCharge, data.CreateDate2, FinishDate, data.RealName2, OwnCity, data.FinishAmount);
+                            var tmpArray = new Array(data.WithdrawSerial, data.DownOrderID, Status, WithdrawType, data.ProviderName, data.CompanyName, BankCard, data.Amount, collectCharge, data.CreateDate2, FinishDate, data.RealName2, OwnCity, data.FinishAmount);
                             exceldata.push(tmpArray);
                         }
 
@@ -3451,45 +3140,6 @@
         }
     }
 
-    function getAllCompanyServicePoint() {
-     
-        api.getAllCompanyServicePoint(function (success, obj) {
-            if (success) {
-                if (obj.ResultCode == 0) {
-                  
-                    var companyServicePoints = obj.CompanyServicePoints.filter(o => o.ServiceType == 'OOB02');
-                    
-                    var systemPointValue = 0;
-                    for (var i = 0; i < companyServicePoints.length; i++) {
-                        if(companyServicePoints[i].CompanyName != "ALL" && companyServicePoints[i].CompanyName != "Gpay测试站" && companyServicePoints[i].CompanyName != "GPay 366" )
-                            systemPointValue += (companyServicePoints[i].SystemPointValue - companyServicePoints[i].FrozenPoint);
-                    }
-                    $('#AllCompanyOB003Value').text(toCurrency(systemPointValue));
-                }
-                else {
-                    var message = ""
-                    switch (obj.ResultCode) {
-                        case 7:
-                            parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                            break;
-                        case 5:
-
-                            break;
-                        default:
-                            message = "其他错误";
-                            parent.warningAlert(message);
-                            break;
-                    }
-                    parent.wrapperFadeOut();
-
-                }
-
-                $('#select_companysevricepoint').selectpicker('refresh');
-            }
-
-        });
-    }
-
     function dateTimeStr() {
         var dateTime = new Date();
         var year = dateTime.getFullYear();
@@ -3506,7 +3156,7 @@
 
 
 
-        return "GPayWithdrawal_" + year + "-" + month + "-" + date + " ";
+        return "EWINPayWithdrawal_" + year + "-" + month + "-" + date + " ";
     }
 
     function openDownloadDialog(url, saveName) {

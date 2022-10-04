@@ -4056,6 +4056,26 @@ var BackendAPI = function (BID, APIUrl) {
     //#endregion
 
     //#region Company
+    this.getBankData = function (cb) {
+
+        var url;
+        url = APIUrl + "/GetBankData";
+
+        callServiceByPost(url, BID, function (success, text) {
+            if (success == true) {
+                var obj = getJSON(text);
+
+                if (cb) {
+                    cb(true, obj);
+                }
+            } else {
+                if (cb) {
+                    cb(false, text);
+                }
+            }
+        });
+    };
+
     this.getCompanyTableResult = function (cb) {
 
         var url;
@@ -6184,6 +6204,37 @@ var BackendAPI = function (BID, APIUrl) {
             Description: Description,
             Type: Type,
             CurrencyType: currency
+        };
+
+        callServiceByPost(url, postData, function (success, text) {
+            if (success == true) {
+                var obj = getJSON(text);
+
+                if (cb) {
+                    cb(true, obj);
+                }
+            } else {
+                if (cb) {
+                    cb(false, text);
+                }
+            }
+        });
+    };
+
+    this.insertManualHistory = function (Company, ServiceType, TransactionSerial, Amount, Description, Type, currency, providerCode, cb) {
+        var url = APIUrl + "/InsertManualHistory";
+        var postData;
+
+        postData = {
+            BID: BID,
+            forCompanyID: Company,
+            ServiceType: ServiceType,
+            TransactionSerial: TransactionSerial,
+            Amount: Amount,
+            Description: Description,
+            Type: Type,
+            CurrencyType: currency,
+            ProviderCode: providerCode
         };
 
         callServiceByPost(url, postData, function (success, text) {

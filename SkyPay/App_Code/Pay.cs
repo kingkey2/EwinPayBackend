@@ -21,13 +21,14 @@ public static class Pay
     public static string ProxyServerUrl = System.Configuration.ConfigurationManager.AppSettings["ProxyServerUrl"];
     public static string GeoIPDatabase = System.Configuration.ConfigurationManager.AppSettings["GeoIPDatabase"];
     public static string AsnDatabase = System.Configuration.ConfigurationManager.AppSettings["AsnDatabase"];
+    public static string ProviderSettingPath = System.Configuration.ConfigurationManager.AppSettings["ProviderSettingFolder"];
     /// <summary>
     /// 重建 SortKey 與 InsideLevel
     /// </summary>
     /// <param name="CompanyID"></param>
     /// <remarks></remarks>
 
- 
+
     public static void CompanyReSortkey(int CompanyID) {
         string SS;
         System.Data.DataTable DT;

@@ -731,8 +731,6 @@
     <Content Include="VPay\RunPay.cshtml" />
     <Content Include="VPay\SummaryCompanyByDateByAgentCompany2.cshtml" />
     <Content Include="VPay\GoRunPay.cshtml" />
-    <Content Include="VPay\ApplyWithdrawal_AdminMaintV4.cshtml" />
-    <Content Include="VPay\ApplyWithdrawal_AdminMaintV3.cshtml" />
     <Content Include="VPay\FrozenPointHistoryV2.cshtml" />
     <Content Include="VPay\SummaryCompanyByHour.cshtml" />
     <Content Include="VPay\ApplyWithdrawal_AdminMaintForAdjustProfit.cshtml" />
@@ -764,6 +762,7 @@
     <Content Include="Company\CreatePayment.cshtml" />
     <Content Include="Company\WithdrawReport.cshtml" />
     <Content Include="document\css" />
+    <Content Include="App_Data\ProviderSetting\withdrawBank.json" />
     <None Include="Scripts\jquery-1.6.4-vsdoc.js" />
     <Content Include="Scripts\jquery-1.6.4.js" />
     <Content Include="Scripts\jquery-1.6.4.min.js" />
@@ -906,6 +905,8 @@
     <Content Include="VPay\AgentCompanyServicePointLogByCompany.cshtml" />
     <Content Include="VPay\CancelWithdrawalReviewToFail.cshtml" />
     <Content Include="VPay\CancelWithdrawalReviewToSuccess.cshtml" />
+    <Content Include="VPay\ManualHistory.cshtml" />
+    <Content Include="VPay\ApplyWithdrawal_AdminMaintReadOnly.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

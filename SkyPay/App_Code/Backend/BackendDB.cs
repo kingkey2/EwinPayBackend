@@ -10387,7 +10387,7 @@ public class BackendDB
 
         SS = " WITH T";
         SS += " AS(";
-        SS += " SELECT PPG.GroupName,ProxyProvider.forProviderCode,ProviderName,convert(varchar,Withdrawal.CreateDate,120) as CreateDate2,convert(varchar,Withdrawal.FinishDate,120) as FinishDate2,";
+        SS += " SELECT ProviderCode.DecimalPlaces,ProviderCode.WithdrawRate,PPG.GroupName,ProxyProvider.forProviderCode,ProviderName,convert(varchar,Withdrawal.CreateDate,120) as CreateDate2,convert(varchar,Withdrawal.FinishDate,120) as FinishDate2,";
         SS += " Withdrawal.Status,Withdrawal.WithdrawSerial,Withdrawal.DownOrderID,";
         SS += " Withdrawal.WithdrawType,Withdrawal.BankCard,Withdrawal.BankCardName,Withdrawal.CurrencyType,";
         SS += " Withdrawal.BankName,Withdrawal.Amount,Withdrawal.OwnProvince,Withdrawal.BankBranchName,";
@@ -10564,9 +10564,9 @@ public class BackendDB
         return returnValue;
     }
 
-    public decimal GetWithdrawalBySearchFilter(FromBody.WithdrawalSetV2 fromBody)
+    public DBModel.WithdrawalV2TotalAmount GetWithdrawalBySearchFilter(FromBody.WithdrawalSetV2 fromBody)
     {
-        decimal returnValue = 0;
+        DBModel.WithdrawalV2TotalAmount returnValue = null;
         String SS = String.Empty;
         SqlCommand DBCmd;
         DataTable DT;
@@ -10574,10 +10574,10 @@ public class BackendDB
 
         //SS = " WITH T";
         //SS += " AS(";
-        SS += " SELECT SUM(Amount) FROM Withdrawal WITH (NOLOCK) ";
+        SS += " SELECT SUM(Amount) TotalAmount,SUM(CASE WHEN Status=2 THEN CASE WHEN ProviderCode.DecimalPlaces=1 THEN floor((Amount*ProviderCode.WithdrawRate*0.01)+Withdrawal.CollectCharge) ELSE (Amount*ProviderCode.WithdrawRate*0.01)+Withdrawal.CollectCharge END ELSE 0 END) TotalHandlingFee FROM Withdrawal WITH (NOLOCK) ";
         //SS += " LEFT JOIN AdminTable AT1 WITH (NOLOCK) ON AT1.AdminID=Withdrawal.HandleByAdminID";
         //SS += " LEFT JOIN AdminTable AT2 WITH (NOLOCK) ON AT2.AdminID=Withdrawal.ConfirmByAdminID";
-        //SS += " LEFT JOIN ProviderCode WITH (NOLOCK) ON ProviderCode.ProviderCode=Withdrawal.ProviderCode";
+        SS += " LEFT JOIN ProviderCode WITH (NOLOCK) ON ProviderCode.ProviderCode=Withdrawal.ProviderCode";
         //SS += " LEFT JOIN CompanyTable WITH (NOLOCK) ON CompanyTable.CompanyID=Withdrawal.forCompanyID";
         //SS += " LEFT JOIN ProxyProvider WITH (NOLOCK) ON ProxyProvider.forProviderCode=Withdrawal.ProviderCode";
         SS += " LEFT JOIN  ProxyProviderOrder PPO WITH (NOLOCK)  ON PPO.forOrderSerial= Withdrawal.WithdrawSerial AND PPO.Type=1 ";
@@ -10728,9 +10728,15 @@ public class BackendDB
         DBCmd.Parameters.Add("@Status", SqlDbType.Int).Value = fromBody.Status;
         DBCmd.Parameters.Add("@WithdrawSerial", SqlDbType.VarChar).Value = string.IsNullOrEmpty(fromBody.WithdrawSerial) ? "" : fromBody.WithdrawSerial;
 
-
-        returnValue = decimal.Parse(DBAccess.GetDBValue(DBConnStr, DBCmd).ToString());
-
+        DT = DBAccess.GetDB(DBConnStr, DBCmd);
+        if (DT != null)
+        {
+            if (DT.Rows.Count > 0)
+            {
+                returnValue = DataTableExtensions.ToList<DBModel.WithdrawalV2TotalAmount>(DT).ToList().First();
+            }
+        }
+       
         return returnValue;
     }
 
@@ -10742,7 +10748,7 @@ public class BackendDB
         SqlCommand DBCmd;
         DataTable DT;
 
-        SS = " SELECT PPG.GroupName,ProxyProvider.forProviderCode,ProviderName,convert(varchar,Withdrawal.CreateDate,120) as CreateDate2,convert(varchar,Withdrawal.FinishDate,120) as FinishDate2,Withdrawal.*,AT1.RealName as RealName1,AT2.RealName as RealName2,CompanyName FROM Withdrawal WITH (NOLOCK) " +
+        SS = " SELECT ProviderCode.WithdrawRate,ProviderCode.DecimalPlaces,PPG.GroupName,ProxyProvider.forProviderCode,ProviderName,convert(varchar,Withdrawal.CreateDate,120) as CreateDate2,convert(varchar,Withdrawal.FinishDate,120) as FinishDate2,Withdrawal.*,AT1.RealName as RealName1,AT2.RealName as RealName2,CompanyName FROM Withdrawal WITH (NOLOCK) " +
              " LEFT JOIN AdminTable AT1 WITH (NOLOCK) ON AT1.AdminID=Withdrawal.HandleByAdminID" +
              " LEFT JOIN AdminTable AT2 WITH (NOLOCK) ON AT2.AdminID=Withdrawal.ConfirmByAdminID" +
              " LEFT JOIN ProviderCode WITH (NOLOCK) ON ProviderCode.ProviderCode=Withdrawal.ProviderCode" +
@@ -15589,6 +15595,33 @@ public class BackendDB
         DBCmd.Parameters.Add("@Amount", SqlDbType.Decimal).Value = Model.Amount;
         DBCmd.Parameters.Add("@Description", SqlDbType.NVarChar).Value = Model.Description;
         DBCmd.Parameters.Add("@TransactionSerial", SqlDbType.VarChar).Value = Model.TransactionSerial;
+        DBCmd.Parameters.Add("@forCompanyID", SqlDbType.Int).Value = Model.forCompanyID;
+        DBCmd.Parameters.Add("@forAdminID", SqlDbType.Int).Value = AdminID;
+        DBCmd.Parameters.Add("@Return", SqlDbType.VarChar).Direction = System.Data.ParameterDirection.ReturnValue;
+        DBAccess.ExecuteDB(DBConnStr, DBCmd);
+
+        returnValue = (int)DBCmd.Parameters["@Return"].Value;
+
+        return returnValue;
+    }
+
+    public int InsertManualHistory(DBModel.CompanyManualHistory Model, int AdminID)
+    {
+        String SS = String.Empty;
+        SqlCommand DBCmd;
+        int returnValue = -4;
+
+        SS = "spAddManual";
+        DBCmd = new System.Data.SqlClient.SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = CommandType.StoredProcedure;
+        DBCmd.Parameters.Add("@Type", SqlDbType.Int).Value = Model.Type;
+        DBCmd.Parameters.Add("@ServiceType", SqlDbType.VarChar).Value = Model.ServiceType;
+        DBCmd.Parameters.Add("@CurrencyType", SqlDbType.VarChar).Value = Model.CurrencyType;
+        DBCmd.Parameters.Add("@Amount", SqlDbType.Decimal).Value = Model.Amount;
+        DBCmd.Parameters.Add("@Description", SqlDbType.NVarChar).Value = Model.Description;
+        DBCmd.Parameters.Add("@TransactionSerial", SqlDbType.VarChar).Value = Model.TransactionSerial;
+        DBCmd.Parameters.Add("@ProviderCode", SqlDbType.VarChar).Value = Model.ProviderCode;
         DBCmd.Parameters.Add("@forCompanyID", SqlDbType.Int).Value = Model.forCompanyID;
         DBCmd.Parameters.Add("@forAdminID", SqlDbType.Int).Value = AdminID;
         DBCmd.Parameters.Add("@Return", SqlDbType.VarChar).Direction = System.Data.ParameterDirection.ReturnValue;
