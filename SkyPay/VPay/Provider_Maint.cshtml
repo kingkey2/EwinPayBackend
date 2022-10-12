@@ -1026,6 +1026,14 @@
                                     <span id="b_ProviderState"></span>
                                 </div>
                             </div>
+                            <div class="row" style="margin:0">
+
+                                <div class="col-lg-6 col-sm-6 col-md-6">
+                                    <span> 提款手續費率：</span>
+                                    <span id="b_WithdrawRate"></span>
+                                </div>
+                               
+                            </div>
                             <div class="footer">
                             </div>
                         </div>
@@ -1187,6 +1195,7 @@ if ('@CheckLoginPermission' == 'false') {
             modifyProviderData.NotifySyncUrl = $('#b_NotifySyncUrl').text();
             modifyProviderData.NotifyAsyncUrl = $('#b_NotifyAsyncUrl').text();
             modifyProviderData.ProviderAPIType = $('#b_ProviderAPIType').text();
+            modifyProviderData.WithdrawRate = $('#b_WithdrawRate').text();
             if ($('#b_CollectType').text() == "一般") {
                 modifyProviderData.CollectType = 0;
             } else {
@@ -1457,6 +1466,7 @@ if ('@CheckLoginPermission' == 'false') {
                 $('#b_NotifySyncUrl').text(selectedproviderdata.NotifySyncUrl);
                 $('#b_NotifyAsyncUrl').text(selectedproviderdata.NotifyAsyncUrl);
                 $('#b_ProviderAPIType').text(selectedproviderdata.ProviderAPIType);
+                $('#b_WithdrawRate').text(selectedproviderdata.WithdrawRate);
                 $('#b_ProviderAPITypeStr').text(checkedProviderAPIType(selectedproviderdata.ProviderAPIType));
                 if (selectedproviderdata.ProviderState == 0) {
                     $('#b_ProviderState').text('启用');
@@ -1474,6 +1484,9 @@ if ('@CheckLoginPermission' == 'false') {
                     $('#b_CollectType').css('color', 'red');
                 }
 
+         
+               
+                
 
                 $('#divProviderDetail').show();
                 getProviderServiceTableResult(selectedproviderdata.ProviderCode);
@@ -1786,6 +1799,7 @@ if ('@CheckLoginPermission' == 'false') {
             $('#b_NotifySyncUrl').text(selectedproviderdata.NotifySyncUrl);
             $('#b_NotifyAsyncUrl').text(selectedproviderdata.NotifyAsyncUrl);
             $('#b_ProviderAPIType').text(selectedproviderdata.ProviderAPIType);
+            $('#b_WithdrawRate').text(selectedproviderdata.WithdrawRate);
             if (selectedproviderdata.ProviderState == 0) {
                 $('#b_ProviderState').text('启用');
                 $('#b_ProviderState').css('color', 'blue');
@@ -1815,6 +1829,7 @@ if ('@CheckLoginPermission' == 'false') {
             $('#b_ProviderAPIType').text('');
             $('#b_ProviderAPITypeStr').text('');
             $('#b_ProviderState').text('');
+            $('#b_WithdrawRate').text('');
             $('#b_CollectType').text('');
         }
     });

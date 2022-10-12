@@ -4206,7 +4206,7 @@ var BackendAPI = function (BID, APIUrl) {
     };
 
 
-    this.insertCompanyTableResult = function (companyName, companyCode, URL, companyType, parentCompanyID, contacterName, contacterMobile, contacterMethod, contacterMethodAccount, contacterEmail, withdrawType, serviceType, backendLoginIPType, withdrawAPIType, backendWithdrawType, providerGroupID, cb) {
+    this.insertCompanyTableResult = function (companyName, companyCode, URL, companyType, parentCompanyID, contacterName, contacterMobile, contacterMethod, contacterMethodAccount, contacterEmail, withdrawType, serviceType, backendLoginIPType, withdrawAPIType, backendWithdrawType, providerGroupID, currencyType, cb) {
         var url = APIUrl + "/InsertCompanyTableResult";
         var postData;
 
@@ -4227,7 +4227,8 @@ var BackendAPI = function (BID, APIUrl) {
             BackendLoginIPType: backendLoginIPType,
             WithdrawAPIType: withdrawAPIType,
             BackendWithdrawType: backendWithdrawType,
-            ProviderGroupID: providerGroupID
+            ProviderGroupID: providerGroupID,
+            CurrencyType: currencyType
         };
 
         callServiceByPost(url, postData, function (success, text) {
@@ -4674,7 +4675,7 @@ var BackendAPI = function (BID, APIUrl) {
         });
     };
 
-    this.insertProviderCodeResult = function (providerCode, providerName, introducer, providerUrl, merchantKey, merchantCode, notifySyncUrl, notifyAsyncUrl, providerAPIType, collectType, cb) {
+    this.insertProviderCodeResult = function (providerCode, providerName, introducer, providerUrl, merchantKey, merchantCode, notifySyncUrl, notifyAsyncUrl, providerAPIType, collectType, withdrawRate, cb) {
         var url = APIUrl + "/InsertProviderCodeResult";
         var postData;
 
@@ -4689,7 +4690,8 @@ var BackendAPI = function (BID, APIUrl) {
             NotifySyncUrl: notifySyncUrl,
             NotifyAsyncUrl: notifyAsyncUrl,
             CollectType: collectType,
-            ProviderAPIType: providerAPIType
+            ProviderAPIType: providerAPIType,
+            WithdrawRate: withdrawRate
         };
 
         callServiceByPost(url, postData, function (success, text) {
@@ -4707,7 +4709,7 @@ var BackendAPI = function (BID, APIUrl) {
         });
     };
 
-    this.updateProviderCodeResult = function (providerCode, providerName, introducer, providerUrl, merchantKey, merchantCode, notifySyncUrl, notifyAsyncUrl, providerAPIType, collectType, cb) {
+    this.updateProviderCodeResult = function (providerCode, providerName, introducer, providerUrl, merchantKey, merchantCode, notifySyncUrl, notifyAsyncUrl, providerAPIType, collectType, withdrawRate,cb) {
         var url = APIUrl + "/UpdateProviderCodeResult";
         var postData;
 
@@ -4722,7 +4724,8 @@ var BackendAPI = function (BID, APIUrl) {
             NotifySyncUrl: notifySyncUrl,
             NotifyAsyncUrl: notifyAsyncUrl,
             CollectType: collectType,
-            ProviderAPIType: providerAPIType
+            ProviderAPIType: providerAPIType,
+            WithdrawRate: withdrawRate
         };
 
         callServiceByPost(url, postData, function (success, text) {

@@ -564,6 +564,7 @@ public class DBModel {
         public int ProviderAPIType { get; set; }
         public int ProviderState { get; set; }
         public int CollectType { get; set; }
+        public decimal WithdrawRate { get; set; }
     }
 
     public class WithdrawLimit {

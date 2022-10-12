@@ -999,12 +999,16 @@
                                 <input type="text" id="URL" class="form-control" style="width:50%">
                             </div>
 
-
                             <label for="">上线商户选择 : </label>
                             <div>
                                 <span id="companyLabel" class="badge badge-info">最上层商户</span>
                                 <button id="btn_selectCompany" class="blo btn btn-primary waves-effect btn-sm" type="button">商户选择</button>
                             </div>
+                            <label for="CurrencyType">使用币别 : </label>
+                            <div class="form-group">
+                                <select class="form-control" id="selectCurrencyType"></select>
+                            </div>
+
                             <label>商戶類別 : </label>
                             <div class="form-group">
                                 <div class="radio inlineblock">
@@ -1024,8 +1028,8 @@
                                     <label for="CompanyType0">系统商</label>
                                 </div>
                             </div>
-                       
-    
+
+
                             <label>后台IP检查 : </label>
                             <div class="form-group">
                                 <div class="radio inlineblock">
@@ -1113,13 +1117,48 @@
     function pageLoad() {
         if ('@CheckLoginPermission' == 'false') {
                 location.href = "Login.cshtml";
-            }
+        }
 
         AdminObject = parent.AdminObject;
         api = parent.api;
         //建立下線選單
         parent.layout_getCompanyTableResult(true);
-     
+        //取得資料並啟用下拉選單
+        api.getCurrency(function (success, obj) {
+            if (success) {
+                $("#selectCurrencyType").empty();
+                if (obj.ResultCode == 0) {
+                    var datas = obj.Currencies;
+                    $.each(datas, function (i, v) {
+                        if (i == 0) {
+                            $("#selectCurrencyType").append('<option data-value="' + v.CurrencyType + '">' + v.CurrencyType + '</option>');
+                        } else {
+                            $("#selectCurrencyType").append('<option data-value="' + v.CurrencyType + '">' + v.CurrencyType + '</option>');
+                        }
+                    })
+                } else {
+                    switch (obj.ResultCode) {
+                        case 4:
+                            parent.errorAlertCallback("权限不足", function () {
+                                parent.ChangePage("Home");
+                                parent.CloseActivePage(window.frameElement.id.split('_')[1]);
+                            });
+                            break;
+                        case 5:
+                            parent.warningAlert("没有资料");
+                            break;
+                        case 7:
+                            parent.errorAlert("您已断线请重新登入", "Login.cshtml");
+                            break;
+                        default:
+                            parent.warningAlert("其他错误");
+                            break;
+                    }
+                }
+                $('#selectCurrencyType').selectpicker('refresh');
+            }
+        });
+
         if (AdminObject.CompanyType == 0) {
             $('#div_CompanyType0').show();
         }
@@ -1154,11 +1193,19 @@
                 return;
             }
 
+            if ($("#selectCurrencyType").val() == "") {
+                parent.warningAlert("尚未選擇幣別");
+                return;
+            }
+
+            
+
             //#endregion
             var companyName = $("#CompanyCode").val().trim();
             var companyCode = $("#CompanyCode").val().trim();
             var URL = $('#URL').val().trim();
             var companyType = $('input[name=CompanyType]:checked').val();
+            var currencyType = $("#selectCurrencyType").val();
             var withdrawType = $('input[name=WithdrawType]:checked').val();
             var backendLoginIPType = $('input[name=BackendLoginIPType]:checked').val();
             if (withdrawType == "1") {
@@ -1191,7 +1238,7 @@
             var backendWithdrawType = $('input[name=BackendWithdrawType]:checked').val();
             var providerGroupID ="0";
 
-            api.insertCompanyTableResult(companyName, companyCode, URL, companyType, parentCompanyID, contacterName, contacterMobile, contacterMethod, contacterMethodAccount, contacterEmail, withdrawType, serviceType, backendLoginIPType, withdrawAPIType, backendWithdrawType, providerGroupID, function (success, obj) {
+            api.insertCompanyTableResult(companyName, companyCode, URL, companyType, parentCompanyID, contacterName, contacterMobile, contacterMethod, contacterMethodAccount, contacterEmail, withdrawType, serviceType, backendLoginIPType, withdrawAPIType, backendWithdrawType, providerGroupID, currencyType, function (success, obj) {
                 if (success) {
                     if (obj.ResultCode == 0) {
                         TempData = {

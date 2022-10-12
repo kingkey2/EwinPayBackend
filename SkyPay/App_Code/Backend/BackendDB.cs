@@ -431,7 +431,8 @@ public class BackendDB
                      "               BackendLoginIPType," +
                      "               ProviderGroupID," +
                      "               BackendWithdrawType," +
-                     "               ContacterEmail)" +
+                     "               ContacterEmail," +
+                     "               CurrencyType)" +
                      "   VALUES" +
                      "              (@CompanyType," +
                      "               @CompanyName," +
@@ -453,7 +454,8 @@ public class BackendDB
                      "               @BackendLoginIPType," +
                      "               @ProviderGroupID," +
                      "               @BackendWithdrawType," +
-                     "               @ContacterEmail)" +
+                     "               @ContacterEmail," +
+                     "               @CurrencyType)" +
                      "                      SELECT @@IDENTITY;";
             DBCmd = new System.Data.SqlClient.SqlCommand();
             DBCmd.CommandText = SS;
@@ -478,6 +480,7 @@ public class BackendDB
             DBCmd.Parameters.Add("@BackendLoginIPType", SqlDbType.Int).Value = company.BackendLoginIPType;
             DBCmd.Parameters.Add("@ProviderGroupID", SqlDbType.Int).Value = company.ProviderGroupID;
             DBCmd.Parameters.Add("@BackendWithdrawType", SqlDbType.Int).Value = company.BackendWithdrawType;
+            DBCmd.Parameters.Add("@CurrencyType", SqlDbType.VarChar).Value = company.CurrencyType;
             CompanyID = int.Parse(T.GetDBValue(DBCmd).ToString());
         });
 
@@ -2041,8 +2044,8 @@ public class BackendDB
         string SS;
         System.Data.SqlClient.SqlCommand DBCmd = null;
 
-        SS = "INSERT INTO ProviderCode (ProviderCode,ProviderName,Introducer,ProviderUrl,MerchantCode,MerchantKey,NotifyAsyncUrl,NotifySyncUrl,ProviderAPIType,CollectType,ProviderState) " +
-         "                          VALUES (@ProviderCode,@ProviderName,@Introducer,@ProviderUrl,@MerchantCode,@MerchantKey,@NotifyAsyncUrl,@NotifySyncUrl,@ProviderAPIType,@CollectType,@ProviderState)";
+        SS = "INSERT INTO ProviderCode (ProviderCode,ProviderName,Introducer,ProviderUrl,MerchantCode,MerchantKey,NotifyAsyncUrl,NotifySyncUrl,ProviderAPIType,CollectType,ProviderState,WithdrawRate) " +
+         "                          VALUES (@ProviderCode,@ProviderName,@Introducer,@ProviderUrl,@MerchantCode,@MerchantKey,@NotifyAsyncUrl,@NotifySyncUrl,@ProviderAPIType,@CollectType,@ProviderState,@WithdrawRate)";
 
         DBCmd = new System.Data.SqlClient.SqlCommand();
         DBCmd.CommandText = SS;
@@ -2058,6 +2061,7 @@ public class BackendDB
         DBCmd.Parameters.Add("@ProviderAPIType", SqlDbType.Int).Value = Model.ProviderAPIType;
         DBCmd.Parameters.Add("@CollectType", SqlDbType.Int).Value = Model.CollectType;
         DBCmd.Parameters.Add("@ProviderState", SqlDbType.Int).Value = Model.CollectType == 1 ? 1 : 0;
+        DBCmd.Parameters.Add("@WithdrawRate", SqlDbType.Decimal).Value = Model.WithdrawRate;
         returnValue = DBAccess.ExecuteDB(Pay.DBConnStr, DBCmd);
         RedisCache.ProviderCode.UpdateProviderCode(Model.ProviderCode);
         return returnValue;
@@ -2069,7 +2073,7 @@ public class BackendDB
         string SS;
         System.Data.SqlClient.SqlCommand DBCmd = null;
 
-        SS = "UPDATE ProviderCode SET ProviderName=@ProviderName,Introducer=@Introducer,ProviderUrl=@ProviderUrl,MerchantCode=@MerchantCode,MerchantKey=@MerchantKey,NotifyAsyncUrl=@NotifyAsyncUrl,NotifySyncUrl=@NotifySyncUrl,ProviderAPIType=@ProviderAPIType,CollectType=@CollectType WHERE ProviderCode=@ProviderCode ";
+        SS = "UPDATE ProviderCode SET ProviderName=@ProviderName,Introducer=@Introducer,ProviderUrl=@ProviderUrl,MerchantCode=@MerchantCode,MerchantKey=@MerchantKey,NotifyAsyncUrl=@NotifyAsyncUrl,NotifySyncUrl=@NotifySyncUrl,ProviderAPIType=@ProviderAPIType,CollectType=@CollectType,WithdrawRate=@WithdrawRate WHERE ProviderCode=@ProviderCode ";
 
         DBCmd = new System.Data.SqlClient.SqlCommand();
         DBCmd.CommandText = SS;
@@ -2084,6 +2088,7 @@ public class BackendDB
         DBCmd.Parameters.Add("@NotifySyncUrl", SqlDbType.NVarChar).Value = Model.NotifySyncUrl;
         DBCmd.Parameters.Add("@ProviderAPIType", SqlDbType.Int).Value = Model.ProviderAPIType;
         DBCmd.Parameters.Add("@CollectType", SqlDbType.Int).Value = Model.CollectType;
+        DBCmd.Parameters.Add("@WithdrawRate", SqlDbType.Decimal).Value = Model.WithdrawRate;
         returnValue = DBAccess.ExecuteDB(Pay.DBConnStr, DBCmd);
         RedisCache.ProviderCode.UpdateProviderCode(Model.ProviderCode);
         return returnValue;
@@ -5318,7 +5323,7 @@ public class BackendDB
 
     }
 
-    public void FastInsertCompanyServiceFromParentCompany(int ParentCompanyID, int CompanyID)
+    public void FastInsertCompanyServiceFromParentCompany(int ParentCompanyID, int CompanyID,string CurrencyType)
     {
 
         String SS = String.Empty;
@@ -5330,7 +5335,7 @@ public class BackendDB
         DBCmd.CommandText = SS;
         DBCmd.CommandType = CommandType.Text;
 
-        DBCmd.Parameters.Add("@CurrencyType", SqlDbType.NVarChar).Value = "CNY";
+        DBCmd.Parameters.Add("@CurrencyType", SqlDbType.NVarChar).Value = CurrencyType;
         DBCmd.Parameters.Add("@forCompanyID", SqlDbType.Int).Value = ParentCompanyID;
         DT = DBAccess.GetDB(DBConnStr, DBCmd);
 

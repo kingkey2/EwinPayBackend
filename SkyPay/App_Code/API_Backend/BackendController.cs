@@ -668,12 +668,12 @@ public class BackendController : ApiController
         //建立後台帳號
         backendDB.InsertAdmin(InsertCompanyID, InsertAdminRoleID, CompanyData.CompanyCode, CompanyData.CompanyCode, "", "", 0);
         //建立公司錢包
-        backendDB.InsertCompanyPoint(InsertCompanyID, "CNY");
+        backendDB.InsertCompanyPoint(InsertCompanyID, CompanyData.CurrencyType);
 
         if (CompanyData.ParentCompanyID != 0)
         {
             //建立公司渠道
-            backendDB.FastInsertCompanyServiceFromParentCompany(CompanyData.ParentCompanyID, InsertCompanyID);
+            backendDB.FastInsertCompanyServiceFromParentCompany(CompanyData.ParentCompanyID, InsertCompanyID, CompanyData.CurrencyType);
         }
         BackendFunction backendFunction = new BackendFunction();
         string IP = backendFunction.CheckIPInTW(CodingControl.GetUserIP());

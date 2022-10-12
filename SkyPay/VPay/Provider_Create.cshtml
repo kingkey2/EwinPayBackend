@@ -979,48 +979,52 @@
                                     <label for="CollectType1">专属厂商</label>
                                 </div>
                             </div>
-                            <label>提供功能 : </label>
-                            <div>
-                                <div class="checkbox" style="display:inline-block;margin-left: 10px;">
-                                    <input id="checkbox1" type="checkbox" value="1">
-                                    <label for="checkbox1">
-                                        代收
-                                    </label>
+                                <label for="WithdrawRate">提款费率 : </label>
+                                <div class="form-group">
+                                    <input type="text" id="WithdrawRate" class="form-control percent" value="0">
                                 </div>
+                                <label>提供功能 : </label>
+                                <div>
+                                    <div class="checkbox" style="display:inline-block;margin-left: 10px;">
+                                        <input id="checkbox1" type="checkbox" value="1">
+                                        <label for="checkbox1">
+                                            代收
+                                        </label>
+                                    </div>
 
-                                <div class="checkbox" style="display: inline-block;">
-                                    <input id="checkbox2" type="checkbox" value="2">
-                                    <label for="checkbox2">
-                                        代付
-                                    </label>
+                                    <div class="checkbox" style="display: inline-block;">
+                                        <input id="checkbox2" type="checkbox" value="2">
+                                        <label for="checkbox2">
+                                            代付
+                                        </label>
+                                    </div>
+
+                                    <div class="checkbox" style="display: inline-block;">
+                                        <input id="checkbox4" type="checkbox" value="4">
+                                        <label for="checkbox4">
+                                            查询余额
+                                        </label>
+                                    </div>
+
+                                    <div class="checkbox" style="display: inline-block;">
+                                        <input id="checkbox8" type="checkbox" value="8">
+                                        <label for="checkbox8">
+                                            查询单
+                                        </label>
+                                    </div>
+
+
+                                    <div class="checkbox" style="display: inline-block;">
+                                        <input id="checkbox16" type="checkbox" value="16">
+                                        <label for="checkbox16">
+                                            补单
+                                        </label>
+                                    </div>
                                 </div>
-
-                                <div class="checkbox" style="display: inline-block;">
-                                    <input id="checkbox4" type="checkbox" value="4">
-                                    <label for="checkbox4">
-                                        查询余额
-                                    </label>
+                                <div class="text-center">
+                                    <button type="button" class="btn btn-raised btn-primary btn-round waves-effect" id="btn_Save">储存</button>
+                                    <button type="button" class="btn btn-raised btn-primary btn-round waves-effect" id="btn_Cancel">取消</button>
                                 </div>
-
-                                <div class="checkbox" style="display: inline-block;">
-                                    <input id="checkbox8" type="checkbox" value="8">
-                                    <label for="checkbox8">
-                                        查询单
-                                    </label>
-                                </div>
-
-
-                                <div class="checkbox" style="display: inline-block;">
-                                    <input id="checkbox16" type="checkbox" value="16">
-                                    <label for="checkbox16">
-                                        补单
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="text-center">
-                                <button type="button" class="btn btn-raised btn-primary btn-round waves-effect" id="btn_Save">储存</button>
-                                <button type="button" class="btn btn-raised btn-primary btn-round waves-effect" id="btn_Cancel">取消</button>
-                            </div>
                         </form>
                     </div>
                     <div class="footer"></div>
@@ -1048,6 +1052,8 @@ if ('@CheckLoginPermission' == 'false') {
         AdminObject = parent.AdminObject;
         api = parent.api;
 
+        new AutoNumeric.multiple('.percent', 'integer', { allowDecimalPadding: false, decimalPlaces: 4, minimumValue: 0, maximumValue: 100 });
+
         parent.wrapperFadeOut();
         //儲存
         $("#btn_Save").on("click", function () {
@@ -1060,6 +1066,11 @@ if ('@CheckLoginPermission' == 'false') {
                 parent.warningAlert("供应商名称为必填！");
                 return;
             }
+
+            if ($("#WithdrawRate").val().trim() == "") {
+                parent.warningAlert("尚未填寫提款費率！");
+                return;
+            }
           
             //#endregion
             var providerCode = $("#ProviderCode").val().trim();
@@ -1070,6 +1081,7 @@ if ('@CheckLoginPermission' == 'false') {
             var merchantCode = $("#MerchantCode").val();
             var notifySyncUrl = $("#NotifySyncUrl").val();
             var notifyAsyncUrl = $("#NotifyAsyncUrl").val();
+            var withdrawRate = $("#WithdrawRate").val();
             var collectType = $('input[name=CollectType]:checked').val();
             var providerAPIType = 0
             if ($("#checkbox1:checked").val()) {
@@ -1089,7 +1101,7 @@ if ('@CheckLoginPermission' == 'false') {
                 providerAPIType += parseInt($("#checkbox16:checked").val());
             }
             
-            api.insertProviderCodeResult(providerCode, providerName, introducer, providerUrl, merchantKey, merchantCode, notifySyncUrl, notifyAsyncUrl, providerAPIType,collectType,function (success, obj) {
+            api.insertProviderCodeResult(providerCode, providerName, introducer, providerUrl, merchantKey, merchantCode, notifySyncUrl, notifyAsyncUrl, providerAPIType, collectType,withdrawRate,function (success, obj) {
                 if (success) {
                     if (obj.ResultCode == 0) {
                         TempData = {
