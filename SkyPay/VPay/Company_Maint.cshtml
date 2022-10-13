@@ -963,10 +963,8 @@
                 <h2>商户设定管理</h2>
 
             </div>
-            <div class="col col-lg-9 col-md-9 col-sm-9 hideDiv">
+            <div class="col col-lg-9 col-md-9 col-sm-9 hideDiv hideDiv2">
                 <div class="tips">
-                    <div style="margin:0" id="divAllCompanyPointDetail">
-                    </div>
                 </div>
                 <span style="z-index:500;width:100%">
                     <select data-live-search="true" class="show-tick" id="select_company"></select>
@@ -1004,7 +1002,7 @@
                                     <div class="col-lg-5 col-md-5 col-sm-5 hideDiv ortherText">
                                         <button id="btnCompanyDisable" type="button" class="btn btn-raised btn-danger btn-round waves-effect float-right">商户停用</button>
                                         <button id="btnCompanyEdit" type="button" class="btn btn-raised btn-primary btn-round waves-effect float-right">商户修改</button>
-
+                                        <button id="btnCompanyEditWithdrawal" type="button" class="btn btn-raised btn-primary btn-round waves-effect float-right">调整代付方式</button>
                                     </div>
                                 </div>
                             </div>
@@ -1256,7 +1254,19 @@
             if (AdminObject.CompanyType == 1) {
                 $('.hideDiv').hide();
             }
-  
+
+            if (AdminObject.CompanyType == 4) {
+                $('#btnCompanyDisable').hide();
+                $('#btnCompanyEdit').hide();
+                $('#btnCompanyCreate').hide();
+                $('#btnCompanyServiceAdd').hide();
+                $('#btnCompanyServiceDisable').hide();
+                
+                $('.hideDiv2').hide();
+            } else {
+                $('#btnCompanyEditWithdrawal').hide(); 
+            }
+           
             createCompanyServicePointTable();
             createCompanyTree();
             //ShowAllCompanyPoint();
@@ -1288,6 +1298,19 @@
                     parent.CreateSessionStorage("Company_Maint", CSeleData[0], `商户编辑(${CSeleData[0].CompanyName})`, "Company_Update.cshtml", backID, "Company_Update_" + CSeleData[0].CompanyName.CompanyCode);
                 }
             });
+            //调整商户支付方式
+            $("#btnCompanyEditWithdrawal").on("click", function () {
+                if ($('#select_company').val() == 0) {
+
+                    parent.warningAlert("尚未选择商户");
+                } else {
+                    CSeleData = jQuery.grep(CData, function (n, i) {
+                        return (n.CompanyID == seleCompanyid);
+                    });
+                    var backID = window.frameElement.id.split('_')[1];
+                    parent.CreateSessionStorage("Company_Maint", CSeleData[0], `调整代付支付方式(${CSeleData[0].CompanyName})`, "Company_UpdateWithdrawType.cshtml", backID, "Company_Update_" + CSeleData[0].CompanyName.CompanyCode);
+                }
+            });
             //停用
             $("#btnCompanyDisable").on("click", function () {
     
@@ -1298,7 +1321,8 @@
                         confirmButtonText: "确认",
                         closeOnConfirm: true
                     });
-                } else {
+                }
+                else {
                     swal({
                         title: "是否要停用?",
                         type: "warning",
@@ -1629,9 +1653,7 @@
                             parent.CloseActivePage(window.frameElement.id.split('_')[1]);
                         });
                     } else {
-                   
                         CreateCtable(obj.CompanyResults, "CompanyName", "CompanyID", "ParentCompanyID");
-            
                         parent.wrapperFadeOut();
                     }
                 } else {
@@ -1727,8 +1749,17 @@
                     }
                 }
             }
+
+            if (AdminObject.CompanyType == 4) {
+                $('#select_company').val(AdminObject.forCompanyID);
                 $('#select_company').selectpicker('refresh');
-          
+                seleCompanyid = AdminObject.forCompanyID;
+                ShowCompanyService();
+            } else {
+                $('#select_company').selectpicker('refresh');
+            }
+
+        
             parent.wrapperFadeOut();
          
             //確認是否從新增或修改頁面完成後進入,如果是的話找出剛剛修改後的供應商資料
@@ -1841,7 +1872,6 @@
         } else {
             parent.wrapperFadeIn();
             seleCompanyid = $(this).val();
-
             event.stopPropagation();
             ShowCompanyService();
         }
@@ -1851,7 +1881,6 @@
         //#region 商戶餘額資料
 
     function ShowAllCompanyPoint() {
-        console.time("getCompanyPoint");
             api.getCompanyPointTableResult(0, function (s, o) {
                 if (s) {
                     if (o.ResultCode == 0) {

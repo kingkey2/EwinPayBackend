@@ -420,6 +420,37 @@ public class BackendController : ApiController
 
     [HttpGet]
     [HttpPost]
+    [ActionName("GetCompanyTableResultByCompanyType")]
+    public CompanyTableResult GetCompanyTableResultByCompanyType([FromBody] string BID)
+    {
+        CompanyTableResult _CompanyTableResult = new CompanyTableResult();
+
+
+        if (!RedisCache.BIDContext.CheckBIDExist(BID))
+        {
+            _CompanyTableResult.ResultCode = APIResult.enumResult.SessionError;
+            return _CompanyTableResult;
+        }
+
+        RedisCache.BIDContext.BIDInfo AdminData = RedisCache.BIDContext.GetBIDInfo(BID);
+
+        BackendDB backendDB = new BackendDB();
+        List<DBModel.Company> companys = backendDB.GetCompanyByCompanyType();
+        if (companys != null)
+        {
+            _CompanyTableResult.CompanyResults = companys;
+            _CompanyTableResult.ResultCode = APIResult.enumResult.OK;
+
+        }
+        else
+        {
+            _CompanyTableResult.ResultCode = APIResult.enumResult.NoData;
+        }
+        return _CompanyTableResult;
+    }
+
+    [HttpGet]
+    [HttpPost]
     [ActionName("GetCompanyTableResult2")]
     public CompanyTableResult GetCompanyTableResult2([FromBody] string BID)
     {
@@ -559,6 +590,7 @@ public class BackendController : ApiController
     {
         GetCompanyAllServiceDetail retValue = new GetCompanyAllServiceDetail();
         BackendDB backendDB = new BackendDB();
+        int companyID;
         if (!RedisCache.BIDContext.CheckBIDExist(fromBody.BID))
         {
             retValue.ResultCode = APIResult.enumResult.SessionError;
@@ -567,15 +599,20 @@ public class BackendController : ApiController
 
         RedisCache.BIDContext.BIDInfo AdminData = RedisCache.BIDContext.GetBIDInfo(fromBody.BID);
 
-        if (AdminData.CompanyType != 0)
+        if (AdminData.CompanyType == 0)
         {
+            companyID = fromBody.CompanyID;
+        } else if (AdminData.CompanyType == 4) {
+            companyID = AdminData.forCompanyID;
+        }
+        else {
             retValue.ResultCode = APIResult.enumResult.VerificationError;
             return retValue;
         }
 
-        retValue.WithdrawRelations = backendDB.GetCompanyWithdrawRelationResult(fromBody.CompanyID);
-        retValue.WithdrawLimits = backendDB.GetWithdrawLimitResult(new DBModel.WithdrawLimit() { WithdrawLimitType = 1, ProviderCode = "", CompanyID = fromBody.CompanyID });
-        retValue.CompanyServiceResults = backendDB.GetCompanyServiceTableByCompanyID(fromBody.CompanyID);
+        retValue.WithdrawRelations = backendDB.GetCompanyWithdrawRelationResult(companyID);
+        retValue.WithdrawLimits = backendDB.GetWithdrawLimitResult(new DBModel.WithdrawLimit() { WithdrawLimitType = 1, ProviderCode = "", CompanyID = companyID });
+        retValue.CompanyServiceResults = backendDB.GetCompanyServiceTableByCompanyID(companyID);
         if (retValue.WithdrawRelations != null || retValue.WithdrawLimits != null || retValue.CompanyServiceResults != null)
         {
             retValue.ResultCode = APIResult.enumResult.OK;
@@ -685,6 +722,122 @@ public class BackendController : ApiController
         _CompanyTableResult.Message = InsertCompanyID.ToString();
         _CompanyTableResult.ResultCode = APIResult.enumResult.OK;
 
+
+        return _CompanyTableResult;
+    }
+
+    [HttpPost]
+    [ActionName("UpdateCompanyWithdrawlType")]
+    public CompanyTableResult UpdateCompanyWithdrawlType([FromBody] FromBody.Company CompanyData)
+    {
+        CompanyTableResult _CompanyTableResult = new CompanyTableResult();
+        int companyResult = 0;
+        BackendDB backendDB = new BackendDB();
+
+        if (!RedisCache.BIDContext.CheckBIDExist(CompanyData.BID))
+        {
+            _CompanyTableResult.ResultCode = APIResult.enumResult.SessionError;
+            return _CompanyTableResult;
+        }
+
+        RedisCache.BIDContext.BIDInfo AdminData = RedisCache.BIDContext.GetBIDInfo(CompanyData.BID);
+
+        if (!Pay.IsTestSite)
+        {
+            if (!CodingControl.CheckXForwardedFor())
+            {
+                backendDB.InsertBotSendLog(AdminData.CompanyCode, "公司代碼:" + AdminData.CompanyCode + ",偵測到非反代IP活動：" + CodingControl.GetXForwardedFor());
+                RedisCache.BIDContext.ClearBID(CompanyData.BID);
+                _CompanyTableResult.ResultCode = APIResult.enumResult.VerificationError;
+                _CompanyTableResult.Message = "";
+                return _CompanyTableResult;
+            }
+        }
+
+        if (AdminData.CompanyType != 4)
+        {
+            _CompanyTableResult.ResultCode = APIResult.enumResult.VerificationError;
+            return _CompanyTableResult;
+        }
+
+        if (!backendDB.CheckLoginIP(CodingControl.GetUserIP(), AdminData.CompanyCode))
+        {
+            RedisCache.BIDContext.ClearBID(CompanyData.BID);
+            _CompanyTableResult.ResultCode = APIResult.enumResult.VerificationError;
+            _CompanyTableResult.Message = "";
+            return _CompanyTableResult;
+        }
+
+        //if (CompanyData.WithdrawType == 0) {
+        //    CompanyData.AutoWithdrawalServiceType = "";
+        //}
+        CompanyData.CompanyID = AdminData.forCompanyID;
+        companyResult = backendDB.UpdateCompanyWithdrawlType(CompanyData);
+
+        if (companyResult == -1)
+        {
+            _CompanyTableResult.ResultCode = APIResult.enumResult.DataExist;
+        }
+        else if (companyResult != 0)
+        {
+            string WithdrawType = "";//代付API规则
+            if (CompanyData.WithdrawType == 0)
+            {
+                WithdrawType = "后台审核";
+            }
+            else if (CompanyData.WithdrawType == 1)
+            {
+                WithdrawType = "自动代付";
+            }
+
+
+            string WithdrawAPIType = "未启用";//支援代付方式
+
+            if (CompanyData.WithdrawAPIType == 1)
+            {
+                WithdrawAPIType = "后台申请";
+            }
+            else if (CompanyData.WithdrawAPIType == 2)
+            {
+                WithdrawAPIType = "API代付";
+            }
+            else if (CompanyData.WithdrawAPIType == 3)
+            {
+                WithdrawAPIType = "后台申请,API代付";
+            }
+
+            string BackendLoginIPType = "";//后台IP检查
+            if (CompanyData.BackendLoginIPType == 0)
+            {
+                BackendLoginIPType = "启用";
+            }
+            else if (CompanyData.BackendLoginIPType == 1)
+            {
+                BackendLoginIPType = "停用";
+            }
+
+
+            string BackendWithdrawType = "";//后台送单是否经过审核
+            if (CompanyData.BackendWithdrawType == 0)
+            {
+                BackendWithdrawType = "启用";
+            }
+            else if (CompanyData.BackendWithdrawType == 1)
+            {
+                BackendWithdrawType = "停用";
+            }
+
+            BackendFunction backendFunction = new BackendFunction();
+            string IP = backendFunction.CheckIPInTW(CodingControl.GetUserIP());
+            int AdminOP = backendDB.InsertAdminOPLog(AdminData.forCompanyID, AdminData.AdminID, 3, string.Format("修改商户,商户名称:{0},代付API规则:{1},代付通道代码:{2},代付API规则 :{3},后台IP检查:{4},后台送单是否经过审核:{5}", CompanyData.CompanyName, WithdrawType, CompanyData.AutoWithdrawalServiceType, WithdrawAPIType, BackendLoginIPType, BackendWithdrawType), IP);
+            string XForwardIP = CodingControl.GetXForwardedFor();
+            CodingControl.WriteXFowardForIP(AdminOP);
+            _CompanyTableResult.ResultCode = APIResult.enumResult.OK;
+        }
+        else
+        {
+            _CompanyTableResult.ResultCode = APIResult.enumResult.Error;
+        }
 
         return _CompanyTableResult;
     }
@@ -3071,7 +3224,15 @@ public class BackendController : ApiController
 
         AdminData = RedisCache.BIDContext.GetBIDInfo(fromBody.BID);
 
-        if (AdminData.CompanyType != 0)
+        if (AdminData.CompanyType == 0)
+        {
+
+        }
+        else if (AdminData.CompanyType == 4)
+        {
+            fromBody.CompanyID = AdminData.forCompanyID;
+        }
+        else
         {
             _PaymentTableResult.ResultCode = APIResult.enumResult.VerificationError;
             return _PaymentTableResult;
@@ -3107,8 +3268,15 @@ public class BackendController : ApiController
 
         AdminData = RedisCache.BIDContext.GetBIDInfo(fromBody.BID);
 
-        if (AdminData.CompanyType != 0)
+        if (AdminData.CompanyType == 0)
         {
+         
+        }
+        else if (AdminData.CompanyType == 4)
+        {
+            fromBody.CompanyID = AdminData.forCompanyID;
+        }
+        else {
             _PaymentTableResult.ResultCode = (int)APIResult.enumResult.VerificationError;
             return _PaymentTableResult;
         }
@@ -4914,8 +5082,6 @@ public class BackendController : ApiController
             AdminData = RedisCache.BIDContext.GetBIDInfo(fromBody.BID);
         }
 
-
-
         DBretValue = backendDB.UpdateCompanyService(fromBody, AdminData.CompanyType);
 
         if (DBretValue == -2)
@@ -5436,7 +5602,16 @@ public class BackendController : ApiController
             return retValue;
         }
 
-        retValue.ProviderTypes = backendDB.GetProviderCodeResult();
+        var AdminData = RedisCache.BIDContext.GetBIDInfo(BID);
+        if (AdminData.CompanyType == 4)
+        {
+            retValue.ProviderTypes = backendDB.GetProviderCodeResultByCompanyID(AdminData.forCompanyID, AdminData.CompanyType, "");
+        }
+        else {
+            retValue.ProviderTypes = backendDB.GetProviderCodeResult();
+        }
+  
+    
         if (retValue.ProviderTypes != null)
         {
             retValue.ResultCode = APIResult.enumResult.OK;
@@ -5462,7 +5637,23 @@ public class BackendController : ApiController
             return retValue;
         }
 
-        retValue.ProviderTypes = backendDB.GetProviderCodeResultByShowType();
+        if (!RedisCache.BIDContext.CheckBIDExist(BID))
+        {
+            retValue.ResultCode = APIResult.enumResult.SessionError;
+            return retValue;
+        }
+
+        var AdminData = RedisCache.BIDContext.GetBIDInfo(BID);
+        if (AdminData.CompanyType == 4)
+        {
+            retValue.ProviderTypes = backendDB.GetProviderCodeResultByCompanyID(AdminData.forCompanyID);
+        }
+        else
+        {
+            retValue.ProviderTypes = backendDB.GetProviderCodeResultByShowType();
+        }
+
+     
         if (retValue.ProviderTypes != null)
         {
             retValue.ResultCode = APIResult.enumResult.OK;
@@ -6227,8 +6418,14 @@ public class BackendController : ApiController
         }
 
         //0 = 系統商/ 1 = 一般營運商 / 2 =代理營運商
-        if (AdminData.CompanyType != 0)
+        if (AdminData.CompanyType==0)
         {
+
+        }
+        else if (AdminData.CompanyType == 4)
+        {
+            ProviderModel.forCompanyID = AdminData.forCompanyID;
+        } else{
             retValue.ResultCode = APIResult.enumResult.VerificationError;
             return retValue;
         }
@@ -6240,10 +6437,6 @@ public class BackendController : ApiController
             retValue.Message = "";
             return retValue;
         }
-
-
-
-
 
         List<DBModel.Provider> providers = backendDB.GetProviderCodeResult(ProviderModel.ProviderCode);
         if (providers != null)
@@ -6498,7 +6691,7 @@ public class BackendController : ApiController
         AdminData = RedisCache.BIDContext.GetBIDInfo(fromBody.BID);
 
         //0 = 系統商/ 1 = 一般營運商 / 2 =代理營運商
-        if (AdminData.CompanyType != 0)
+        if (!(AdminData.CompanyType == 0|| AdminData.CompanyType == 4))
         {
             retValue.ResultCode = APIResult.enumResult.VerificationError;
             return retValue;
@@ -6585,7 +6778,7 @@ public class BackendController : ApiController
         AdminData = RedisCache.BIDContext.GetBIDInfo(ProviderServiceModel.BID);
 
         //0 = 系統商/ 1 = 一般營運商 / 2 =代理營運商
-        if (AdminData.CompanyType != 0)
+        if (!(AdminData.CompanyType == 0|| AdminData.CompanyType == 4))
         {
             retValue.ResultCode = APIResult.enumResult.VerificationError;
             return retValue;
@@ -6649,7 +6842,7 @@ public class BackendController : ApiController
         AdminData = RedisCache.BIDContext.GetBIDInfo(ProviderServiceModel.BID);
 
         //0 = 系統商/ 1 = 一般營運商 / 2 =代理營運商
-        if (AdminData.CompanyType != 0)
+        if (!(AdminData.CompanyType == 0 || AdminData.CompanyType == 4))
         {
             retValue.ResultCode = APIResult.enumResult.VerificationError;
             return retValue;
@@ -6716,7 +6909,7 @@ public class BackendController : ApiController
         AdminData = RedisCache.BIDContext.GetBIDInfo(ProviderServiceModel.BID);
 
         //0 = 系統商/ 1 = 一般營運商 / 2 =代理營運商
-        if (AdminData.CompanyType != 0)
+        if (!(AdminData.CompanyType == 0|| AdminData.CompanyType == 4))
         {
             retValue.ResultCode = APIResult.enumResult.VerificationError;
             return retValue;
@@ -6843,7 +7036,7 @@ public class BackendController : ApiController
     {
         ProviderServiceResult retValue = new ProviderServiceResult();
         BackendDB backendDB = new BackendDB();
-
+        int CompanyID;
         //驗證權限
         RedisCache.BIDContext.BIDInfo AdminData;
 
@@ -6854,7 +7047,20 @@ public class BackendController : ApiController
         }
         AdminData = RedisCache.BIDContext.GetBIDInfo(fromBody.BID);
 
-        retValue.ProviderServices = backendDB.GetProviderServiceGPayRelationByCompany(fromBody.forCompanyID, fromBody.ServiceType, fromBody.CurrencyType);
+        if (AdminData.CompanyType == 4)
+        {
+            CompanyID = AdminData.forCompanyID;
+        }
+        else if (AdminData.CompanyType == 1)
+        {
+            CompanyID = fromBody.forCompanyID;
+        }
+        else {
+            retValue.ResultCode = APIResult.enumResult.VerificationError;
+            return retValue;
+        }
+
+        retValue.ProviderServices = backendDB.GetProviderServiceGPayRelationByCompany(CompanyID, fromBody.ServiceType, fromBody.CurrencyType, AdminData.CompanyType);
         if (retValue.ProviderServices != null)
         {
             retValue.ResultCode = APIResult.enumResult.OK;
@@ -7074,15 +7280,32 @@ public class BackendController : ApiController
     {
         ProviderPointResult2 retValue = new ProviderPointResult2();
         BackendDB backendDB = new BackendDB();
-
+        RedisCache.BIDContext.BIDInfo AdminData;
         if (!RedisCache.BIDContext.CheckBIDExist(fromBody.BID))
         {
             retValue.ResultCode = APIResult.enumResult.SessionError;
             return retValue;
         }
 
-        retValue.ProviderPointResults = backendDB.GetAllProviderPoint();
-        retValue.CompanyServicePointResults = backendDB.GetCompanyServicePointDetail(fromBody.CompanyID);
+        AdminData = RedisCache.BIDContext.GetBIDInfo(fromBody.BID);
+
+        if (AdminData.CompanyType == 4)
+        {
+            retValue.ProviderPointResults = backendDB.GetAllProviderPointByCompanyID(AdminData.forCompanyID);
+            retValue.CompanyServicePointResults = backendDB.GetCompanyServicePointDetail(AdminData.forCompanyID);
+        }
+        else if (AdminData.CompanyType == 0)
+        {
+            retValue.ProviderPointResults = backendDB.GetAllProviderPoint();
+            retValue.CompanyServicePointResults = backendDB.GetCompanyServicePointDetail(fromBody.CompanyID);
+        }
+        else
+        {
+            retValue.ResultCode = APIResult.enumResult.VerificationError;
+            return retValue;
+        }
+
+    
         if (retValue.ProviderPointResults != null)
         {
             retValue.ResultCode = APIResult.enumResult.OK;
@@ -7299,7 +7522,7 @@ CompanyServicePoint _CompanyServicePointResult = new CompanyServicePoint();
         CompanyServicePoint _CompanyServicePointResult = new CompanyServicePoint();
         RedisCache.BIDContext.BIDInfo AdminData;
         BackendDB backendDB = new BackendDB();
-
+        int CompanyID;
         if (!RedisCache.BIDContext.CheckBIDExist(fromBody.BID))
         {
             _CompanyServicePointResult.ResultCode = APIResult.enumResult.SessionError;
@@ -7310,13 +7533,20 @@ CompanyServicePoint _CompanyServicePointResult = new CompanyServicePoint();
             AdminData = RedisCache.BIDContext.GetBIDInfo(fromBody.BID);
         }
 
-        if (AdminData.CompanyType != 0)
+        if (AdminData.CompanyType == 0)
         {
+            CompanyID = fromBody.CompanyID;
+        }
+        else if (AdminData.CompanyType == 4)
+        {
+            CompanyID = AdminData.forCompanyID;
+        }
+        else {
             _CompanyServicePointResult.ResultCode = APIResult.enumResult.VerificationError;
             return _CompanyServicePointResult;
         }
 
-        List<DBViewModel.CompanyServicePointVM> companys = backendDB.GetCompanyServicePointDetail2(fromBody.CompanyID);
+        List<DBViewModel.CompanyServicePointVM> companys = backendDB.GetCompanyServicePointDetail2(CompanyID);
         if (companys != null)
         {
             _CompanyServicePointResult.CompanyServicePoints = companys;
@@ -7637,14 +7867,31 @@ CompanyServicePoint _CompanyServicePointResult = new CompanyServicePoint();
     {
         GetApiWithdrawLimitResult retValue = new GetApiWithdrawLimitResult();
         BackendDB backendDB = new BackendDB();
-
+        RedisCache.BIDContext.BIDInfo AdminData;
         if (!RedisCache.BIDContext.CheckBIDExist(data.BID))
         {
             retValue.ResultCode = APIResult.enumResult.SessionError;
             return retValue;
         }
+        else
+        {
+            AdminData = RedisCache.BIDContext.GetBIDInfo(data.BID);
+        }
 
-        retValue.ApiWithdrawLimitResults = backendDB.GetApiWithdrawLimit(data.CompanyID);
+        if (AdminData.CompanyType == 0)
+        {
+            retValue.ApiWithdrawLimitResults = backendDB.GetApiWithdrawLimit(data.CompanyID);
+        }
+        else if (AdminData.CompanyType == 4)
+        {
+            retValue.ApiWithdrawLimitResults = backendDB.GetApiWithdrawLimitByProviderCompanyID(data.CompanyID, AdminData.forCompanyID);
+        }
+        else {
+            retValue.ResultCode = APIResult.enumResult.VerificationError;
+            return retValue;
+        }
+
+        
         if (retValue.ApiWithdrawLimitResults != null)
         {
             retValue.ResultCode = APIResult.enumResult.OK;
@@ -7674,7 +7921,7 @@ CompanyServicePoint _CompanyServicePointResult = new CompanyServicePoint();
         {
             AdminData = RedisCache.BIDContext.GetBIDInfo(fromBody.BID);
         }
-
+        fromBody.CurrencyType = AdminData.CurrencyType;
         DBretValue = backendDB.InsertGPayWithdrawRelation(fromBody, AdminData.CompanyType);
 
         if (DBretValue == -1)
@@ -10048,7 +10295,7 @@ CompanyServicePoint _CompanyServicePointResult = new CompanyServicePoint();
             AdminData = RedisCache.BIDContext.GetBIDInfo(fromBody.BID);
         }
 
-        if (AdminData.CompanyType != 0)
+        if (!(AdminData.CompanyType == 0|| AdminData.CompanyType == 4))
         {
             result.ResultCode = APIResult.enumResult.VerificationError;
             return result;
@@ -10622,7 +10869,15 @@ CompanyServicePoint _CompanyServicePointResult = new CompanyServicePoint();
 
         AdminData = RedisCache.BIDContext.GetBIDInfo(fromBody.BID);
 
-        if (AdminData.CompanyType != 0)
+        if (AdminData.CompanyType == 0)
+        {
+
+        }
+        else if (AdminData.CompanyType == 4)
+        {
+            fromBody.CompanyID = AdminData.forCompanyID;
+        }
+        else
         {
             _PaymentTableResult.ResultCode = (int)APIResult.enumResult.VerificationError;
             return _PaymentTableResult;
@@ -11765,7 +12020,7 @@ CompanyServicePoint _CompanyServicePointResult = new CompanyServicePoint();
         }
 
         //0 = 系統商/ 1 = 一般營運商 / 2 =代理營運商
-        if (AdminData.CompanyType != 0 && fromBody.WithdrawLimitType == 0)
+        if (!(AdminData.CompanyType == 0|| AdminData.CompanyType == 4) && fromBody.WithdrawLimitType == 0)
         {
             _WithdrawLimitResult.ResultCode = APIResult.enumResult.VerificationError;
             return _WithdrawLimitResult;
@@ -11884,7 +12139,7 @@ CompanyServicePoint _CompanyServicePointResult = new CompanyServicePoint();
         APIResult retValue = new APIResult();
         BackendDB backendDB = new BackendDB();
         RedisCache.BIDContext.BIDInfo AdminData = new RedisCache.BIDContext.BIDInfo();
-
+        int CompanyID;
         if (!RedisCache.BIDContext.CheckBIDExist(fromBody.BID))
         {
             retValue.ResultCode = APIResult.enumResult.SessionError;
@@ -11895,11 +12150,18 @@ CompanyServicePoint _CompanyServicePointResult = new CompanyServicePoint();
             AdminData = RedisCache.BIDContext.GetBIDInfo(fromBody.BID);
         }
 
-        if (AdminData.CompanyType != 0)
+        if (AdminData.CompanyType == 0)
         {
+        }
+        else if (AdminData.CompanyType == 4)
+        {
+            fromBody.CompanyID = AdminData.forCompanyID;
+        }
+        else {
             retValue.ResultCode = APIResult.enumResult.VerificationError;
             return retValue;
         }
+
         fromBody.WithdrawLimitType = 1;
         fromBody.ProviderCode = "";
         var boolCheckData = backendDB.CheckWithdrawLimitData(fromBody);
@@ -11947,6 +12209,19 @@ CompanyServicePoint _CompanyServicePointResult = new CompanyServicePoint();
         else
         {
             AdminData = RedisCache.BIDContext.GetBIDInfo(fromBody.BID);
+        }
+
+        if (AdminData.CompanyType == 0)
+        {
+        }
+        else if (AdminData.CompanyType == 4)
+        {
+            fromBody.CompanyID = AdminData.forCompanyID;
+        }
+        else
+        {
+            retValue.ResultCode = APIResult.enumResult.VerificationError;
+            return retValue;
         }
 
         fromBody.WithdrawLimitType = 1;

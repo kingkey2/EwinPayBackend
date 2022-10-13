@@ -1098,7 +1098,7 @@
             </div>
         </div>
 
-        <div class="row clearfix">
+        <div class="row clearfix" id="table_GPayRelationDiv">
             <div class="col-lg-12 divDetailData">
                 <div class="card">
                     <div class="header">
@@ -1128,7 +1128,7 @@
     var isCreatedProviderServiceTable = false;
     var isCreatedWithdrawLimitTable = false;
     var isCreatedGPayRelationTable = false;
-
+    var providerCompanyID = 0;
     $(document).ready(function () {
            if ('@CheckPermission' == 'false') {
             parent.errorAlertCallback("权限不足", function () {
@@ -1148,6 +1148,11 @@ if ('@CheckLoginPermission' == 'false') {
 
         AdminObject = parent.AdminObject;
         api = parent.api;
+
+        if (AdminObject.CompanyType == 4) {
+            $('#btnProviderCreate').hide();
+            $('#btnProviderWithdrawLimitCreate').hide();
+        }
 
         getProviderCodeResult();
 
@@ -1196,6 +1201,8 @@ if ('@CheckLoginPermission' == 'false') {
             modifyProviderData.NotifyAsyncUrl = $('#b_NotifyAsyncUrl').text();
             modifyProviderData.ProviderAPIType = $('#b_ProviderAPIType').text();
             modifyProviderData.WithdrawRate = $('#b_WithdrawRate').text();
+            modifyProviderData.forCompanyID = providerCompanyID;
+            
             if ($('#b_CollectType').text() == "一般") {
                 modifyProviderData.CollectType = 0;
             } else {
@@ -1457,6 +1464,7 @@ if ('@CheckLoginPermission' == 'false') {
             $('#select_providercode').selectpicker('refresh');
 
             if (selectedproviderdata) {
+                providerCompanyID = selectedproviderdata.forCompanyID;
                 $('#b_ProviderCode').text(selectedproviderdata.ProviderCode);
                 $('#b_ProviderName').text(selectedproviderdata.ProviderName);
                 $('#b_Introducer').text(selectedproviderdata.Introducer);
@@ -1800,6 +1808,8 @@ if ('@CheckLoginPermission' == 'false') {
             $('#b_NotifyAsyncUrl').text(selectedproviderdata.NotifyAsyncUrl);
             $('#b_ProviderAPIType').text(selectedproviderdata.ProviderAPIType);
             $('#b_WithdrawRate').text(selectedproviderdata.WithdrawRate);
+
+            providerCompanyID = selectedproviderdata.forCompanyID;
             if (selectedproviderdata.ProviderState == 0) {
                 $('#b_ProviderState').text('启用');
                 $('#b_ProviderState').css('color', 'blue');

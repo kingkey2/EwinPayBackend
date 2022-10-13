@@ -978,6 +978,10 @@
                                     <label for="CollectType1">专属厂商</label>
                                 </div>
                             </div>
+                            <label id="selectCompanyLabel" style="display:none;" for="selectCompany">所属营运商 : </label>
+                            <div id="selectCompanyDiv" style="display:none;" class="form-group">
+                                <select class="form-control" id="selectCompany"></select>
+                            </div>
                             <label for="WithdrawRate">提款费率 : </label>
                             <div class="form-group">
                                 <input type="text" id="WithdrawRate" class="form-control percent" value="">
@@ -1072,7 +1076,7 @@
         if (EditData.data.ProviderAPIType != "0") {
             checkedProviderAPIType(EditData.data.ProviderAPIType);
         }
-
+        CreateCompanySelect();
         parent.wrapperFadeOut();
         //儲存
         $("#btn_Save").on("click", function () {
@@ -1119,7 +1123,7 @@
             var notifySyncUrl = $("#NotifySyncUrl").val();
             var notifyAsyncUrl = $("#NotifyAsyncUrl").val();
             var withdrawRate = $("#WithdrawRate").val();
-      
+            var companyID = $("#selectCompany").val();
             var collectType = $('input[name=CollectType]:checked').val();
             var providerAPIType = 0
             if ($("#checkbox1:checked").val()) {
@@ -1140,7 +1144,7 @@
             }
 
 
-            api.updateProviderCodeResult(providerCode, providerName, introducer, providerUrl, merchantKey, merchantCode, notifySyncUrl, notifyAsyncUrl, providerAPIType, collectType, withdrawRate, function (success, obj) {
+            api.updateProviderCodeResult(providerCode, providerName, introducer, providerUrl, merchantKey, merchantCode, notifySyncUrl, notifyAsyncUrl, providerAPIType, collectType, withdrawRate, companyID, function (success, obj) {
                 if (success) {
                     if (obj.ResultCode == 0) {
                         TempData = {
@@ -1180,6 +1184,37 @@
             parent.ChangePage(EditData.data.backID);
             parent.CloseActivePage(window.frameElement.name);
         })
+    }
+
+    function CreateCompanySelect() {
+        api.GetCompanyTableResultByCompanyType(function (success, obj) {
+            if (obj.ResultCode == 0) {
+                if (obj.CompanyResults.length > 0) {
+                    $("#selectCompany").children().remove();
+                    $("#selectCompany").append('<option value="0">不指定</option>');
+                    $.each(obj.CompanyResults, function (i, item) {
+                        $("#selectCompany").append('<option value="' + obj.CompanyResults[i].CompanyID + '">' + obj.CompanyResults[i].CompanyName + '</option>');
+                    })
+                    $("#selectCompany").val(EditData.data.forCompanyID);
+                    
+                    if (AdminObject.CompanyType == 0) {
+                        $('#selectCompanyLabel').show();
+                        $('#selectCompanyDiv').show();
+                    }
+
+                    $('#selectCompany').selectpicker('refresh');
+                }
+                parent.wrapperFadeOut();
+            } else {
+                var message = ""
+                switch (obj.ResultCode) {
+                    case 7:
+                        parent.errorAlert("您已斷線重新登入", "Login.cshtml");
+                        break;
+                }
+                parent.wrapperFadeOut();
+            }
+        });
     }
 
     function checkedProviderAPIType(providerAPIType) {

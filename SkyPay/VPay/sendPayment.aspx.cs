@@ -32,8 +32,8 @@ namespace SkyPay.Backend
             var CompanyKey = "";
             if (isTestSite.ToUpper() == "TRUE")
             {
-                ReturnURL = "http://epay.dev4.mts.idv.tw" + "/api/CallBack/TestCompanyReturn?result=AAA";
-                URL = "http://epay.dev4.mts.idv.tw" + "/api/Gate/RequirePaying";
+                ReturnURL = "http://gpay.dev4.mts.idv.tw" + "/api/CallBack/TestCompanyReturn?result=AAA";
+                URL = "http://gpay.dev4.mts.idv.tw" + "/api/Gate/RequirePayment";
                 CompanyKey = "81a5ad6e8048459590f47a13c4a48e09";
                 ///"http://cn.thespeedpay.com/Result.cshtml?
                 //ReturnURL = "http://cn.thespeedpay.com" + "/api/CallBack/TestCompanyReturn?result=AAA";

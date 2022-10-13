@@ -196,6 +196,34 @@ public class BackendDB
         return returnValue;
     }
 
+    public List<DBModel.Company> GetCompanyByCompanyType()
+    {
+        List<DBModel.Company> returnValue = null;
+        string SS;
+        SqlCommand DBCmd = null;
+        DataTable DT;
+        string SortKey = "";
+        DBModel.Company CompanyData;
+
+        SS = "SELECT * FROM CompanyTable c WITH (NOLOCK) WHERE 1=1 And CompanyType=4 ";
+
+        DBCmd = new SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = System.Data.CommandType.Text;
+
+        DT = DBAccess.GetDB(DBConnStr, DBCmd);
+
+        if (DT != null)
+        {
+            if (DT.Rows.Count > 0)
+            {
+                returnValue = DataTableExtensions.ToList<DBModel.Company>(DT) as List<DBModel.Company>;
+            }
+        }
+
+        return returnValue;
+    }
+
     public List<DBModel.Company> GetCompany2(int forCompanyID, int CompanyType)
     {
         List<DBModel.Company> returnValue = null;
@@ -211,20 +239,27 @@ public class BackendDB
             SortKey = CompanyData.SortKey;
         }
 
-        SS = "SELECT *,(select count(*) from CompanyTable where CompanyTable.ParentCompanyID=c.CompanyID ) as ChildCompanyCount FROM CompanyTable c WITH (NOLOCK) WHERE 1=1 And CompanyType<>0 ";
-        if (CompanyType != 0)
+        if (CompanyType == 4)
         {
-            if (CompanyType == 1)
-            {
-                SS += "  AND  c.CompanyID =@CompanyID";
-            }
-            else
-            {
-                SS += "  AND  c.SortKey LIKE @SortKey + '%' And  c.CompanyID <> @CompanyID";
-            }
+            SS = " SELECT * FROM CompanyTable c WITH (NOLOCK) WHERE 1=1 And c.CompanyID=@CompanyID ";
         }
+        else {
+            SS = "SELECT *,(select count(*) from CompanyTable where CompanyTable.ParentCompanyID=c.CompanyID ) as ChildCompanyCount FROM CompanyTable c WITH (NOLOCK) WHERE 1=1 And CompanyType<>0 ";
+            if (CompanyType != 0)
+            {
+                if (CompanyType == 1)
+                {
+                    SS += "  AND  c.CompanyID =@CompanyID";
+                }
+                else
+                {
+                    SS += "  AND  c.SortKey LIKE @SortKey + '%' And  c.CompanyID <> @CompanyID";
+                }
+            }
 
-        SS += " order by SortKey ";
+            SS += " order by SortKey ";
+
+        }
 
         DBCmd = new SqlCommand();
         DBCmd.CommandText = SS;
@@ -489,6 +524,35 @@ public class BackendDB
         #endregion
         returnValue.CompanyID = CompanyID;
         returnValue.CompanyKey = CompanyKey;
+
+        return returnValue;
+    }
+
+    public int UpdateCompanyWithdrawlType(DBModel.Company company)
+    {
+        int returnValue;
+        string SS;
+        System.Data.SqlClient.SqlCommand DBCmd = null;
+
+        SS = "UPDATE CompanyTable SET WithdrawType=@WithdrawType,AutoWithdrawalServiceType=@AutoWithdrawalServiceType,WithdrawAPIType=@WithdrawAPIType,BackendLoginIPType=@BackendLoginIPType,BackendWithdrawType=@BackendWithdrawType " +
+             " WHERE CompanyID=@CompanyID";
+
+        DBCmd = new System.Data.SqlClient.SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = CommandType.Text;
+     
+        DBCmd.Parameters.Add("@CompanyID", SqlDbType.Int).Value = company.CompanyID;
+        DBCmd.Parameters.Add("@WithdrawType", SqlDbType.Int).Value = company.WithdrawType;
+        DBCmd.Parameters.Add("@AutoWithdrawalServiceType", SqlDbType.VarChar).Value = company.AutoWithdrawalServiceType;
+        DBCmd.Parameters.Add("@BackendLoginIPType", SqlDbType.Int).Value = company.BackendLoginIPType;
+        DBCmd.Parameters.Add("@WithdrawAPIType", SqlDbType.Int).Value = company.WithdrawAPIType;
+        DBCmd.Parameters.Add("@BackendWithdrawType", SqlDbType.Int).Value = company.BackendWithdrawType;
+        returnValue = DBAccess.ExecuteDB(Pay.DBConnStr, DBCmd);
+
+
+        #region 更新Sortkey
+        Pay.CompanyReSortkey(company.CompanyID);
+        #endregion
 
         return returnValue;
     }
@@ -1875,7 +1939,9 @@ public class BackendDB
         DataTable DT;
         if (ProviderCode != "")
         {
-            SS = "SELECT * FROM ProviderCode WITH (NOLOCK) WHERE ProviderCode =@ProviderCode";
+    
+            SS = "SELECT * FROM ProviderCode WITH (NOLOCK) WHERE ProviderCode=@ProviderCode";
+         
             DBCmd = new SqlCommand();
             DBCmd.CommandText = SS;
             DBCmd.CommandType = System.Data.CommandType.Text;
@@ -1885,6 +1951,95 @@ public class BackendDB
         else
         {
             SS = "SELECT * FROM ProviderCode WITH (NOLOCK)";
+    
+            DBCmd = new SqlCommand();
+            DBCmd.CommandText = SS;
+            DBCmd.CommandType = System.Data.CommandType.Text;
+            DT = DBAccess.GetDB(DBConnStr, DBCmd);
+        }
+
+        if (DT != null)
+        {
+            if (DT.Rows.Count > 0)
+            {
+                returnValue = DataTableExtensions.ToList<DBModel.Provider>(DT) as List<DBModel.Provider>;
+            }
+        }
+
+        return returnValue;
+    }
+
+    public List<DBModel.Provider> GetProviderCodeResultByCompanyID(int CompanyID, int CompanyType, string ProviderCode = "")
+    {
+        List<DBModel.Provider> returnValue = null;
+        string SS;
+        SqlCommand DBCmd = null;
+        DataTable DT;
+        if (ProviderCode != "")
+        {
+            if (CompanyType == 4)
+            {
+                SS = "SELECT * FROM ProviderCode WITH (NOLOCK) WHERE ProviderCode=@ProviderCode And forCompanyID=@forCompanyID";
+            }
+            else
+            {
+                SS = "SELECT * FROM ProviderCode WITH (NOLOCK) WHERE ProviderCode=@ProviderCode";
+            }
+
+            DBCmd = new SqlCommand();
+            DBCmd.CommandText = SS;
+            DBCmd.CommandType = System.Data.CommandType.Text;
+            DBCmd.Parameters.Add("@ProviderCode", SqlDbType.VarChar).Value = ProviderCode;
+            DBCmd.Parameters.Add("@forCompanyID", SqlDbType.Int).Value = CompanyID;
+            DT = DBAccess.GetDB(DBConnStr, DBCmd);
+        }
+        else
+        {
+            if (CompanyType == 4)
+            {
+                SS = "SELECT * FROM ProviderCode WITH (NOLOCK) WHERE forCompanyID=@forCompanyID";
+            }
+            else
+            {
+                SS = "SELECT * FROM ProviderCode WITH (NOLOCK)";
+            }
+
+            DBCmd = new SqlCommand();
+            DBCmd.CommandText = SS;
+            DBCmd.CommandType = System.Data.CommandType.Text;
+            DBCmd.Parameters.Add("@forCompanyID", SqlDbType.Int).Value = CompanyID;
+            DT = DBAccess.GetDB(DBConnStr, DBCmd);
+        }
+
+        if (DT != null)
+        {
+            if (DT.Rows.Count > 0)
+            {
+                returnValue = DataTableExtensions.ToList<DBModel.Provider>(DT) as List<DBModel.Provider>;
+            }
+        }
+
+        return returnValue;
+    }
+
+    public List<DBModel.Provider> GetProviderCodeResultByCompanyID(int CompanyID,string ProviderCode = "")
+    {
+        List<DBModel.Provider> returnValue = null;
+        string SS;
+        SqlCommand DBCmd = null;
+        DataTable DT;
+        if (ProviderCode != "")
+        {
+            SS = "SELECT * FROM ProviderCode WITH (NOLOCK) WHERE ProviderCode =@ProviderCode AND ProviderState=0";
+            DBCmd = new SqlCommand();
+            DBCmd.CommandText = SS;
+            DBCmd.CommandType = System.Data.CommandType.Text;
+            DBCmd.Parameters.Add("@ProviderCode", SqlDbType.VarChar).Value = ProviderCode;
+            DT = DBAccess.GetDB(DBConnStr, DBCmd);
+        }
+        else
+        {
+            SS = "SELECT * FROM ProviderCode WITH (NOLOCK) WHERE ProviderState=0";
             DBCmd = new SqlCommand();
             DBCmd.CommandText = SS;
             DBCmd.CommandType = System.Data.CommandType.Text;
@@ -2044,8 +2199,8 @@ public class BackendDB
         string SS;
         System.Data.SqlClient.SqlCommand DBCmd = null;
 
-        SS = "INSERT INTO ProviderCode (ProviderCode,ProviderName,Introducer,ProviderUrl,MerchantCode,MerchantKey,NotifyAsyncUrl,NotifySyncUrl,ProviderAPIType,CollectType,ProviderState,WithdrawRate) " +
-         "                          VALUES (@ProviderCode,@ProviderName,@Introducer,@ProviderUrl,@MerchantCode,@MerchantKey,@NotifyAsyncUrl,@NotifySyncUrl,@ProviderAPIType,@CollectType,@ProviderState,@WithdrawRate)";
+        SS = "INSERT INTO ProviderCode (ProviderCode,ProviderName,Introducer,ProviderUrl,MerchantCode,MerchantKey,NotifyAsyncUrl,NotifySyncUrl,ProviderAPIType,CollectType,ProviderState,WithdrawRate,forCompanyID) " +
+         "                          VALUES (@ProviderCode,@ProviderName,@Introducer,@ProviderUrl,@MerchantCode,@MerchantKey,@NotifyAsyncUrl,@NotifySyncUrl,@ProviderAPIType,@CollectType,@ProviderState,@WithdrawRate,@forCompanyID)";
 
         DBCmd = new System.Data.SqlClient.SqlCommand();
         DBCmd.CommandText = SS;
@@ -2059,6 +2214,7 @@ public class BackendDB
         DBCmd.Parameters.Add("@NotifyAsyncUrl", SqlDbType.NVarChar).Value = Model.NotifyAsyncUrl;
         DBCmd.Parameters.Add("@NotifySyncUrl", SqlDbType.NVarChar).Value = Model.NotifySyncUrl;
         DBCmd.Parameters.Add("@ProviderAPIType", SqlDbType.Int).Value = Model.ProviderAPIType;
+        DBCmd.Parameters.Add("@forCompanyID", SqlDbType.Int).Value = Model.forCompanyID;
         DBCmd.Parameters.Add("@CollectType", SqlDbType.Int).Value = Model.CollectType;
         DBCmd.Parameters.Add("@ProviderState", SqlDbType.Int).Value = Model.CollectType == 1 ? 1 : 0;
         DBCmd.Parameters.Add("@WithdrawRate", SqlDbType.Decimal).Value = Model.WithdrawRate;
@@ -2073,7 +2229,7 @@ public class BackendDB
         string SS;
         System.Data.SqlClient.SqlCommand DBCmd = null;
 
-        SS = "UPDATE ProviderCode SET ProviderName=@ProviderName,Introducer=@Introducer,ProviderUrl=@ProviderUrl,MerchantCode=@MerchantCode,MerchantKey=@MerchantKey,NotifyAsyncUrl=@NotifyAsyncUrl,NotifySyncUrl=@NotifySyncUrl,ProviderAPIType=@ProviderAPIType,CollectType=@CollectType,WithdrawRate=@WithdrawRate WHERE ProviderCode=@ProviderCode ";
+        SS = "UPDATE ProviderCode SET ProviderName=@ProviderName,Introducer=@Introducer,ProviderUrl=@ProviderUrl,MerchantCode=@MerchantCode,MerchantKey=@MerchantKey,NotifyAsyncUrl=@NotifyAsyncUrl,NotifySyncUrl=@NotifySyncUrl,ProviderAPIType=@ProviderAPIType,CollectType=@CollectType,WithdrawRate=@WithdrawRate,forCompanyID=@forCompanyID WHERE ProviderCode=@ProviderCode ";
 
         DBCmd = new System.Data.SqlClient.SqlCommand();
         DBCmd.CommandText = SS;
@@ -2088,6 +2244,7 @@ public class BackendDB
         DBCmd.Parameters.Add("@NotifySyncUrl", SqlDbType.NVarChar).Value = Model.NotifySyncUrl;
         DBCmd.Parameters.Add("@ProviderAPIType", SqlDbType.Int).Value = Model.ProviderAPIType;
         DBCmd.Parameters.Add("@CollectType", SqlDbType.Int).Value = Model.CollectType;
+        DBCmd.Parameters.Add("@forCompanyID", SqlDbType.Int).Value = Model.forCompanyID;
         DBCmd.Parameters.Add("@WithdrawRate", SqlDbType.Decimal).Value = Model.WithdrawRate;
         returnValue = DBAccess.ExecuteDB(Pay.DBConnStr, DBCmd);
         RedisCache.ProviderCode.UpdateProviderCode(Model.ProviderCode);
@@ -5943,7 +6100,7 @@ public class BackendDB
         DataTable DT;
 
         SS = "SELECT CompanyID FROM CompanyTable WITH (NOLOCK)" +
-            " WHERE CompanyID =@CompanyID And CompanyType=0 ";
+            " WHERE CompanyID =@CompanyID And (CompanyType=0 OR CompanyType=4)";
         DBCmd = new SqlCommand();
         DBCmd.CommandText = SS;
         DBCmd.CommandType = System.Data.CommandType.Text;
@@ -6235,6 +6392,45 @@ public class BackendDB
     #endregion
 
     #region ProviderPoint
+    public List<DBViewModel.ProviderPointVM> GetAllProviderPointByCompanyID(int CompanyID)
+    {
+        List<DBViewModel.ProviderPointVM> returnValue = null;
+        string SS;
+        SqlCommand DBCmd = null;
+        DataTable DT;
+
+
+        SS = " SELECT PC.ProviderName,PC.ProviderAPIType,PC.ProviderCode, ISNULL(PP.TotalDepositePointValue,0) TotalDepositePointValue,ISNULL(PP.TotalProfitPointValue,0) TotalProfitPointValue, " +
+             " (ISNULL(PP.SystemPointValue, 0) - ISNULL(FP.ProviderFrozenAmount, 0)) AS SystemPointValue, ISNULL(FP.ProviderFrozenAmount, 0) ProviderFrozenAmount, ISNULL(FMH.WProfit,0) WithdrawProfit, " +
+             " (SELECT  ISNULL(SUM(W.Amount + W.CostCharge), 0) FROM Withdrawal W WITH (NOLOCK) " +
+             " WHERE W.Status <> 2 AND W.Status <> 3 AND W.Status <> 8  AND W.Status <> 90 AND W.Status <> 91 " +
+             " AND W.ProviderCode = PP.ProviderCode AND W.CurrencyType = PP.CurrencyType) AS WithdrawPoint " +
+             " FROM ProviderCode PC " +
+             " LEFT JOIN ProviderPoint PP ON PC.ProviderCode = PP.ProviderCode" +
+             " LEFT JOIN(SELECT forProviderCode, SUM(ISNULL(ProviderFrozenAmount, 0)) ProviderFrozenAmount FROM FrozenPoint FP " +
+             " WHERE  FP.Status = 0 " +
+             " GROUP BY forProviderCode) FP ON FP.forProviderCode = PC.ProviderCode " +
+             " LEFT JOIN (SELECT ProviderCode,SUM(ISNULL(Amount, 0)) WProfit FROM ProviderManualHistory FMH " +
+             " WHERE FMH.Type = 2 " +
+             " GROUP BY ProviderCode) FMH ON FMH.ProviderCode = PC.ProviderCode "+
+             " WHERE PC.ProviderState = 0 And PC.forCompanyID=@CompanyID ";
+   
+        DBCmd = new SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = System.Data.CommandType.Text;
+        DBCmd.Parameters.Add("@CompanyID", System.Data.SqlDbType.Int).Value = CompanyID;
+        DT = DBAccess.GetDB(DBConnStr, DBCmd);
+        if (DT != null)
+        {
+            if (DT.Rows.Count > 0)
+            {
+                returnValue = DataTableExtensions.ToList<DBViewModel.ProviderPointVM>(DT).ToList();
+            }
+        }
+
+        return returnValue;
+    }
+
     public List<DBViewModel.ProviderPointVM> GetAllProviderPoint(bool SearchAllProvider = false)
     {
         List<DBViewModel.ProviderPointVM> returnValue = null;
@@ -11164,7 +11360,7 @@ public class BackendDB
         return returnValue;
     }
 
-    public List<DBViewModel.ProviderServiceVM> GetProviderServiceGPayRelationByCompany(int CompanyID, string ServiceType, string CurrencyType)
+    public List<DBViewModel.ProviderServiceVM> GetProviderServiceGPayRelationByCompany(int CompanyID, string ServiceType, string CurrencyType,int CompanyType)
     {
         List<DBViewModel.ProviderServiceVM> returnValue = null;
         string SS;
@@ -11175,6 +11371,11 @@ public class BackendDB
         SS = " SELECT ProviderService.*,ProviderName FROM ProviderService WITH (NOLOCK) " +
              " JOIN ProviderCode WITH (NOLOCK) ON ProviderCode.ProviderCode=ProviderService.ProviderCode " +
              " WHERE ServiceType = @ServiceType AND CurrencyType =@CurrencyType And ProviderCode.ProviderState=0";
+        if (CompanyType == 4)
+        {
+            SS += " And ProviderCode.forCompanyID=@CompanyID";
+        }
+       
         DBCmd = new SqlCommand();
         DBCmd.CommandText = SS;
         DBCmd.CommandType = System.Data.CommandType.Text;
@@ -11295,7 +11496,7 @@ public class BackendDB
 
         SS = " SELECT GPayWithdrawRelation.*,ProviderName FROM GPayWithdrawRelation WITH (NOLOCK)" +
              " LEFT JOIN ProviderCode WITH (NOLOCK) ON ProviderCode.ProviderCode= GPayWithdrawRelation.ProviderCode" +
-             " WHERE forCompanyID =@CompanyID ";
+             " WHERE GPayWithdrawRelation.forCompanyID =@CompanyID ";
 
         DBCmd = new SqlCommand();
         DBCmd.CommandText = SS;
@@ -11312,6 +11513,54 @@ public class BackendDB
             }
         }
 
+        return returnValue;
+    }
+
+    public List<DBViewModel.ApiWithdrawLimit> GetApiWithdrawLimitByProviderCompanyID(int CompanyID,int ProviderCompanyID)
+    {
+        List<DBViewModel.ApiWithdrawLimit> returnValue = null;
+        string SS;
+        SqlCommand DBCmd = null;
+        DataTable DT;
+        List<DBViewModel.GPayWithdrawRelation> CompanyWithdrawRelationModel = null;
+        SS = " SELECT WithdrawLimit.*,ProviderName FROM WithdrawLimit WITH (NOLOCK)" +
+             " LEFT JOIN ProviderCode WITH (NOLOCK) ON ProviderCode.ProviderCode= WithdrawLimit.ProviderCode" +
+             " WHERE WithdrawLimitType =0 And (ProviderCode.ProviderAPIType & 2) = 2 And ProviderCode.ProviderState=0 And ProviderCode.forCompanyID=@ProviderCompanyID";
+        DBCmd = new SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = System.Data.CommandType.Text;
+        DBCmd.Parameters.Add("@ProviderCompanyID", SqlDbType.Int).Value = ProviderCompanyID;
+        DT = DBAccess.GetDB(DBConnStr, DBCmd);
+
+        if (DT != null)
+        {
+            if (DT.Rows.Count > 0)
+            {
+                returnValue = DataTableExtensions.ToList<DBViewModel.ApiWithdrawLimit>(DT) as List<DBViewModel.ApiWithdrawLimit>;
+
+                if (CompanyID != 0)
+                {
+                    CompanyWithdrawRelationModel = GetGPayWithdrawRelationByCompanyID(CompanyID);
+                    if (CompanyWithdrawRelationModel != null && CompanyWithdrawRelationModel.Count > 0)
+                    {
+                        for (int i = 0; i < returnValue.Count; i++)
+                        {
+                            if (CompanyWithdrawRelationModel.Where(w => w.ProviderCode == returnValue[i].ProviderCode).Count() > 0)
+                            {
+                                returnValue[i].selectedWithdrawLimit = true;
+                                returnValue[i].Weight = CompanyWithdrawRelationModel.Where(w => w.ProviderCode == returnValue[i].ProviderCode).First().Weight;
+                                returnValue[i].WithdrawType = CompanyWithdrawRelationModel.Where(w => w.ProviderCode == returnValue[i].ProviderCode).First().WithdrawType;
+                            }
+                            else
+                            {
+                                returnValue[i].Weight = 1;
+                                returnValue[i].selectedWithdrawLimit = false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
         return returnValue;
     }
 

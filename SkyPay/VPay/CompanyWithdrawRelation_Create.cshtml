@@ -950,12 +950,6 @@
         parent.wrapperFadeOut();
 
         $('#btnSave').on('click', function () {
-
-            if (!$('#select_CurrencyType').val()) {
-                parent.warningAlert("尚未选择币别");
-                return;
-            }
-       
             if ($("#input_Charge").val().trim() == "") {
                 parent.warningAlert("请先输入手续费");
                 return;
@@ -1035,9 +1029,8 @@
             var charge = $("#input_Charge").val().trim();
             var minLimit = $("#input_MinLimit").val().trim();
             var maxLimit = $("#input_MaxLimit").val().trim();
-            var currencyType = $("#select_CurrencyType").val();
 
-            api.insertGPayWithdrawRelation(companyID, charge, minLimit, maxLimit, lstProviderCode, currencyType, function (success, obj) {
+            api.insertGPayWithdrawRelation(companyID, charge, minLimit, maxLimit, lstProviderCode, function (success, obj) {
                 if (obj.ResultCode == 0) {
                     TempData = {
                         "type": "afterModifyCompany",
@@ -1090,8 +1083,8 @@
         $("#divGPayRelationDetail").html("&nbsp;&nbsp;&nbsp;&nbsp;尚未设定供应商");
         api.getApiWithdrawLimit(0, function (s, obj) {
             if (s) {
-                CreateCurrencySelect();
                 if (obj.ResultCode == 0) {
+                    
                     CreateGPayWithdrawRelation(obj.ApiWithdrawLimitResults);
                 } else {
                     var message = ""
@@ -1118,34 +1111,6 @@
 
     }
 
-    function getParentApiWithdrawLimit() {
-
-        api.getCompanyWithdrawRelationResult(ParentCompanyID, function (success, obj) {
-
-            if (obj.ResultCode == 0) {
-                tmpParentWithdrawLimits = obj.WithdrawLimits;
-                CreateCurrencySelect();
-                parent.wrapperFadeOut();
-            } else {
-              
-                switch (obj.ResultCode) {
-                    case 7:
-                        parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                        break;
-                    case 5:
-                        parent.warningAlert("上线尚未设定代付限额");
-                        break;
-                    default:
-                        //warningAlert("其他錯誤");
-                        break;
-                }
-                CreateCurrencySelect();
-                parent.wrapperFadeOut();
-            }
-        });
-
-    }
-   
     function CreateGPayWithdrawRelation(data) {
         var strGPayRelationDetail = "";
      
@@ -1212,48 +1177,6 @@
         })
     }
 
-    function CreateCurrencySelect() {
-        api.getCurrency(function (s, obj) {
-            if (obj.ResultCode == 0) {
-                if (obj.Currencies.length > 0) {
-                    $("#select_CurrencyType").children().remove();
-
-                    $.each(obj.Currencies, function (i, item) {
-                        $("#select_CurrencyType").append('<option value="' + obj.Currencies[i].CurrencyType + '">' + obj.Currencies[i].CurrencyType + '</option>');
-                    })
-
-                    $('#select_CurrencyType').selectpicker('refresh');
-                }
-                setNotifyLabelText($('#select_CurrencyType').val());
-            }
-            else {
-                var message = ""
-                switch (obj.ResultCode) {
-                    case 7:
-                        parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                        break;
-                }
-                parent.wrapperFadeOut();
-            }
-        });
-
-        $("#select_CurrencyType").change(function () {
-            setNotifyLabelText($(this).val());
-        })
-    }
-
-    function setNotifyLabelText(currencytype) {
-        var parentWithdrawLimit = tmpParentWithdrawLimits.find(data => data.CurrencyType == currencytype);
-        if (parentWithdrawLimit == undefined) {
-            $('#notifyCharge').text("(请先设定上线代付限额)");
-            $('#notifyMinLimit').text("(请先设定上线代付限额)");
-            $('#notifyMaxLimit').text("(请先设定上线代付限额)");
-        } else {
-            $('#notifyCharge').text("(手续费必须大于或等于" + parentWithdrawLimit.Charge + ")");
-            $('#notifyMinLimit').text("(最低限额必须大于等于" + toCurrency(parentWithdrawLimit.MinLimit) + ")");
-            $('#notifyMaxLimit').text("(最高限额必须小于等于" + toCurrency(parentWithdrawLimit.MaxLimit)+")");
-        }
-    }
 </script>
 
 <body class="theme-cyan">
@@ -1279,9 +1202,6 @@
                     <div class="header"></div>
                     <div class="body">
                         <form>
-                            <label>币别 : </label>
-                            <select class="form-control show-tick" id="select_CurrencyType"></select>
-
                             <div id="providerServiceSet" style="display:none">
                                 <label for="select_ServiceType">渠道设定 : </label>
                                 <div class="form-group" style="margin-top:5px">

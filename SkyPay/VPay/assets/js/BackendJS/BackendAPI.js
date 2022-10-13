@@ -4096,6 +4096,26 @@ var BackendAPI = function (BID, APIUrl) {
         });
     };
 
+    this.GetCompanyTableResultByCompanyType = function (cb) {
+
+        var url;
+        url = APIUrl + "/GetCompanyTableResultByCompanyType";
+
+        callServiceByPost(url, BID, function (success, text) {
+            if (success == true) {
+                var obj = getJSON(text);
+
+                if (cb) {
+                    cb(true, obj);
+                }
+            } else {
+                if (cb) {
+                    cb(false, text);
+                }
+            }
+        });
+    };
+
     this.getCompanyTableResult2 = function (cb) {
 
         var url;
@@ -4289,6 +4309,38 @@ var BackendAPI = function (BID, APIUrl) {
             }
         });
     };
+
+
+    this.UpdateCompanyWithdrawlType = function (withdrawType, serviceType, backendLoginIPType, withdrawAPIType, backendWithdrawType, cb) {
+        var url = APIUrl + "/UpdateCompanyWithdrawlType";
+        var postData;
+
+        postData = {
+            BID: BID,
+            WithdrawType: withdrawType,
+            AutoWithdrawalServiceType: serviceType,
+            BackendLoginIPType: backendLoginIPType,
+            WithdrawAPIType: withdrawAPIType,
+            BackendWithdrawType: backendWithdrawType
+        };
+
+        callServiceByPost(url, postData, function (success, text) {
+            if (success == true) {
+                var obj = getJSON(text);
+
+                if (cb) {
+                    cb(true, obj);
+                }
+            } else {
+                if (cb) {
+                    cb(false, text);
+                }
+            }
+        });
+    };
+
+
+
 
     this.disableCompanyByID = function (CompanyID, cb) {
 
@@ -4675,7 +4727,7 @@ var BackendAPI = function (BID, APIUrl) {
         });
     };
 
-    this.insertProviderCodeResult = function (providerCode, providerName, introducer, providerUrl, merchantKey, merchantCode, notifySyncUrl, notifyAsyncUrl, providerAPIType, collectType, withdrawRate, cb) {
+    this.insertProviderCodeResult = function (providerCode, providerName, introducer, providerUrl, merchantKey, merchantCode, notifySyncUrl, notifyAsyncUrl, providerAPIType, collectType, withdrawRate,companyID, cb) {
         var url = APIUrl + "/InsertProviderCodeResult";
         var postData;
 
@@ -4691,7 +4743,8 @@ var BackendAPI = function (BID, APIUrl) {
             NotifyAsyncUrl: notifyAsyncUrl,
             CollectType: collectType,
             ProviderAPIType: providerAPIType,
-            WithdrawRate: withdrawRate
+            WithdrawRate: withdrawRate,
+            forCompanyID: companyID
         };
 
         callServiceByPost(url, postData, function (success, text) {
@@ -4709,7 +4762,7 @@ var BackendAPI = function (BID, APIUrl) {
         });
     };
 
-    this.updateProviderCodeResult = function (providerCode, providerName, introducer, providerUrl, merchantKey, merchantCode, notifySyncUrl, notifyAsyncUrl, providerAPIType, collectType, withdrawRate,cb) {
+    this.updateProviderCodeResult = function (providerCode, providerName, introducer, providerUrl, merchantKey, merchantCode, notifySyncUrl, notifyAsyncUrl, providerAPIType, collectType, withdrawRate,companyID,cb) {
         var url = APIUrl + "/UpdateProviderCodeResult";
         var postData;
 
@@ -4725,7 +4778,8 @@ var BackendAPI = function (BID, APIUrl) {
             NotifyAsyncUrl: notifyAsyncUrl,
             CollectType: collectType,
             ProviderAPIType: providerAPIType,
-            WithdrawRate: withdrawRate
+            WithdrawRate: withdrawRate,
+            forCompanyID: companyID
         };
 
         callServiceByPost(url, postData, function (success, text) {
@@ -5832,7 +5886,7 @@ var BackendAPI = function (BID, APIUrl) {
         });
     };
 
-    this.insertGPayWithdrawRelation = function (companyID, charge, minLimit, maxLimit, lstProviderCode, currencyType, cb) {
+    this.insertGPayWithdrawRelation = function (companyID, charge, minLimit, maxLimit, lstProviderCode, cb) {
 
         var postdata = {
             BID: BID,
@@ -5840,8 +5894,7 @@ var BackendAPI = function (BID, APIUrl) {
             ProviderCodeAndWeight: lstProviderCode,
             Charge: charge,
             MinLimit: minLimit,
-            MaxLimit: maxLimit,
-            CurrencyType: currencyType
+            MaxLimit: maxLimit
         };
 
         var url = APIUrl + "/InsertGPayWithdrawRelation";

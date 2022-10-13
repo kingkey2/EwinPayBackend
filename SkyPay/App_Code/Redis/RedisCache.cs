@@ -906,6 +906,7 @@ public static class RedisCache {
                         BI.CompanyCode = CompanyCode;
                         BI.CompanyName = (string)CompanyDT.Rows[0]["CompanyName"];
                         BI.CompanyType = (int)CompanyDT.Rows[0]["CompanyType"];
+                        BI.CurrencyType = (string)CompanyDT.Rows[0]["CurrencyType"];
                         BI.AdminID = Admin.AdminID;
                         BI.forCompanyID = Admin.forCompanyID;
                         BI.RealName = Admin.RealName;
@@ -1022,6 +1023,9 @@ public static class RedisCache {
                                 case "COMPANYNAME":
                                     RetValue.CompanyName = Value;
                                     break;
+                                case "CURRENCYTYPE":
+                                    RetValue.CurrencyType = Value;
+                                    break;
                                 case "COMPANYTYPE":
                                     RetValue.CompanyType = Convert.ToInt32(Value);
                                     break;
@@ -1125,6 +1129,7 @@ public static class RedisCache {
             T.HashSetAsync(Key1.ToUpper(), "AdminID", System.Convert.ToString(BI.AdminID));
             T.HashSetAsync(Key1.ToUpper(), "CompanyID", System.Convert.ToString(BI.forCompanyID));
             T.HashSetAsync(Key1.ToUpper(), "CompanyName", System.Convert.ToString(BI.CompanyName));
+            T.HashSetAsync(Key1.ToUpper(), "CurrencyType", System.Convert.ToString(BI.CurrencyType));
             T.HashSetAsync(Key1.ToUpper(), "CompanyType", System.Convert.ToString(BI.CompanyType));
             T.HashSetAsync(Key1.ToUpper(), "AdminRoleID", System.Convert.ToString(BI.AdminRoleID));
             T.HashSetAsync(Key1.ToUpper(), "AdminType", System.Convert.ToString(BI.AdminType));
@@ -1159,6 +1164,7 @@ public static class RedisCache {
             public string Tag;
             public string SortKey;
             public bool CheckGoogleKeySuccess;
+            public string CurrencyType;
         }
     }
 

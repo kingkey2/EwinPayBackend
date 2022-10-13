@@ -1,10 +1,7 @@
 ﻿@{
     //Layout = "~/VPay/_Layout.cshtml";
     var bc = new BackendController(); string BID = HttpContext.Current.Request.Cookies.AllKeys.Contains("BID") == true ?  HttpContext.Current.Request.Cookies["BID"].Value.ToString():"";
-
-    string PermissionName = Request.Path.Split('/').Last().Split('.').First();
-    var result = bc.CheckPermission(BID,PermissionName);
-
+    var result = bc.CheckLoginPermission(BID);
     if (result.ResultCode != BackendController.APIResult.enumResult.OK)
     {
         Response.Redirect("/VPay/Index.cshtml");
@@ -16,6 +13,7 @@
     {
         CheckLoginPermission = "false";
     }
+
 }
 
 <head>
@@ -912,19 +910,16 @@
         .table-responsive table th {
             font-weight: normal;
         }
+        .bootstrap-select {
+            max-width:300px;
+        }
     </style>
 </head>
-
-<script src="~/VPay/assets/js/xlsx.core.min.js"></script>
-<script src="~/VPay/assets/js/moment.min.js"></script>
-<script src="~/VPay/assets/js/daterangepicker.js"></script>
-<link href="~/VPay/assets/css/daterangepicker.css" rel="stylesheet" />
-
 <body class="theme-cyan">
     <div class="block-header paper-wrap">
         <div class="row">
             <div class="col col-lg-3 col-md-3 col-sm-3">
-                <h2>代付记录</h2>
+                <h2>代付方式调整</h2>
             </div>
             <div class="col col-lg-9 col-md-9 col-sm-9">
                 <div class="tips">
@@ -936,90 +931,92 @@
     </div>
 
     <div class="container-fluid">
-        <!-- Basic Examples -->
+        <!-- Vertical Layout -->
         <div class="row clearfix">
-            <div class="col-lg-12">
+            <div class="col-lg-12 col-md-12 col-sm-12">
                 <div class="card">
                     <div class="header"></div>
                     <div class="body">
-                        <div class="row" style="margin-bottom: 10px;">
-                            <h6 style="margin-top: 10px;margin-right: 10px;margin-left: 15px;"> 时间 : </h6>
-                            <input id="dateinput" style="width:250px;height: 41px;margin-right:5px" class="form-control" />
-                            <select id="deteselect" style="width: 110px;">
-                                <option value="0">今日</option>
-                                <option value="1">昨日</option>
-                                <option value="2">过去7日</option>
-                                <option value="3">过去30日</option>
-                                <option value="4">这个月</option>
-                                <option value="5">上个月</option>
-                                <option value="6">自定义</option>
-                            </select>
-                        </div>
-                        <div class="row" style="margin-bottom: 10px;">
-                            @*<div class="col col-lg-2 col-md-4 col-sm-6">
-            <div class="input-group">
-                <span class="input-group-addon"><i class="zmdi zmdi-calendar"></i> </span>
-                <input id="startdate" type="text" class="form-control date" placeholder="起始日期">
-            </div>
-        </div>
+                        <form>
+                            <label hidden="hidden" id="CompanyID"></label>
 
-        <div class="col col-lg-2 col-md-4 col-sm-6">
-            <div class="input-group">
-                <span class="input-group-addon"><i class="zmdi zmdi-calendar"></i> </span>
-                <input id="enddate" type="text" class="form-control date" placeholder="结束日期">
-            </div>
-        </div>*@
-                            <div class="col col-lg-2 col-md-4 col-sm-6">
-                                <div class="input-group">
-                                    <input type="text" id="input_WithdrawSerial" placeholder="平台订单号" class="form-control" style="line-height: inherit;">
+                            <label>后台IP检查 : </label>
+                            <div class="form-group">
+                                <div class="radio inlineblock">
+                                    <input type="radio" name="BackendLoginIPType" id="BackendLoginIPType0" class="with-gap" value="0">
+                                    <label for="BackendLoginIPType0">启用</label>
                                 </div>
-
-                            </div>
-                            <div class="col col-lg-2 col-md-4 col-sm-6">
-                                <div class="input-group">
-                                    <input type="text" id="input_OrderID" placeholder="商户订单号" class="form-control" style="line-height: inherit;">
+                                <div class="radio inlineblock">
+                                    <input type="radio" name="BackendLoginIPType" id="BackendLoginIPType1" class="with-gap" value="1">
+                                    <label for="BackendLoginIPType1">停用</label>
                                 </div>
                             </div>
-                            <div class="col col-lg-2 col-md-4 col-sm-6">
-                                <div class="input-group">
-                                    <input type="text" id="input_BankCardName" placeholder="开户名" class="form-control" style="line-height: inherit;">
+
+                            <label>允许代付方式 : </label>
+                            <div class="row">
+                                <div class="col-lg-3 col-md-3 col-sm-6" style="padding:0px">
+                                    <div class="checkbox" style="display:block;">
+                                        <input id="WithdrawAPIType1" type="checkbox" value="1">
+                                        <label for="WithdrawAPIType1">
+                                            后台申请
+                                        </label>
+                                    </div>
+                                    <label style="font-weight: bold;">后台送单需审核 : </label>
+                                    <div class="form-group" style="display: inline-block;">
+                                        <div class="radio inlineblock">
+                                            <input type="radio" name="BackendWithdrawType" id="BackendWithdrawType0" class="with-gap" value="0">
+                                            <label for="BackendWithdrawType0">是</label>
+                                        </div>
+                                        <div class="radio inlineblock">
+                                            <input type="radio" name="BackendWithdrawType" id="BackendWithdrawType1" class="with-gap" value="1">
+                                            <label for="BackendWithdrawType1">否</label>
+                                        </div>
+                                    </div>
                                 </div>
+                                <div class="col-lg-5 col-md-5 col-sm-6">
+                                    <div class="checkbox" style="display:block;">
+                                        <input id="WithdrawAPIType2" type="checkbox" value="2">
+                                        <label for="WithdrawAPIType2">
+                                            API代付
+                                        </label>
+                                    </div>
+                                    <label style="font-weight: bold;">代付API规则 : </label>
+                                    <div class="form-group" style="display: inline-block;">
+                                        <div class="radio inlineblock">
+                                            <input type="radio" name="WithdrawType" id="WithdrawType0" class="with-gap" value="0" checked="checked">
+                                            <label for="WithdrawType0">后台审核</label>
+                                        </div>
+                                        <div class="radio inlineblock">
+                                            <input type="radio" name="WithdrawType" id="WithdrawType1" class="with-gap" value="1">
+                                            <label for="WithdrawType1">自动代付</label>
+                                        </div>
+                                    </div>
+                                    <div style="display:block;">
+                                        <label for="select_ServiceType" style="font-weight: bold;">API 代付渠道 : </label>
 
-                            </div>
-                            <div class="col col-lg-2 col-md-4 col-sm-6">
-                                <select class="show-tick" id="select_Status"></select>
-                            </div>
+                                        <select class="form-control show-tick" id="select_ServiceType"></select>
+                                    </div>
 
-                            <div class="col col-lg-2 col-md-4 col-sm-6">
-                                <button class="btn btn-raised btn-primary btn-round waves-effect" type="button" id="btnSearch">搜寻</button>
-                                <button id="Excel_download" type="button" class="btn btn-raised btn-round waves-effect">汇出Excel</button>
+                                </div>
                             </div>
-
-                        </div>
-                        <div class="row" style="background-color: #23c6c8;line-height: 30px;">
-                            <span style="color:white;font-size:15px;margin-left:5px"> 代付成功总金额 : </span><span style="font-size:15px;margin-left:5px" id="count1"></span>
-                            <span style="color:white;font-size:15px;margin-left:5px"> 交易总笔数 : </span><span style="font-size:15px;margin-left:5px" id="count2"></span>
-                            <span style="color:white;font-size:15px;margin-left:5px"> 成功总笔数 : </span><span style="font-size:15px;margin-left:5px" id="count3"></span>
-                        </div>
-                        <div id="div_table_PaymentTable">
-                            <table style="width:100%" class="table table-bordered table-striped table-hover dataTable nowrap " id="table_PaymentTable"></table>
-                        </div>
+          
+                            <div class="text-center">
+                                <button type="button" class="btn btn-raised btn-primary btn-round waves-effect" id="btn_CompanyEdit_Save">储存</button>
+                                <button type="button" class="btn btn-raised btn-primary btn-round waves-effect" id="btn_CompanyEdit_Cancel">取消</button>
+                            </div>
+                        </form>
                     </div>
+                    <div class="footer"></div>
                 </div>
             </div>
         </div>
-        <!-- #END# Basic Examples -->
-
+        <!-- #END# Vertical Layout -->
     </div>
 </body>
 
 
 <script>
-
-    var Table;
-    var isCreatedTable = false;
-    var isFirstSearch = false;
-    var withdrawalRecordTable;
+    var EditData = parent.CheckTempDataType("Company_Maint");
 
     $(document).ready(function () {
         pageLoad();
@@ -1032,643 +1029,148 @@
 
         AdminObject = parent.AdminObject;
         api = parent.api;
-        createPaymentTable2();
 
-        CreateWithdrawalStatusSelect();
-
-       //啟用日期
-        var start = moment().hour(00).minute(00);
-        var end = moment().hour(23).minute(59);
-
-        $('#dateinput').daterangepicker({
-            startDate: start,
-            endDate: end,
-            timePicker: true,
-            timePicker24Hour: true,
-            locale: {
-
-                "applyLabel": "確認",
-                "cancelLabel": "取消",
-                "format": 'YYYY/MM/DD HH:mm',
-                "daysOfWeek": ["日", "一", "二", "三", "四", "五", "六"],
-                "monthNames": ["1月", "2月", "3月", "4月", "5月", "6月",
-                    "7月", "8月", "9月", "10月", "11月", "12月"]
-            }
-        }, function (start, end, label) {
-            $('#deteselect').val("6");
-            $('#deteselect').selectpicker('refresh');
-        });
-
-        getPaymentTableResult();
-
-        var objWithdrawalRecordTable = `<div class="modal fade" style="background-color: rgba(0, 0, 0, 0.4);" data-backdrop=false id="WithdrawalRecordModal" tabindex="-1" role="dialog" aria-hidden="true">
-                            <div class="modal-dialog modal-lg" role="document">
-                            <div class="modal-content">
-                            <div class="modal-header">
-                            <h4 class="title">条帐记录</h4>
-                            </div>
-                            <div class="modal-body">
-                            <table style="width:100%" class="table table-bordered table-striped table-hover dataTable nowrap " id="withdrawalRecordTable"></table>
-                            </div>
-                            <div class="modal-footer">
-                            <button onclick="contentcancel2()" type="button" class="btn btn-primary btn-round waves-effect">关闭</button>
-                            </div>
-                            </div>
-                            </div>
-                            </div>`;
-        $('body').append(objWithdrawalRecordTable);
-
-        parent.wrapperFadeOut();
-
-    };
-
-     $('#deteselect').change(function () {
-
-        switch ($(this).val()) {
-            case "0"://今日
-                var start = moment().hour(00).minute(00);
-                var end = moment().hour(23).minute(59);
-                break;
-            case "1"://昨日
-                var start = moment().subtract(1, 'days').hour(00).minute(00);
-                var end = moment().subtract(1, 'days').hour(23).minute(59);
-                break;
-            case "2"://过去7日
-                var start = moment().subtract(6, 'days').hour(00).minute(00);
-                var end = moment().hour(23).minute(59);
-                break;
-            case "3"://过去30日
-                var start = moment().subtract(29, 'days').hour(00).minute(00);
-                var end = moment().hour(23).minute(59);
-                break;
-            case "4"://这个月
-                var start = moment().startOf('month').hour(00).minute(00);
-                var end = moment().endOf('month').hour(23).minute(59);
-                break;
-            case "5"://上个月
-                var start = moment().subtract(1, 'month').startOf('month').hour(00).minute(00);
-                var end = moment().subtract(1, 'month').endOf('month').hour(23).minute(59);
-                break;
-            default:
-        }
-        $('#dateinput').data('daterangepicker').setStartDate(start);
-        $('#dateinput').data('daterangepicker').setEndDate(end);
-
-    })
-    function createPaymentTable2() {
-
-        var tmp_Table = $("#table_PaymentTable").DataTable({
-
-            columns: [
-                {
-                    "title": "平台订单号", "data": "WithdrawSerial"
-                },
-                {
-                    "title": "商户订单号", "data": "DownOrderID"
-                },
-                {  //下發狀態，0=建立/1=進行中/2=成功/3=失敗/4=審核確認中/5=匯款處理中/6=匯款完成，成功，審核中/7=匯款完成，失敗，審核中
-                    "title": "状态", "data": "Status",
-                    "render": function (data) {
-                        switch (data) {
-                            case 0:
-                                return '<span style="color:orange;font-weight:900">处理中</span>';
-                                break;
-                            case 1:
-                                return '<span style="color:orange;font-weight:900">处理中</span>';
-                                break;
-                            case 2:
-                                return '<span style="color:green;font-weight:900">成功</span>';
-                                break;
-                            case 3:
-                                return '<span style="color:red;font-weight:900">失敗</span>';
-                                break;
-                            case 4:
-                                return '<span style="color:orange;font-weight:900">处理中</span>';
-                                break;
-                            case 5:
-                                return '<span style="color:orange;font-weight:900">处理中</span>';
-                                break;
-                            case 6:
-                                return '<span style="color:orange;font-weight:900">处理中</span>';
-                                break;
-                            case 7:
-                                return '<span style="color:orange;font-weight:900">处理中</span>';
-                                break;
-                            case 9:
-                                return '审核退回';
-                                break;
-                            case 10:
-                                return '<span style="color:orange;font-weight:900">处理中</span>';
-                                break;
-                            case 11:
-                                return '<span style="color:orange;font-weight:900">处理中</span>';
-                                break;
-                            case 12:
-                                return '<span style="color:orange;font-weight:900">处理中</span>';
-                                break;
-                            case 13:
-                                return '<span style="color:orange;font-weight:900">处理中</span>';
-                                break;
-                            default:
-                                return '';
-                                break;
-                        }
-                    },
-
-                },
-                { "title": "申请金额", "data": "Amount" },
-                {
-                    "title": "手续费", "data": "CollectCharge",
-                    "render": function (data, display, rowdata) {
-                        return toCurrency(data);
-                    }
-                },
-                {
-                    "title": "实际金额", "data": "FinishAmount",
-                    "render": function (data, display, rowdata) {
-                        return toCurrency(data);
-                    }
-                },
-                {
-                    "title": "申请时间", "data": "CreateDate2"
-                },
-                { "title": "银行名称", "data": "BankName" },
-                { "title": "支行名称", "data": "BankBranchName" },
-                {
-                    "title": "银行卡号", "data": "BankCard"
-                },
-                {
-                    "title": "开户名", "data": "BankCardName"
-                },
-                { "title": "所属省", "data": "OwnProvince" },
-                { "title": "所属市", "data": "OwnCity" },
-                {
-                    "title": "完成日期", "data": "FinishDate2"
-                },
-                {
-                    "title": "回调状态", "data": "DownStatus",
-                    "render": function (data, display, rowdata) {
-                        if (data == 2) {
-                            return '<span style="color:green">已回调</span>'
-                        } else {
-                            return '<span style="color:red">未回调</span>'
-                        }
-                    }
-                },
-                {
-                    "title": "功能", "data": "Status",
-                    "render": function (data, display, rowdata) {
-                        var tmpdoc = '';
-                        if (rowdata.Status != 0) {
-                            tmpdoc += '<button style="margin-left:5px" onclick="WithdrawalRecord(this)">调帐记录</button>';
-                        }
-
-                        return tmpdoc;
-                    }
-                }
-            ],
-            rowCallback: function (row, data) { },
-            filter: true,
-            info: false,
-            ordering: true,
-            processing: true,
-            retrieve: true,
-            selected: true,
-            order: [[6, "desc"]],
-            scrollX: true,
-            autoWidth: false,
-            language: chineseTableLang
-        });
-    }
-
-    function createPaymentTable(data) {
-
-        Table = $("#table_PaymentTable").DataTable({
-            data: data,
-            columns: [
-                {
-                    "title": "平台订单号", "data": "WithdrawSerial"
-                },
-                {
-                    "title": "商户订单号", "data": "DownOrderID"
-                },
-                {  //下發狀態，0=建立/1=進行中/2=成功/3=失敗/4=審核確認中/5=匯款處理中/6=匯款完成，成功，審核中/7=匯款完成，失敗，審核中
-                    "title": "状态", "data": "Status",
-                    "render": function (data) {
-                        switch (data) {
-                            case 0:
-                                return '<span style="color:orange;font-weight:900">处理中</span>';
-                                break;
-                            case 1:
-                                return '<span style="color:orange;font-weight:900">处理中</span>';
-                                break;
-                            case 2:
-                                return '<span style="color:green;font-weight:900">成功</span>';
-                                break;
-                            case 3:
-                                return '<span style="color:red;font-weight:900">失敗</span>';
-                                break;
-                            case 4:
-                                return '<span style="color:orange;font-weight:900">处理中</span>';
-                                break;
-                            case 5:
-                                return '<span style="color:orange;font-weight:900">处理中</span>';
-                                break;
-                            case 6:
-                                return '<span style="color:orange;font-weight:900">处理中</span>';
-                                break;
-                            case 7:
-                                return '<span style="color:orange;font-weight:900">处理中</span>';
-                                break;
-                            case 9:
-                                return '审核退回';
-                                break;
-                            case 10:
-                                return '<span style="color:orange;font-weight:900">处理中</span>';
-                                break;
-                            case 11:
-                                return '<span style="color:orange;font-weight:900">处理中</span>';
-                                break;
-                            case 12:
-                                return '<span style="color:orange;font-weight:900">处理中</span>';
-                                break;
-                            case 13:
-                                return '<span style="color:orange;font-weight:900">处理中</span>';
-                                break;
-                            default:
-                                return '';
-                                break;
-                        }
-                    },
-
-                },
-                { "title": "申请金额", "data": "Amount" },
-                {
-                    "title": "手续费", "data": "CollectCharge",
-                    "render": function (data, display, rowdata) {
-                        return toCurrency(data);
-                    }
-                },
-                {
-                    "title": "实际金额", "data": "FinishAmount",
-                    "render": function (data, display, rowdata) {
-                        return toCurrency(data);
-                    }
-                },
-                {
-                    "title": "申请时间", "data": "CreateDate2"
-                },
-                { "title": "银行名称", "data": "BankName" },
-                { "title": "支行名称", "data": "BankBranchName" },
-                {
-                    "title": "银行卡号", "data": "BankCard"
-                },
-                {
-                    "title": "开户名", "data": "BankCardName"
-                },
-                { "title": "所属省", "data": "OwnProvince" },
-                { "title": "所属市", "data": "OwnCity" },
-
-              
-                {
-                    "title": "完成日期", "data": "FinishDate2"
-                },
-                {
-                    "title": "回调状态", "data": "DownStatus",
-                    "render": function (data, display, rowdata) {
-                        if (data == 2) {
-                            return '<span style="color:green">已回调</span>'
-                        } else {
-                            return '<span style="color:red">未回调</span>'
-                        }
-                    }
-                },
-                {
-                    "title": "功能", "data": "Status",
-                    "render": function (data, display, rowdata) {
-                        var tmpdoc = '';
-                        if (rowdata.Status != 0) {
-                            tmpdoc += '<button style="margin-left:5px" onclick="WithdrawalRecord(this)">调帐记录</button>';
-                        }
-
-                        return tmpdoc;
-                    }
-                }
-            ],
-            rowCallback: function (row, data) { },
-            filter: true,
-            info: false,
-            ordering: true,
-            processing: true,
-            retrieve: true,
-            order: [[6, "desc"]],
-            selected: true,
-            scrollX: true,
-            autoWidth: false,
-            language: chineseTableLang
-        });
-
-    }
+        getServiceType();
+     
+        //塞資料
+        $("#CompanyID").val(EditData.data.CompanyID);
    
 
-    function statisticsAmount(data) {
-        var count1 = 0;
-        var count2 = 0;
-        var count3 = 0;
+        $("input[name*='WithdrawType'][value='" + EditData.data.WithdrawType + "']").prop("checked", true);
+        $("input[name*='BackendLoginIPType'][value='" + EditData.data.BackendLoginIPType + "']").prop("checked", true);
+        $("input[name*='BackendWithdrawType'][value='" + EditData.data.BackendWithdrawType + "']").prop("checked", true);
 
-        if (data.length > 0) {
-            for (var i = 0; i < data.length; i++) {
-              
-                //count2 += data[i].PaymentAmount;
-                if (data[i].Status == 2) {
-                    count1 += data[i].FinishAmount;
-                    count3++;
-                }
-            }
-            count2 = data.length;
-
-            $('#count1').text(toCurrency(parseFloat(count1.toFixed(4))));
-            $('#count2').text(count2);
-            $('#count3').text(count3);
-
+        if (EditData.data.WithdrawAPIType != "0") {
+            checkedWithdrawAPIType(EditData.data.WithdrawAPIType);
         }
 
-    }
-
-    function getPaymentTableResult() {
-         var dateinputval = $('#dateinput').val().split('-');
-         var startDate = dateinputval[0];
-        var endDate = dateinputval[1] + ":59.999";
-        var withdrawSerial = $('#input_WithdrawSerial').val().trim();
-        var orderID = $('#input_OrderID').val().trim();
-        var bankCardName = $('#input_BankCardName').val().trim();
+        new AutoNumeric.multiple('.thousand-symbols', 'floatPos', { allowDecimalPadding: false, decimalPlaces: 4, modifyValueOnWheel: false });
+        parent.wrapperFadeOut();
+        //儲存
+        $("#btn_CompanyEdit_Save").on("click", function () {
+            //#region 驗證
+            var serviceType = "";
+            //#endregion
+            var companyCode = EditData.data.CompanyCode;
+            var backendLoginIPType = $('input[name=BackendLoginIPType]:checked').val();
+            var withdrawType = $('input[name=WithdrawType]:checked').val();
+            var backendWithdrawType = $('input[name=BackendWithdrawType]:checked').val();
         
-        var status = $('#select_Status').val().split(",");
-        api.getWithdrawalReport8(117,startDate, endDate, withdrawSerial, orderID, status, bankCardName, function (success, obj) {
-            if (isCreatedTable) {
-                Table.clear().draw();
+            if (withdrawType == "1") {
+                if ($("#select_ServiceType").val() == 0) {
+                    parent.warningAlert("API代付支付方式不得为空");
+                    return;
+                }
             }
 
-            if (obj.ResultCode == 0) {
-                isFirstSearch = true;
-                if (!isCreatedTable) {
-                    isCreatedTable = true;
-                    //建立資料顯示Table
+            serviceType = $("#select_ServiceType").val();
 
-                    $("#div_table_PaymentTable").empty();
-                    $("#div_table_PaymentTable").append('<table style="width:100%" class="table table-bordered table-striped table-hover dataTable nowrap" id="table_PaymentTable"></table>');
-                    createPaymentTable(obj.WithdrawalResults);
-
-                } else {
-                    Table.rows.add(obj.WithdrawalResults).draw(); // Add new data
-                }
-                statisticsAmount(obj.WithdrawalResults);
-                Table.columns.adjust();
+            var withdrawAPIType = 0
+            if ($("#WithdrawAPIType1:checked").val()) {
+                withdrawAPIType += parseInt($("#WithdrawAPIType1:checked").val());
             }
-            else {
-                if (isFirstSearch) {
-                    var message = ""
-                    switch (obj.ResultCode) {
-                        case 5:
-                            message = "没有资料";
-                            parent.warningAlert(message);
-                            break;
-                        case 7:
-                            parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                            break;
-                        default:
-                            message = "其他错误";
-                            parent.warningAlert(message);
-                            break;
-                    }
-
-                }
-                isFirstSearch = true;
-                $('#count1').text('');
-                $('#count2').text('');
-                $('#count3').text('');
-                $('#count4').text('');
-                $('#count5').text('');
-                $('#count6').text('');
-            }
-        });
-    }
-
-    $('#btnSearch').click(function () {
-        getPaymentTableResult();
-    })
-
-    
-
-    $('#Excel_download').click(function () {
-        CreateExcel();
-    })
-
-    function CreateExcel() {
-        if (Table == null) {
-            parent.warningAlert("没有汇出资料");
-            return;
-        }
-
-
-        if (Table.rows().data().length > 0) {
-            var exceldata = [
-                ['平台订单号', '商户订单号', '状态', '申请金额', '手续费', '实际金额', '银行名称', '支行名称', '银行卡号','开户名', '所属省', '所属市', '申请时间', '完成日期','回调状态']
-            ];
-            var TableData = Table.rows().data();   
-            for (var i = 0; i < TableData.length; i++) {
-                var data = TableData[i];
-            
-                var FinishDate = "";
-                var ProcessStatus = "";
-                var DownStatus = "";
-                if (data.FinishDate2 != null) {
-                    FinishDate = data.FinishDate2;
-                }
-                
-                if (data.DownStatus == 2) {
-                    DownStatus= '已回调'
-                } else {
-                    DownStatus= '未回调'
-                }
-               
-       
-                switch (data.Status) {  
-                    case 2:
-                        ProcessStatus = '成功';
-                        break;
-                    case 3:
-                        ProcessStatus = '失败';
-                        break;                 
-                    default:
-                        ProcessStatus = '处理中';
-                        break;
-                }
-
-                var tmpArray = new Array(data.WithdrawSerial, data.DownOrderID, ProcessStatus, data.Amount, data.CollectCharge, data.FinishAmount, data.BankName, data.BankBranchName, data.BankCard , data.BankCardName, data.OwnProvince, data.OwnCity, data.CreateDate2, FinishDate, DownStatus);
-                exceldata.push(tmpArray);
+            if ($("#WithdrawAPIType2:checked").val()) {
+                withdrawAPIType += parseInt($("#WithdrawAPIType2:checked").val());
             }
 
-            var sheet = XLSX.utils.aoa_to_sheet(exceldata);
-            openDownloadDialog(sheet2blob(sheet), dateTimeStr() + '.xlsx');
-        } else {
-            parent.warningAlert("没有汇出资料");
-        }
-    }
-
-    function dateTimeStr() {
-        var dateTime = new Date();
-        var year = dateTime.getFullYear();
-        var month = dateTime.getMonth() + 1;//js從0開始取
-        var date = dateTime.getDate();
-
-
-        if (month < 10) {
-            month = "0" + month;
-        }
-        if (date < 10) {
-            date = "0" + date;
-        }
-
-
-
-        return "VPay_" + year + "-" + month + "-" + date + " ";
-    }
-
-    function openDownloadDialog(url, saveName) {
-        if (typeof url == 'object' && url instanceof Blob) {
-            url = URL.createObjectURL(url); // 创建blob地址
-        }
-        var aLink = document.createElement('a');
-        aLink.href = url;
-        aLink.download = saveName || ''; // HTML5新增的属性，指定保存文件名，可以不要后缀，注意，file:///模式下不会生效
-        var event;
-        if (window.MouseEvent) event = new MouseEvent('click');
-        else {
-            event = document.createEvent('MouseEvents');
-            event.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-        }
-        aLink.dispatchEvent(event);
-    }
-
-    function sheet2blob(sheet, sheetName) {
-        sheetName = sheetName || 'sheet1';
-        var workbook = {
-            SheetNames: [sheetName],
-            Sheets: {}
-        };
-        workbook.Sheets[sheetName] = sheet;
-        // 生成excel的配置项
-        var wopts = {
-            bookType: 'xlsx', // 要生成的文件类型
-            bookSST: false, // 是否生成Shared String Table，官方解释是，如果开启生成速度会下降，但在低版本IOS设备上有更好的兼容性
-            type: 'binary'
-        };
-        var wbout = XLSX.write(workbook, wopts);
-        var blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
-        // 字符串转ArrayBuffer
-        function s2ab(s) {
-            var buf = new ArrayBuffer(s.length);
-            var view = new Uint8Array(buf);
-            for (var i = 0; i != s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
-            return buf;
-        }
-        return blob;
-    }
-
-    function CreateWithdrawalStatusSelect() {
-        //流程狀態，0=建立/1=進行中/2=成功/3=失敗/99=全部
-        $("#select_Status").children().remove();
-        $("#select_Status").append('<option value="99">全部</option>');
-        $("#select_Status").append('<option value="0,1,4,5,6,7,10,11,12,13">处理中</option>');
-        $("#select_Status").append('<option value="2">成功</option>');
-        $("#select_Status").append('<option value="3">失败</option>');
-        $("#select_Status").append('<option value="9">审核退回</option>');
-        $('#select_Status').selectpicker('refresh');
-
-    }
-
-    function WithdrawalRecord(objbtn) {
-        var withdrawalSerial = $($(objbtn).parent().parent().find('td')[0]).html();
-
-        parent.wrapperFadeIn();
-        api.WithdrawalRecord(withdrawalSerial, function (success, obj) {
-            if (success) {
-                if (obj.ResultCode == 0) {
-                    if (!withdrawalRecordTable) {
-                        createWithdrawalRecordTable(obj.CompanyPointHistoryDates);
+            api.UpdateCompanyWithdrawlType(withdrawType, serviceType, backendLoginIPType, withdrawAPIType, backendWithdrawType,function (success, obj) {
+                if (success) {
+                    if (obj.ResultCode == 0) {
+                        TempData = {
+                            "type": "afterModifyCompany",
+                            "data": EditData.data.CompanyID
+                        }
+                        sessionStorage.setItem("TempData", JSON.stringify(TempData));
+                        parent.successAlert(function () {
+                            parent.refreshPage(EditData.data.backID);
+                            parent.CloseActivePage(window.frameElement.name);
+                        });
                     } else {
-                        withdrawalRecordTable.clear();
-                        withdrawalRecordTable.rows.add(obj.CompanyPointHistoryDates).draw(); // Add new data
-                    }
-                    $('#WithdrawalRecordModal').modal('show');
-                    withdrawalRecordTable.columns.adjust();
-
-                } else {
-                    switch (obj.ResultCode) {
-                        case 7:
-                            parent.errorAlert("您已断线请重新登入", "Login.cshtml");
-                            break;
-                        case 6:
-                            parent.warningAlert("没有资料");
-                            break;
-                        default:
-
-                            //warningAlert(obj.Message);
-                            break;
+                        switch (obj.ResultCode) {
+                            case 4:
+                                parent.errorAlertCallback("权限不足", function () {
+                                    parent.ChangePage("Home");
+                                    parent.CloseActivePage(window.frameElement.id.split('_')[1]);
+                                });
+                                break;
+                            case 5:
+                                parent.warningAlert("没有资料");
+                                break;
+                            case 7:
+                                parent.errorAlert("您已断线请重新登入", "Login.cshtml");
+                                break;
+                            default:
+                                parent.warningAlert("其他错误");
+                                break;
+                        }
                     }
                 }
-
-                parent.wrapperFadeOut();
-            } else {
-                parent.wrapperFadeOut();
-                parent.warningAlert("网路异常");
-
+            });
+        })
+        //取消回檢視頁面
+        $("#btn_CompanyEdit_Cancel").on("click", function () {
+            TempData = {
+                "type": "afterModifyCompany",
+                "data": EditData.data.CompanyID
             }
-
-        });
+            sessionStorage.setItem("TempData", JSON.stringify(TempData));
+            parent.ChangePage(EditData.data.backID);
+            parent.CloseActivePage(window.frameElement.name);
+        })
     }
 
-    function createWithdrawalRecordTable(data) {
+    function checkedWithdrawAPIType(withdrawAPIType) {
 
-        withdrawalRecordTable = $("#withdrawalRecordTable").DataTable({
-            data: data,
-            columns: [
-                { "title": "建立时间", "data": "CreateDate2" },
-                { "title": "支付通道", "data": "ServiceTypeName" },
-                {
-                    "title": "调整前额度", "data": "BeforeValueByService",
-                    "render": function (data, display, rowdata) {
-                        return toCurrency(data);
-                    }
-                },
-                {
-                    "title": "调整后额度", "data": "ValueByService",
-                    "render": function (data, display, rowdata) {
-                        return toCurrency(data + rowdata.BeforeValueByService);
-                    }
+        var numWithdrawAPIType = parseInt(withdrawAPIType);
+        if ((numWithdrawAPIType & 1) == 1) {
+            $('#WithdrawAPIType1').attr('checked', 'checked')
+        }
+        if ((numWithdrawAPIType & 2) == 2) {
+            $('#WithdrawAPIType2').attr('checked', 'checked')
+        }
+    
+    }
+    
+    function getServiceType() {
+        api.getServiceType(AdminObject.forCompanyID, function (success, obj) {
+            if (obj.ResultCode == 0) {
+                if (obj.ServiceTypes.length > 0) {
+                    checkServiceTypeData = obj.ServiceTypes;
+                    var groupName = "";
+                    $("#select_ServiceType").children().remove();
+                    $("#select_ServiceType").append('<option value="0">    请选择渠道    </option>');
+                    var optgroup;
+                    $.each(obj.ServiceTypes, function (i, item) {
+                        if (groupName != obj.ServiceTypes[i].CurrencyType) {
+                            groupName = obj.ServiceTypes[i].CurrencyType;
+                            optgroup = $('<optgroup label="' + groupName + '">');
+                            $("#select_ServiceType").append(optgroup);
+                        }
+                        optgroup.append('<option value="' + obj.ServiceTypes[i].ServiceType + '">' + obj.ServiceTypes[i].ServiceTypeName + '</option>');
+                    })
+                    $("#select_ServiceType").val(EditData.data.AutoWithdrawalServiceType);
+                    $('#select_ServiceType').selectpicker('refresh');
                 }
-            ],
-            rowCallback: function (row, data) { },
-            filter: true,
-            info: false,
-            ordering: true,
-            processing: true,
-            retrieve: true,
-            selected: true,
-            scrollX: true,
-            order: [[2, "asc"]],
-            autoWidth: false,
-
-            language: chineseTableLang
+            } else {
+                var message = ""
+                switch (obj.ResultCode) {
+                    case 4:
+                        parent.errorAlertCallback("权限不足", function () {
+                            parent.ChangePage("Home");
+                            parent.CloseActivePage(window.frameElement.id.split('_')[1]);
+                        });
+                        break;
+                    case 5:
+                        //errorAlert("尚未设定供应商对应渠道", "Index.cshtml");
+                        break;
+                    case 7:
+                        parent.errorAlert("您已断线请重新登入", "Login.cshtml");
+                        break;
+                    default:
+                        parent.warningAlert("其他错误");
+                        break;
+                }
+            }
         });
-
-        withdrawalRecordTable.on('page.dt', function () {
-            withdrawalRecordTable.columns.adjust();
-        });
-    }
-
-    function contentcancel2() {
-        $('#WithdrawalRecordModal').modal('hide');
     }
 </script>

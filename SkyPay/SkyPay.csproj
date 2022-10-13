@@ -343,6 +343,9 @@
     <Content Include="document\vi.js" />
     <Content Include="document\VPAYAPI.html" />
     <Content Include="document\webfontloader.js" />
+    <Content Include="Ewin\PaymentRecord.aspx" />
+    <Content Include="Ewin\PaymentCallback.aspx" />
+    <Content Include="Ewin\WithdrawalCallback.aspx" />
     <Content Include="VPay\assets\background\bg.jpg" />
     <Content Include="VPay\assets\background\nav_bg.jpg" />
     <Content Include="VPay\assets\bundles\datatablescripts.bundle.js" />
@@ -722,7 +725,6 @@
     <Content Include="VPay\CompanyServiceEdit.cshtml" />
     <Content Include="VPay\SummaryCompanyByDateByAgentCompany.cshtml" />
     <Content Include="VPay\ApplyWithdrawal_AdminMaintForProviderV2.cshtml" />
-    <Content Include="VPay\WithdrawReport8.cshtml" />
     <Content Include="VPay\ProxyProivderFrozenPointHistory.cshtml" />
     <Content Include="VPay\WithdrawalIP2.cshtml" />
     <Content Include="VPay\RiskControlWithdrawalReport.cshtml" />
@@ -795,6 +797,9 @@
     <Content Include="App_Code\Backend\BackendFunction.cs" />
     <Content Include="App_Code\Backend\BackendModel.cs" />
     <Content Include="App_Code\Redis\RedisCache.cs" />
+    <Compile Include="Ewin\Common.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="VPay\sendPayment.aspx.cs">
       <DependentUpon>sendPayment.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -907,6 +912,9 @@
     <Content Include="VPay\CancelWithdrawalReviewToSuccess.cshtml" />
     <Content Include="VPay\ManualHistory.cshtml" />
     <Content Include="VPay\ApplyWithdrawal_AdminMaintReadOnly.cshtml" />
+    <Content Include="VPay\Company_UpdateWithdrawType.cshtml" />
+    <Content Include="VPay\PaymentReportCompanyV2.cshtml" />
+    <Content Include="VPay\ApplyWithdrawalCompany_AdminMaintV2.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
