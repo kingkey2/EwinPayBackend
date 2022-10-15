@@ -11958,7 +11958,7 @@ CompanyServicePoint _CompanyServicePointResult = new CompanyServicePoint();
                     item.ServiceDatas = ServiceDatas.Where(w => w.ProviderCode == item.ProviderCode).ToList();
                 }
 
-                if (ServiceDatas != null)
+                if (ProviderPoints != null)
                 {
                     item.ProviderListPoints = ProviderPoints.Where(w => w.ProviderCode == item.ProviderCode).ToList();
                 }
