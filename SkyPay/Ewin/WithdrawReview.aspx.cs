@@ -27,7 +27,7 @@ public partial class WithdrawReview: System.Web.UI.Page
     {
         ProviderPointResult retValue = new ProviderPointResult();
  
-        retValue.ProviderPointResults =Common.GetAllProviderPointByCompanyID(CompanyID);
+        retValue.ProviderPointResults =Common.GetAllProviderPointByCompanyID(CompanyID, CurrencyType);
         retValue.CompanyServicePointResults = Common.GetCompanyServicePointDetail(CompanyID, CurrencyType);
     
         if (retValue.ProviderPointResults != null)
@@ -83,6 +83,16 @@ public partial class WithdrawReview: System.Web.UI.Page
         }
 
         return retValue;
+    }
+
+    [WebMethod]
+    [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+    public static Common.APIResult UpdateWithdrawalResultByWithdrawSerial(string WithdrawSerial, int Status, string ProviderCode, string ServiceType)
+    {
+        Common.APIResult result = new Common.APIResult();
+        result = Common.UpdateWithdrawalResultByWithdrawSerial(Status, WithdrawSerial, ProviderCode, 1, ServiceType);
+ 
+        return result;
     }
 
     public class APIResult

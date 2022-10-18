@@ -1,66 +1,88 @@
 ﻿<%@ Page Language="C#" CodeFile="WithdrawReview.aspx.cs" Inherits="WithdrawReview" %>
 
 <%
-    dynamic paymentReport;
-    string paymentResult = "";
+        dynamic paymentReport;
+        string paymentResult = "";
 
-    string OrderID = Request.Params["OrderID"];
-    string CompanyCode = Request.Params["CompanyCode"];
-    string Sign = Request.Params["Sign"];
+        string Timestamp = Request.Params["Timestamp"];
+        string OrderID = Request.Params["OrderID"];
+        string CompanyCode = Request.Params["CompanyCode"];
+        string Sign = Request.Params["Sign"];
+        int CompanyID = -1;
+        Common.APIResult R = new Common.APIResult() { ResultState = Common.APIResult.enumResultCode.ERR };
 
-    Common.APIResult R = new Common.APIResult() { ResultState = Common.APIResult.enumResultCode.ERR };
+        if (OrderID == null)
+        {
+            R.ResultState = Common.APIResult.enumResultCode.ERR;
+            R.Message = "The parameter orderID not Exist";
+            Response.Write(R.Message);
+            Response.Flush();
+            Response.End();
+        }
 
-    if (OrderID == null)
-    {
-        R.ResultState = Common.APIResult.enumResultCode.ERR;
-        R.Message = "The parameter orderID not Exist";
-        Response.Write(R.Message);
-        Response.Flush();
-        Response.End();
+        if (CompanyCode == null)
+        {
+            R.ResultState = Common.APIResult.enumResultCode.ERR;
+            R.Message = "The parameter CompanyCode not Exist";
+            Response.Write(R.Message);
+            Response.Flush();
+            Response.End();
+        }
+
+        if (Sign == null)
+        {
+            R.ResultState = Common.APIResult.enumResultCode.ERR;
+            R.Message = "The parameter Sign not Exist";
+            Response.Write(R.Message);
+            Response.Flush();
+            Response.End();
+        }
+
+        if (!Common.CheckTimestamp(long.Parse(Timestamp)))
+        {
+            R.ResultState = Common.APIResult.enumResultCode.ERR;
+            R.Message = "Timestamp Expired";
+            Response.Write(R.Message);
+            Response.Flush();
+            Response.End();
+        }
+        //if (Common.CheckInIP(InIP))
+        //{
+
+        if (Common.CheckWithdrawReviewSign(CompanyCode, OrderID, Sign,Timestamp))
+        {
+            CompanyID = Common.GetCompanyKeyByCompanyID(CompanyCode);
+
+            if (CompanyID==-1)
+            {
+                R.ResultState = Common.APIResult.enumResultCode.ERR;
+                R.Message = "Company Code Error";
+                Response.Write(R.Message);
+                Response.Flush();
+                Response.End();
+            }
+
+            paymentReport = Common.GetWithdrawalByOrderID(OrderID,CompanyID);
+
+            if (paymentReport != null)
+            {
+                paymentResult = Newtonsoft.Json.JsonConvert.SerializeObject(paymentReport);
+            }
+            else
+            {
+                R.ResultState = Common.APIResult.enumResultCode.ERR;
+                R.Message = "Payment Not Exist";
+                Response.Write(R.Message);
+                Response.Flush();
+                Response.End();
+            }
+        }
+        else
+        {
+            R.ResultState = Common.APIResult.enumResultCode.ERR;
+            R.Message = "Sign Fail";
+        }
     }
-
-    if (CompanyCode == null)
-    {
-        R.ResultState = Common.APIResult.enumResultCode.ERR;
-        R.Message = "The parameter CompanyCode not Exist";
-        Response.Write(R.Message);
-        Response.Flush();
-        Response.End();
-    }
-
-    if (Sign == null)
-    {
-        R.ResultState = Common.APIResult.enumResultCode.ERR;
-        R.Message = "The parameter Sign not Exist";
-        Response.Write(R.Message);
-        Response.Flush();
-        Response.End();
-    }
-
-
-    //if (Common.CheckInIP(InIP))
-    //{
-
-    //if (Common.CheckSign(CompanyCode,OrderID,Sign))
-    //{
-    paymentReport = Common.GetWithdrawalByOrderID(OrderID);
-
-    if (paymentReport != null)
-    {
-        paymentResult = Newtonsoft.Json.JsonConvert.SerializeObject(paymentReport);
-    }
-    else
-    {
-        R.ResultState = Common.APIResult.enumResultCode.ERR;
-        R.Message = "Payment Not Exist";
-    }
-    //}
-    //else
-    //{
-    //    R.ResultState = Common.APIResult.enumResultCode.ERR;
-    //    R.Message = "Sign Fail";
-    //}
-    //}
     //else
     //{
     //    R.ResultState = APIResult.enumResultCode.ERR;
@@ -83,81 +105,30 @@
     <meta http-equiv="pragma" content="no-cache" />
     <title></title>
 
-
-    <link rel="stylesheet" href="/VPay/assets/plugins/bootstrap/css/bootstrap.min.css">
+   <link rel="stylesheet" href="/VPay/assets/plugins/bootstrap/css/bootstrap.min.css">
     <!-- Bootstrap Select Css -->
     <link href="/VPay/assets/plugins/bootstrap-select/css/bootstrap-select.css" rel="stylesheet" />
-    <link rel="stylesheet" href="/VPay/assets/plugins/jvectormap/jquery-jvectormap-2.0.3.min.css" />
-    <link rel="stylesheet" href="/VPay/assets/plugins/morrisjs/morris.min.css" />
+
     <!-- Custom Css -->
     <link rel="stylesheet" href="/VPay/assets/css/main.css">
     <link rel="stylesheet" href="/VPay/assets/css/color_skins.css">
-    <!-- JQuery DataTable Css -->
-    <link rel="stylesheet" href="/VPay/assets/plugins/jquery-datatable/dataTables.bootstrap4.min.css">
-
-    <!-- JQuery sweetalert Css -->
-    <link href="/VPay/assets/plugins/sweetalert/sweetalert.css" rel="stylesheet" />
-    <!-- JQuery jquery-nestable Css -->
-    <link href="/VPay/assets/plugins/nestable/jquery-nestable.css" rel="stylesheet" />
-    <!-- datetimepicker Css-->
-    <link href="/VPay/assets/plugins/bootstrap-material-datetimepicker/css/bootstrap-material-datetimepicker.css" rel="stylesheet" />
-    <!-- JQuery multi-select Css -->
-    <link href="/VPay/assets/plugins/multi-select/css/multi-select.css" rel="stylesheet" />
-    <link href="/VPay/assets/css/ecommerce.css" rel="stylesheet" />
-    <!-- jquery-ui Css -->
-    <link href="/VPay/assets/css/jquery-ui.css" rel="stylesheet" />
-    <link href="/VPay/assets/css/ui.tabs.overflowResize.css" rel="stylesheet" />
     <!-- Jquery Core Js -->
     <script src="/VPay/assets/js/jquery-3.3.1.min.js"></script>
-    <script src="/VPay/assets/js/D3/d3.min.js"></script>
-    <script src="/VPay/assets/bundles/libscripts.bundle.js"></script>
-    <!--Lib Scripts Plugin Js ( jquery.v3.2.1, Bootstrap4 js)-->
-    <script src="/VPay/assets/bundles/vendorscripts.bundle.js"></script>
-    <!--slimscroll, waves Scripts Plugin Js-->
-    <script src="/VPay/assets/plugins/multi-select/js/jquery.multi-select.js"></script>
-    <script src="/VPay/assets/plugins/momentjs/moment.js"></script>
-    <!-- Moment Plugin Js -->
-    <script src="/VPay/assets/bundles/morrisscripts.bundle.js"></script>
-    <!-- Morris Plugin Js -->
-    <script src="/VPay/assets/bundles/jvectormap.bundle.js"></script>
-    <!-- JVectorMap Plugin Js -->
-    <script src="/VPay/assets/bundles/knob.bundle.js"></script>
-    <!-- Jquery Knob-->
-    <script src="/VPay/assets/bundles/mainscripts.bundle.js"></script>
-    <script src="/VPay/assets/js/pages/index.js"></script>
-    <script src="/VPay/assets/plugins/nestable/jquery.nestable.js"></script>
-    <script src="/VPay/assets/plugins/jquery-spinner/js/jquery.spinner.js"></script>
-    <!-- Jquery DataTable Plugin Js -->
-    <script src="/VPay/assets/bundles/datatablescripts.bundle.js"></script>
-    <script src="/VPay/assets/plugins/jquery-datatable/buttons/dataTables.buttons.min.js"></script>
-    <script src="/VPay/assets/plugins/jquery-datatable/buttons/buttons.bootstrap4.min.js"></script>
-    <script src="/VPay/assets/plugins/jquery-datatable/buttons/buttons.colVis.min.js"></script>
-    <script src="/VPay/assets/plugins/jquery-datatable/buttons/buttons.html5.min.js"></script>
-    <script src="/VPay/assets/plugins/jquery-datatable/buttons/buttons.print.min.js"></script>
-    <script src="/VPay/assets/js/pages/tables/jquery-datatable.js"></script>
+    <script src="/VPay/assets/bundles/libscripts.bundle.js"></script> <!--Lib Scripts Plugin Js ( jquery.v3.2.1, Bootstrap4 js)-->
 
-    <script src="/VPay/assets/plugins/jquery-datatable/dataTables.responsive.min.js"></script>
-    <script src="/VPay/assets/plugins/bootstrap-notify/bootstrap-notify.min.js"></script>
-    <script src="/VPay/assets/plugins/jquery-inputmask/jquery.inputmask.bundle.js"></script>
-    <!-- basic-form-elements Js -->
-    <!-- datetimepicker Js -->
-    <script src="/VPay/assets/plugins/bootstrap-material-datetimepicker/js/bootstrap-material-datetimepicker.js"></script>
-    <!-- sweetalert Plugin Js -->
-    <script src="/VPay/assets/plugins/sweetalert/sweetalert.min.js"></script>
-    <script src="/VPay/assets/plugins/jquery-spinner/js/jquery.spinner.js"></script>
-    <script src="/VPay/assets/js/BackendJS/BackendAPI.js?20200326"></script>
+
+
+    <script src="/VPay/assets/js/BackendJS/BackendAPI.js?20200508"></script>
     <script src="/VPay/assets/js/AutoNumeric.js"></script>
-    <script src="/VPay/assets/js/ion.sound.min.js"></script>
-    <!-- JQuery 頁籤 Js -->
-    <script src="/VPay/assets/js/jquery-ui.js"></script>
-    <script src="/VPay/assets/js/ui.tabs.overflowResize.js"></script>
-    <script src="/VPay/assets/js/ui.tabs.addTab.js"></script>
-    <script src="/VPay/assets/js/ui.tabs.closable.js"></script>
     <script src="/Ewin/Common.js"></script>
     <style>
         ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
             color: black !important;
             opacity: 1; /* Firefox */
+        }
+
+        .bootstrap-select {
+            display: none;
         }
 
         .filter-option {
@@ -1000,15 +971,16 @@
     $(function () {
         if (paymentResult != "") {
             data = JSON.parse(paymentResult);
-
+            var ProcessStatus = "";
             $('#modal_ServiceTypePoint').text('');
             $('#modal_ServiceTypeName').text('');
             $('#modal_ServiceType').text('');
 
-            getProviderCodeResult(data.forCompanyID, data.ServiceType, data.CurrencyType);
-
+           
+      
             $('#modal_CompanyName').text(data.CompanyName);
             $('#modal_WithdrawSerial').text(data.WithdrawSerial);
+            $('#modal_DownOrderID').text(data.DownOrderID);
             $('#modal_BankCard').text(data.BankCard);
             $('#modal_CurrencyType').text(data.CurrencyType);
             $('#modal_Amount').text(toCurrency(data.Amount));
@@ -1017,115 +989,52 @@
             $('#modal_BankCardName').text(data.BankCardName);
             $('#modal_OwnCity').text(data.OwnCity);
             $('#modal_OwnProvince').text(data.OwnProvince);
-            $('input[name="PayType"]')[1].checked = true;
+
+            switch (data.Status) {
+                case 0:
+                    ProcessStatus = '未处理';
+                    break;
+                case 1:
+                    ProcessStatus = '<span style="color:orange;font-weight:900">进行中</span>';
+                    break;
+                case 2:
+                    ProcessStatus = '<span style="color:green;font-weight:900">成功</span>';
+                    break;
+                case 3:
+                    ProcessStatus = '<span style="color:red;font-weight:900">失敗</span>';
+                    break;
+                case 9:
+                    ProcessStatus = '审核退回';
+                    break;
+                case 13:
+                    ProcessStatus = '重审';
+                    break;
+                case 14:
+                    ProcessStatus = '系统问题单';
+                    break;
+                default:
+                    return '';
+                    break;
+            }
+            $('#modal_Status').html(ProcessStatus);
+            if (data.Status == 0) {
+                getProviderCodeResult(data.forCompanyID, data.ServiceType, data.CurrencyType);
+                $('#span_select_providercode').hide();
+            } else {
+                $('#div_select_providercode').hide();
+                $('#div_select_companyservicepoint').hide();
+                $('#span_select_companyservicepoint').show();
+                $('#span_select_providercode').show();
+                $('#modal_ProviderName').text(data.ProviderName);
+                $('#modal_ServiceTypeName').text(data.ServiceTypeName);
+                $('#modal_ServiceTypePoint').parent().hide();
+                
+                $('#modal-footer').hide();
+            }
+
             $('#WithdrawalModal').modal('show');
         }
     });
-
-
-    function changeProviderServiceState(providerCode, serviceType, currencyType) {
-        wrapperFadeIn();
-
-        postObj = {
-            ServiceType: serviceType,
-            CurrencyType: currencyType,
-            ProviderCode: providerCode
-        }
-
-        c.callService(apiURL + "/ChangeProviderServiceState", postObj, function (success, o) {
-            if (success) {
-                o = c.getJSON(o);
-                if (o.ResultCode == 0) {
-
-                }
-                else {
-                    switch (o.ResultCode) {
-                        case 4:
-                            alert("权限不足");
-                            break;
-                        case 7:
-                            alert("您已断线请重新登入");
-                            break;
-                        default:
-                            alert("其他错误");
-                            break;
-                    }
-                }
-            } else {
-                alert("网路错误:" + o);
-            }
-            wrapperFadeOut();
-        });
-    }
-
-    function changeProviderCodeState(providerCode) {
-
-        wrapperFadeIn();
-
-        postObj = {
-            ProviderCode: providerCode
-        }
-
-        c.callService(apiURL + "/ChangeProviderCodeState", postObj, function (success, o) {
-            if (success) {
-                o = c.getJSON(o);
-                if (o.ResultCode == 0) {
-
-                } else {
-                    switch (o.ResultCode) {
-                        case 4:
-                            alert("权限不足");
-                            break;
-                        case 7:
-                            alert("您已断线请重新登入");
-                            break;
-                        default:
-                            alert("其他错误");
-                            break;
-                    }
-                }
-            } else {
-                alert("网路错误:" + o);
-            }
-
-            wrapperFadeOut();
-        });
-
-    }
-
-    function changeProviderAPIType(providerCode, setAPIType) {
-        parent.wrapperFadeIn();
-        postObj = {
-            ProviderCode: providerCode,
-            setAPIType: setAPIType
-        }
-
-        c.callService(apiURL + "/ChangeProviderAPIType", postObj, function (success, o) {
-            if (success) {
-                o = c.getJSON(o);
-                if (o.ResultCode == 0) {
-
-                } else {
-                    switch (o.ResultCode) {
-                        case 4:
-                            alert("权限不足");
-                            break;
-                        case 7:
-                            alert("您已断线请重新登入");
-                            break;
-                        default:
-                            alert("其他错误");
-                            break;
-                    }
-                }
-
-            } else {
-                alert("网路错误:" + o);
-            }
-
-            wrapperFadeOut();
-        });
-    }
 
     function wrapperFadeOut() {
         $(".page-loader-wrapper").fadeOut();
@@ -1173,19 +1082,19 @@
                     parent.wrapperFadeOut();
                 }
                 else {
-                    var message = ""
-                    switch (obj.ResultCode) {
-                        case 7:
-                            alert("您已断线请重新登入");
-                            break;
-                        case 5:
+                    //var message = ""
+                    //switch (o.ResultCode) {
+                    //    case 7:
+                    //        alert("您已断线请重新登入");
+                    //        break;
+                    //    case 5:
 
-                            break;
-                        default:
-                            message = "其他错误";
-                            alert(message);
-                            break;
-                    }
+                    //        break;
+                    //    default:
+                    //        message = "其他错误";
+                    //        alert(message);
+                    //        break;
+                    //}
                     wrapperFadeOut();
 
                 }
@@ -1258,8 +1167,69 @@
             })
         }
     }
+
+    function saveReviewResult(modifyStatus) {
+        var withdrawSerial = $('#modal_WithdrawSerial').text();
+        var status = modifyStatus;
+        var providerCode = $('#modal_select_providercode').val();
+        var serviceType = $('#modal_ServiceType').text().trim();
+        if (modifyStatus!=3) {
+            if (providerCode == "-1") {
+                alert("尚未选择供应商");
+                return;
+            }
+
+            if (serviceType == "") {
+                if ($('#modal_select_companyservicepoint').val() == "-1") {
+                    alert("尚未选择支付通道");
+                    return;
+                } else {
+                    serviceType = $('#modal_select_companyservicepoint').val();
+                }
+            }
+        }
+    
+
+        wrapperFadeIn();
+     
+        postObj = {
+            Status: status,
+            WithdrawSerial: withdrawSerial,
+            ProviderCode: providerCode,
+            ServiceType: serviceType
+        }
+        wrapperFadeIn();
+        c.callService(apiURL + "/UpdateWithdrawalResultByWithdrawSerial", postObj, function (success, o) {
+            if (success) {
+                o = c.getJSON(o);
+                if (o.ResultCode == 0) {
+                    alert("处理完成");
+                    $('#modal-footer').hide();
+                }
+                else {
+                    alert(o.Message);
+                    wrapperFadeOut();
+
+                }
+
+            } else {
+                wrapperFadeOut();
+                alert("网路错误:" + o);
+            }
+
+            wrapperFadeOut();
+        });
+
+    }
 </script>
-<body>
+<body class="theme-violet">
+     <div class="page-loader-wrapper" style="display:none;">
+        <div class="loader">
+            <div class="m-t-30"><img class="zmdi-hc-spin" src="/VPay/assets/images/logo_S_w.svg" width="48" height="48" alt="sQuare"></div>
+            <p>Please wait...</p>
+        </div>
+    </div>
+
     <div class="modal fade" style="background-color: rgba(0, 0, 0, 0.4);" data-backdrop="false" id="WithdrawalModal" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -1277,16 +1247,21 @@
                     <span style="display: block">省份:<span id="modal_OwnProvince" style="margin-left: 5px"></span></span>
                     <span style="display: block">币别:<span id="modal_CurrencyType" style="margin-left: 5px"></span></span>
                     <span style="display: block">金额:<span id="modal_Amount" style="margin-left: 5px"></span></span>
-                  
+                    <span style="display: block">订单状态:<span id="modal_Status" style="margin-left: 5px"></span></span>
                     <div id="div_select_providercode"><span>渠道:
                         <select class="show-tick" id="modal_select_providercode"></select></span></div>
+                        <span id="span_select_providercode" style="display: block">
+                        渠道:<span id="modal_ProviderName" style="margin-left: 5px"></span></span>
                     <div id="div_select_companyservicepoint"><span>商户扣款支付类型:
                         <select class="show-tick" id="modal_select_companyservicepoint"></select></span></div>
-                    <span id="span_select_companyservicepoint" style="display: block">商户扣款支付类型:<span id="modal_ServiceTypeName" style="margin-left: 5px"></span><span>(剩余额度: <span id="modal_ServiceTypePoint" style="color: red;"></span>)</span></span><span id="modal_ServiceType" style="display: none"></span></div>
-                <div class="modal-footer">
+                    <span id="span_select_companyservicepoint" style="display: block">
+                        商户扣款支付类型:<span id="modal_ServiceTypeName" style="margin-left: 5px"></span><span>
+                        (剩余额度: <span id="modal_ServiceTypePoint" style="color: red;"></span>)</span></span>
+                    <span id="modal_ServiceType" style="display: none"></span>
+                </div>
+                <div class="modal-footer" id="modal-footer">
                     <button onclick="saveReviewResult(1)" type="button" class="btn btn-primary btn-round waves-effect">确认</button>
                     <button onclick="saveReviewResult(3)" type="button" class="btn btn-primary btn-round waves-effect">失敗</button>
-                    <button onclick="contentcancel()" type="button" class="btn btn-primary btn-round waves-effect">取消</button></div>
             </div>
         </div>
     </div>

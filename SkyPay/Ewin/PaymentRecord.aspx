@@ -7,7 +7,9 @@
     string OrderID = Request.Params["OrderID"];
     string CompanyCode = Request.Params["CompanyCode"];
     string PaymentType = Request.Params["PaymentType"];
+    string Timestamp = Request.Params["Timestamp"];
     string Sign = Request.Params["Sign"];
+    int CompanyID = -1;
 
     APIResult R = new APIResult() { ResultState = APIResult.enumResultCode.ERR };
 
@@ -49,9 +51,28 @@
 
     //if (Common.CheckInIP(InIP))
     //{
-   
-    if (Common.CheckSign(CompanyCode,OrderID,Sign))
+    if (!Common.CheckTimestamp(long.Parse(Timestamp)))
     {
+        R.ResultState = APIResult.enumResultCode.ERR;
+        R.Message = "Timestamp Expired";
+        Response.Write(R.Message);
+        Response.Flush();
+        Response.End();
+    }
+
+    if (Common.CheckPaymentSign(CompanyCode,OrderID,PaymentType,Sign,Timestamp))
+    {
+        CompanyID= Common.GetCompanyKeyByCompanyID(CompanyCode);
+
+        if (CompanyID==-1)
+        {
+            R.ResultState = Common.APIResult.enumResultCode.ERR;
+            R.Message = "Company Code Error";
+            Response.Write(R.Message);
+            Response.Flush();
+            Response.End();
+        }
+
         if (PaymentType == "0")
         {
             paymentReport = Common.GetPaymentByOrderID(OrderID);
@@ -68,7 +89,7 @@
         }
         else if (PaymentType == "1")
         {
-              paymentReport = Common.GetWithdrawalByOrderID(OrderID);
+            paymentReport = Common.GetWithdrawalByOrderID(OrderID,CompanyID);
 
             if (paymentReport != null)
             {
@@ -118,7 +139,7 @@
     <title></title>
 
 
-<link rel="stylesheet" href="/VPay/assets/plugins/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/VPay/assets/plugins/bootstrap/css/bootstrap.min.css">
     <!-- Bootstrap Select Css -->
     <link href="/VPay/assets/plugins/bootstrap-select/css/bootstrap-select.css" rel="stylesheet" />
 

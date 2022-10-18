@@ -6,7 +6,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Reflection;
-using System.Web;
+
 
 /// <summary>
 /// Common 的摘要描述
@@ -31,25 +31,24 @@ public partial class Common : System.Web.UI.Page
         return BodyObj;
     }
 
-    public static bool CheckProviderListSign(dynamic Data)
+    public static bool CheckProviderListSign(string CompanyCode,string Sign,string Timestamp)
     {
         bool checkbool = false;
         string CompanyKey;
-        string CompanyCode = (string)Data.CompanyCode;
         CompanyKey = GetCompanyKeyByCompanyCode(CompanyCode);
         string signStr = "CompanyCode=" + CompanyCode;
-        signStr += "&CompanyKey=" + CompanyCode;
+        signStr += "&CompanyKey=" + CompanyKey;
+        signStr += "&Timestamp=" + Timestamp;
+        string _Sign = GetMD5(signStr, false);
 
-        string Sign = GetMD5(signStr, false);
-
-        if (Sign.ToUpper() == ((string)Data.Sign).ToUpper())
+        if (_Sign.ToUpper() == Sign.ToUpper())
         {
             checkbool = true;
         }
         return checkbool;
     }
 
-    public static bool CheckSign(string CompanyCode,string OrderID,string Sign)
+    public static bool CheckPaymentSign(string CompanyCode,string OrderID,string PaymentType, string Sign,string Timestamp)
     {
         bool checkbool = false;
         string CompanyKey;
@@ -57,7 +56,9 @@ public partial class Common : System.Web.UI.Page
         CompanyKey = GetCompanyKeyByCompanyCode(CompanyCode);
         string signStr = "CompanyCode=" + CompanyCode;
         signStr += "&OrderID=" +OrderID;
-        signStr += "&CompanyKey=" + CompanyCode;
+        signStr += "&PaymentType=" + PaymentType;
+        signStr += "&Timestamp=" + Timestamp;
+        signStr += "&CompanyKey=" + CompanyKey;
 
         string _Sign = GetMD5(signStr, false);
 
@@ -66,6 +67,47 @@ public partial class Common : System.Web.UI.Page
             checkbool = true;
         }
         return checkbool;
+    }
+
+    public static bool CheckWithdrawReviewSign(string CompanyCode, string OrderID, string Sign, string Timestamp)
+    {
+        bool checkbool = false;
+        string CompanyKey;
+
+        CompanyKey = GetCompanyKeyByCompanyCode(CompanyCode);
+        string signStr = "CompanyCode=" + CompanyCode;
+        signStr += "&OrderID=" + OrderID;
+        signStr += "&Timestamp=" + Timestamp;
+        signStr += "&CompanyKey=" + CompanyKey;
+
+        string _Sign = GetMD5(signStr, false);
+
+        if (_Sign.ToUpper() == Sign.ToUpper())
+        {
+            checkbool = true;
+        }
+        return checkbool;
+    }
+
+    public static bool CheckTimestamp(long Timestamp)
+    {
+        bool checkbool = false;
+        DateTime NowTime = DateTime.UtcNow;
+        DateTime CheckTime= (new DateTime(1970, 1, 1)).AddSeconds(Convert.ToInt32(Timestamp));
+        double DiffMinutes = ExecDateDiff(NowTime,CheckTime);
+        if (DiffMinutes<=5)
+        {
+            checkbool = true;
+        }
+        return checkbool;
+    }
+
+    public static double ExecDateDiff(DateTime dateBegin, DateTime dateEnd)
+    {
+        TimeSpan ts1 = new TimeSpan(dateBegin.Ticks);
+        TimeSpan ts2 = new TimeSpan(dateEnd.Ticks);
+        TimeSpan ts3 = ts1.Subtract(ts2).Duration();
+        return ts3.TotalMinutes;
     }
 
     private static string GetCompanyKeyByCompanyCode(string CompanyCode)
@@ -92,7 +134,93 @@ public partial class Common : System.Web.UI.Page
         return ret;
     }
 
-    public static Withdrawal GetWithdrawalByOrderID(string OrderID)
+    public static int GetCompanyKeyByCompanyID(string CompanyCode)
+    {
+        int ret = -1;
+        string SS;
+        System.Data.SqlClient.SqlCommand DBCmd;
+        PaymentReport returnValue = null;
+        DataTable DT;
+        DBCmd = new System.Data.SqlClient.SqlCommand();
+        object DBreturn;
+        SS = " SELECT CompanyID From CompanyTable Where CompanyCode=@CompanyCode ";
+
+        DBCmd = new SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = System.Data.CommandType.Text;
+        DBCmd.Parameters.Add("@CompanyCode", SqlDbType.VarChar).Value = CompanyCode;
+        DBreturn = DBAccess.GetDBValue(DBConnStr, DBCmd);
+        if (DBreturn != null)
+        {
+            ret = Convert.ToInt32(DBreturn);
+        }
+
+        return ret;
+    }
+
+    public static Withdrawal GetWithdrawalByOrderID(string OrderID,int CompanyID)
+    {
+        string SS;
+        System.Data.SqlClient.SqlCommand DBCmd;
+        Withdrawal returnValue = null;
+        DataTable DT;
+        DBCmd = new System.Data.SqlClient.SqlCommand();
+
+        SS = "";
+        SS += " SELECT ServiceTypeName,ProviderCode.DecimalPlaces,ProviderCode.WithdrawRate,ProviderName,convert(varchar,Withdrawal.CreateDate,120) as CreateDate2,convert(varchar,Withdrawal.FinishDate,120) as FinishDate2,";
+        SS += " Withdrawal.Status,Withdrawal.WithdrawSerial,Withdrawal.DownOrderID,";
+        SS += " Withdrawal.WithdrawType,Withdrawal.BankCard,Withdrawal.BankCardName,Withdrawal.CurrencyType,";
+        SS += " Withdrawal.BankName,Withdrawal.Amount,Withdrawal.OwnProvince,Withdrawal.BankBranchName,";
+        SS += " Withdrawal.CollectCharge,Withdrawal.FloatType,Withdrawal.forCompanyID,";
+        SS += " Withdrawal.OwnCity,Withdrawal.FinishAmount,Withdrawal.DownStatus";
+        SS += " ,CompanyName FROM Withdrawal WITH (NOLOCK) ";
+        SS += " LEFT JOIN ProviderCode WITH (NOLOCK) ON ProviderCode.ProviderCode=Withdrawal.ProviderCode";
+        SS += " LEFT JOIN CompanyTable WITH (NOLOCK) ON CompanyTable.CompanyID=Withdrawal.forCompanyID";
+        SS += " LEFT JOIN ServiceType WITH (NOLOCK) ON Withdrawal.ServiceType=ServiceType.ServiceType";
+        SS += " WHERE  Withdrawal.DownOrderID= @DownOrderID And Withdrawal.forCompanyID=@CompanyID ";
+        DBCmd = new SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = System.Data.CommandType.Text;
+        DBCmd.Parameters.Add("@DownOrderID", SqlDbType.VarChar).Value = OrderID;
+        DBCmd.Parameters.Add("@CompanyID", SqlDbType.VarChar).Value = CompanyID;
+        DT = DBAccess.GetDB(DBConnStr, DBCmd);
+
+        if (DT != null)
+        {
+            if (DT.Rows.Count > 0)
+            {
+                returnValue = new Withdrawal();
+                returnValue.WithdrawSerial = (string)DT.Rows[0]["WithdrawSerial"];
+                returnValue.DownOrderID = DT.Rows[0]["DownOrderID"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["DownOrderID"];
+                returnValue.Status = (int)DT.Rows[0]["Status"];
+                returnValue.WithdrawRate = DT.Rows[0]["WithdrawRate"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[0]["WithdrawRate"];
+                returnValue.DecimalPlaces = DT.Rows[0]["DecimalPlaces"] == System.DBNull.Value ? 0 : (int)DT.Rows[0]["DecimalPlaces"];
+                returnValue.ProviderName = DT.Rows[0]["ProviderName"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["ProviderName"];
+                returnValue.CreateDate2 = DT.Rows[0]["CreateDate2"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["CreateDate2"];
+                returnValue.FinishDate2 = DT.Rows[0]["FinishDate2"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["FinishDate2"];
+                returnValue.WithdrawType = DT.Rows[0]["WithdrawType"] == System.DBNull.Value ? 0 : (int)DT.Rows[0]["WithdrawType"];
+                returnValue.BankCard = DT.Rows[0]["BankCard"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["BankCard"];
+                returnValue.forCompanyID= DT.Rows[0]["forCompanyID"] == System.DBNull.Value ? 0 : (int)DT.Rows[0]["forCompanyID"];
+                returnValue.BankCardName = DT.Rows[0]["BankCardName"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["BankCardName"];
+                returnValue.CurrencyType = DT.Rows[0]["CurrencyType"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["CurrencyType"];
+                returnValue.BankName = DT.Rows[0]["BankName"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["BankName"];
+                returnValue.Amount = DT.Rows[0]["Amount"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[0]["Amount"];
+                returnValue.OwnProvince = DT.Rows[0]["OwnProvince"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["OwnProvince"];
+                returnValue.BankBranchName = DT.Rows[0]["BankBranchName"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["BankBranchName"];
+                returnValue.CollectCharge = DT.Rows[0]["CollectCharge"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[0]["CollectCharge"];
+                returnValue.FloatType = DT.Rows[0]["FloatType"] == System.DBNull.Value ? 0 : (int)DT.Rows[0]["FloatType"];
+                returnValue.OwnCity = DT.Rows[0]["OwnCity"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["OwnCity"];
+                returnValue.FinishAmount = DT.Rows[0]["FinishAmount"] == System.DBNull.Value ? 0: (decimal)DT.Rows[0]["FinishAmount"];
+                returnValue.DownStatus = DT.Rows[0]["DownStatus"] == System.DBNull.Value ? 0 : (int)DT.Rows[0]["DownStatus"]; 
+                returnValue.CompanyName = DT.Rows[0]["CompanyName"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["CompanyName"];
+                returnValue.ServiceTypeName = DT.Rows[0]["ServiceTypeName"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["ServiceTypeName"];
+            }
+        }
+
+        return returnValue;
+    }
+
+    public static Withdrawal GetWithdrawalByWithdrawSerial(string WithdrawSerial)
     {
         string SS;
         System.Data.SqlClient.SqlCommand DBCmd;
@@ -110,11 +238,12 @@ public partial class Common : System.Web.UI.Page
         SS += " ,CompanyName FROM Withdrawal WITH (NOLOCK) ";
         SS += " LEFT JOIN ProviderCode WITH (NOLOCK) ON ProviderCode.ProviderCode=Withdrawal.ProviderCode";
         SS += " LEFT JOIN CompanyTable WITH (NOLOCK) ON CompanyTable.CompanyID=Withdrawal.forCompanyID";
-        SS += " WHERE  Withdrawal.DownOrderID= @DownOrderID  ";
+        SS += " WHERE  Withdrawal.WithdrawSerial= @WithdrawSerial ";
         DBCmd = new SqlCommand();
         DBCmd.CommandText = SS;
         DBCmd.CommandType = System.Data.CommandType.Text;
-        DBCmd.Parameters.Add("@DownOrderID", SqlDbType.VarChar).Value = OrderID;
+        DBCmd.Parameters.Add("@WithdrawSerial", SqlDbType.VarChar).Value = WithdrawSerial;
+  
         DT = DBAccess.GetDB(DBConnStr, DBCmd);
 
         if (DT != null)
@@ -123,29 +252,28 @@ public partial class Common : System.Web.UI.Page
             {
                 returnValue = new Withdrawal();
                 returnValue.WithdrawSerial = (string)DT.Rows[0]["WithdrawSerial"];
-                returnValue.DownOrderID = (string)DT.Rows[0]["DownOrderID"];
-                returnValue.ProviderName = (string)DT.Rows[0]["ProviderName"];
+                returnValue.DownOrderID = DT.Rows[0]["DownOrderID"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["DownOrderID"];
                 returnValue.Status = (int)DT.Rows[0]["Status"];
-                returnValue.WithdrawRate = (decimal)DT.Rows[0]["WithdrawRate"];
-                returnValue.DecimalPlaces = (int)DT.Rows[0]["DecimalPlaces"];
-                returnValue.ProviderName = (string)DT.Rows[0]["ProviderName"];
-                returnValue.CreateDate2 = (string)DT.Rows[0]["CreateDate2"];
-                returnValue.FinishDate2 = (string)DT.Rows[0]["FinishDate2"];
-                returnValue.WithdrawType = (int)DT.Rows[0]["WithdrawType"];
-                returnValue.BankCard = (string)DT.Rows[0]["BankCard"];
-                returnValue.forCompanyID= (int)DT.Rows[0]["forCompanyID"];
-                returnValue.BankCardName = (string)DT.Rows[0]["BankCardName"];
-                returnValue.CurrencyType = (string)DT.Rows[0]["CurrencyType"];
-                returnValue.BankName = (string)DT.Rows[0]["BankName"];
-                returnValue.Amount = (decimal)DT.Rows[0]["Amount"];
-                returnValue.OwnProvince = (string)DT.Rows[0]["OwnProvince"];
-                returnValue.BankBranchName = (string)DT.Rows[0]["BankBranchName"];
-                returnValue.CollectCharge = (decimal)DT.Rows[0]["CollectCharge"];
-                returnValue.FloatType = (int)DT.Rows[0]["FloatType"];
-                returnValue.OwnCity = (string)DT.Rows[0]["OwnCity"];
-                returnValue.FinishAmount = (decimal)DT.Rows[0]["FinishAmount"];
-                returnValue.DownStatus = (int)DT.Rows[0]["DownStatus"];
-                returnValue.CompanyName = (string)DT.Rows[0]["CompanyName"];
+                returnValue.WithdrawRate = DT.Rows[0]["WithdrawRate"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[0]["WithdrawRate"];
+                returnValue.DecimalPlaces = DT.Rows[0]["DecimalPlaces"] == System.DBNull.Value ? 0 : (int)DT.Rows[0]["DecimalPlaces"];
+                returnValue.ProviderName = DT.Rows[0]["ProviderName"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["ProviderName"];
+                returnValue.CreateDate2 = DT.Rows[0]["CreateDate2"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["CreateDate2"];
+                returnValue.FinishDate2 = DT.Rows[0]["FinishDate2"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["FinishDate2"];
+                returnValue.WithdrawType = DT.Rows[0]["WithdrawType"] == System.DBNull.Value ? 0 : (int)DT.Rows[0]["WithdrawType"];
+                returnValue.BankCard = DT.Rows[0]["BankCard"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["BankCard"];
+                returnValue.forCompanyID = DT.Rows[0]["forCompanyID"] == System.DBNull.Value ? 0 : (int)DT.Rows[0]["forCompanyID"];
+                returnValue.BankCardName = DT.Rows[0]["BankCardName"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["BankCardName"];
+                returnValue.CurrencyType = DT.Rows[0]["CurrencyType"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["CurrencyType"];
+                returnValue.BankName = DT.Rows[0]["BankName"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["BankName"];
+                returnValue.Amount = DT.Rows[0]["Amount"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[0]["Amount"];
+                returnValue.OwnProvince = DT.Rows[0]["OwnProvince"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["OwnProvince"];
+                returnValue.BankBranchName = DT.Rows[0]["BankBranchName"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["BankBranchName"];
+                returnValue.CollectCharge = DT.Rows[0]["CollectCharge"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[0]["CollectCharge"];
+                returnValue.FloatType = DT.Rows[0]["FloatType"] == System.DBNull.Value ? 0 : (int)DT.Rows[0]["FloatType"];
+                returnValue.OwnCity = DT.Rows[0]["OwnCity"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["OwnCity"];
+                returnValue.FinishAmount = DT.Rows[0]["FinishAmount"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[0]["FinishAmount"];
+                returnValue.DownStatus = DT.Rows[0]["DownStatus"] == System.DBNull.Value ? 0 : (int)DT.Rows[0]["DownStatus"];
+                returnValue.CompanyName = DT.Rows[0]["CompanyName"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["CompanyName"];
 
             }
         }
@@ -189,14 +317,14 @@ public partial class Common : System.Web.UI.Page
                 for (int i = 0; i < DT.Rows.Count; i++)
                 {
                     var _ProviderListResult = new ProviderListResult();
-                    _ProviderListResult.ProviderCode = (string)DT.Rows[i]["ProviderCode"];
-                    _ProviderListResult.ProviderName = (string)DT.Rows[i]["ProviderName"];
-                    _ProviderListResult.ProviderAPIType = (int)DT.Rows[i]["ProviderAPIType"];
-                    _ProviderListResult.ProviderState = (int)DT.Rows[i]["ProviderState"];
-                    _ProviderListResult.MaxLimit = (decimal)DT.Rows[i]["MaxLimit"];
-                    _ProviderListResult.MinLimit = (decimal)DT.Rows[i]["MinLimit"];
-                    _ProviderListResult.Charge = (decimal)DT.Rows[i]["Charge"];
-                    _ProviderListResult.CurrencyType = (string)DT.Rows[i]["CurrencyType"];
+                    _ProviderListResult.ProviderCode = DT.Rows[i]["ProviderCode"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ProviderCode"];
+                    _ProviderListResult.ProviderName = DT.Rows[i]["ProviderName"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ProviderName"];
+                    _ProviderListResult.ProviderAPIType = DT.Rows[i]["ProviderAPIType"] == System.DBNull.Value ? 0 : (int)DT.Rows[i]["ProviderAPIType"];
+                    _ProviderListResult.ProviderState = DT.Rows[i]["ProviderState"] == System.DBNull.Value ? 0 : (int)DT.Rows[i]["ProviderState"];
+                    _ProviderListResult.MaxLimit = DT.Rows[i]["MaxLimit"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["MaxLimit"];
+                    _ProviderListResult.MinLimit = DT.Rows[i]["MinLimit"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["MinLimit"];
+                    _ProviderListResult.Charge = DT.Rows[i]["Charge"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["Charge"];
+                    _ProviderListResult.CurrencyType = DT.Rows[i]["CurrencyType"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["CurrencyType"];
                     returnValue.Add(_ProviderListResult);
                 }
             }
@@ -244,17 +372,17 @@ public partial class Common : System.Web.UI.Page
                 for (int i = 0; i < DT.Rows.Count; i++)
                 {
                     ServiceData _ServiceData = new ServiceData();
-                    _ServiceData.ServiceTypeName = (string)DT.Rows[i]["ServiceTypeName"];
-                    _ServiceData.MaxDaliyAmount = (decimal)DT.Rows[i]["MaxDaliyAmount"];
-                    _ServiceData.MaxOnceAmount = (decimal)DT.Rows[i]["MaxOnceAmount"];
-                    _ServiceData.MinOnceAmount = (decimal)DT.Rows[i]["MinOnceAmount"];
-                    _ServiceData.CostCharge = (decimal)DT.Rows[i]["CostCharge"];
-                    _ServiceData.CostRate = (decimal)DT.Rows[i]["CostRate"];
-                    _ServiceData.ServiceType = (string)DT.Rows[i]["ServiceType"];
-                    _ServiceData.ProviderCode = (string)DT.Rows[i]["ProviderCode"];
-                    _ServiceData.CurrencyType = (string)DT.Rows[i]["CurrencyType"];
-                    _ServiceData.State = (int)DT.Rows[i]["State"];
-                    _ServiceData.CheckoutType = (int)DT.Rows[i]["CheckoutType"];
+                    _ServiceData.ServiceTypeName = DT.Rows[i]["ServiceTypeName"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ServiceTypeName"];
+                    _ServiceData.MaxDaliyAmount = DT.Rows[i]["MaxDaliyAmount"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["MaxDaliyAmount"];
+                    _ServiceData.MaxOnceAmount = DT.Rows[i]["MaxOnceAmount"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["MaxOnceAmount"];
+                    _ServiceData.MinOnceAmount = DT.Rows[i]["MinOnceAmount"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["MinOnceAmount"];
+                    _ServiceData.CostCharge = DT.Rows[i]["CostCharge"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["CostCharge"];
+                    _ServiceData.CostRate = DT.Rows[i]["CostRate"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["CostRate"];
+                    _ServiceData.ServiceType = DT.Rows[i]["ServiceType"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ServiceType"];
+                    _ServiceData.ProviderCode = DT.Rows[i]["ProviderCode"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ProviderCode"];
+                    _ServiceData.CurrencyType = DT.Rows[i]["CurrencyType"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["CurrencyType"];
+                    _ServiceData.State = DT.Rows[i]["State"] == System.DBNull.Value ? 0 : (int)DT.Rows[i]["State"];
+                    _ServiceData.CheckoutType = DT.Rows[i]["CheckoutType"] == System.DBNull.Value ? 0 : (int)DT.Rows[i]["CheckoutType"];
                     returnValue.Add(_ServiceData);
                 }
             }
@@ -299,15 +427,17 @@ public partial class Common : System.Web.UI.Page
                 for (int i = 0; i < DT.Rows.Count; i++)
                 {
                     ProviderPointVM _ProviderPointVM = new ProviderPointVM();
-                    _ProviderPointVM.ProviderName = (string)DT.Rows[i]["ProviderName"];
-                    _ProviderPointVM.ProviderAPIType = (int)DT.Rows[i]["ProviderAPIType"];
-                    _ProviderPointVM.ProviderCode = (string)DT.Rows[i]["ProviderCode"];
-                    _ProviderPointVM.TotalDepositePointValue = (decimal)DT.Rows[i]["TotalDepositePointValue"];
-                    _ProviderPointVM.TotalProfitPointValue = (decimal)DT.Rows[i]["TotalProfitPointValue"];
-                    _ProviderPointVM.SystemPointValue = (decimal)DT.Rows[i]["SystemPointValue"];
-                    _ProviderPointVM.ProviderFrozenAmount = (decimal)DT.Rows[i]["ProviderFrozenAmount"];
-                    _ProviderPointVM.WithdrawProfit = (decimal)DT.Rows[i]["WithdrawProfit"];
-                    _ProviderPointVM.WithdrawPoint = (decimal)DT.Rows[i]["WithdrawPoint"];
+                    _ProviderPointVM.ProviderName = DT.Rows[i]["ProviderName"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ProviderName"];
+                    _ProviderPointVM.ProviderAPIType = DT.Rows[i]["ProviderAPIType"] == System.DBNull.Value ? 0 : (int)DT.Rows[i]["ProviderAPIType"];
+                    _ProviderPointVM.ProviderCode = DT.Rows[i]["ProviderCode"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ProviderCode"];
+                    _ProviderPointVM.TotalDepositePointValue = DT.Rows[i]["TotalDepositePointValue"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["TotalDepositePointValue"];
+                    _ProviderPointVM.TotalProfitPointValue = DT.Rows[i]["TotalProfitPointValue"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["TotalProfitPointValue"];
+                    _ProviderPointVM.SystemPointValue = DT.Rows[i]["SystemPointValue"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["SystemPointValue"];
+                    _ProviderPointVM.ProviderFrozenAmount = DT.Rows[i]["ProviderFrozenAmount"] == System.DBNull.Value ?0 : (decimal)DT.Rows[i]["ProviderFrozenAmount"];
+                
+                    _ProviderPointVM.WithdrawPoint = DT.Rows[i]["WithdrawPoint"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["WithdrawPoint"];
+
+                    _ProviderPointVM.WithdrawProfit = DT.Rows[i]["WithdrawProfit"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["WithdrawProfit"];
                     returnValue.Add(_ProviderPointVM);
                 }
             }
@@ -351,21 +481,21 @@ public partial class Common : System.Web.UI.Page
             if (DT.Rows.Count > 0)
             {
                 returnValue = new PaymentReport();
-                returnValue.PaymentSerial = (string)DT.Rows[0]["PaymentSerial"];
-                returnValue.OrderID = (string)DT.Rows[0]["OrderID"];
-                returnValue.ProviderName = (string)DT.Rows[0]["ProviderName"];
-                returnValue.ServiceTypeName = (string)DT.Rows[0]["ServiceTypeName"];
-                returnValue.ProcessStatus = (int)DT.Rows[0]["ProcessStatus"];
-                returnValue.OrderAmount = (decimal)DT.Rows[0]["OrderAmount"];
-                returnValue.PaymentAmount = (decimal)DT.Rows[0]["PaymentAmount"];
-                returnValue.CostRate = (decimal)DT.Rows[0]["CostRate"];
-                returnValue.CostCharge = (decimal)DT.Rows[0]["CostCharge"];
-                returnValue.CollectRate = (decimal)DT.Rows[0]["CollectRate"];
-                returnValue.CollectCharge = (decimal)DT.Rows[0]["CollectCharge"];
-                returnValue.CreateDate2 = (string)DT.Rows[0]["CreateDate2"];
-                returnValue.FinishDate2 = (string)DT.Rows[0]["FinishDate2"];
-                returnValue.PartialOrderAmount = (decimal)DT.Rows[0]["PartialOrderAmount"];
-                returnValue.UserIP = (string)DT.Rows[0]["UserIP"];
+                returnValue.PaymentSerial = DT.Rows[0]["PaymentSerial"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["PaymentSerial"];
+                returnValue.OrderID = DT.Rows[0]["OrderID"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["OrderID"];
+                returnValue.ProviderName = DT.Rows[0]["ProviderName"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["ProviderName"];
+                returnValue.ServiceTypeName = DT.Rows[0]["ServiceTypeName"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["ServiceTypeName"];
+                returnValue.ProcessStatus = DT.Rows[0]["ProcessStatus"] == System.DBNull.Value ? 0 : (int)DT.Rows[0]["ProcessStatus"];
+                returnValue.OrderAmount = DT.Rows[0]["OrderAmount"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[0]["OrderAmount"];
+                returnValue.PaymentAmount = DT.Rows[0]["PaymentAmount"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[0]["PaymentAmount"];
+                returnValue.CostRate = DT.Rows[0]["CostRate"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[0]["CostRate"];
+                returnValue.CostCharge = DT.Rows[0]["CostCharge"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[0]["CostCharge"];
+                returnValue.CollectRate = DT.Rows[0]["CollectRate"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[0]["CollectRate"];
+                returnValue.CollectCharge = DT.Rows[0]["CollectCharge"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[0]["CollectCharge"];
+                returnValue.CreateDate2 = DT.Rows[0]["CreateDate2"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["CreateDate2"];
+                returnValue.FinishDate2 = DT.Rows[0]["FinishDate2"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["FinishDate2"]; 
+                returnValue.PartialOrderAmount = DT.Rows[0]["PartialOrderAmount"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[0]["PartialOrderAmount"]; 
+                returnValue.UserIP = DT.Rows[0]["UserIP"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["UserIP"];
  
             }
         }
@@ -502,22 +632,19 @@ public partial class Common : System.Web.UI.Page
                 for (int i = 0; i < DT.Rows.Count; i++)
                 {
                     CompanyServicePointVM _CompanyServicePointVM = new CompanyServicePointVM();
-                    _CompanyServicePointVM.CanUsePoint = (decimal)DT.Rows[i]["CanUsePoint"];
-                    _CompanyServicePointVM.Charge = (decimal)DT.Rows[i]["Charge"];
-                    _CompanyServicePointVM.CompanyID = (int)DT.Rows[i]["CompanyID"];
-                    _CompanyServicePointVM.CompanyName = (string)DT.Rows[i]["CompanyName"];
-                    _CompanyServicePointVM.CurrencyType = (string)DT.Rows[i]["CurrencyType"];
-                    _CompanyServicePointVM.FrozenPoint = (decimal)DT.Rows[i]["FrozenPoint"];
-                    _CompanyServicePointVM.FrozenServiceCount = (int)DT.Rows[i]["FrozenServiceCount"];
-                    _CompanyServicePointVM.FrozenServicePoint = (decimal)DT.Rows[i]["FrozenServicePoint"];
-                    _CompanyServicePointVM.MaxLimit = (decimal)DT.Rows[i]["MaxLimit"];
+        
+                    _CompanyServicePointVM.Charge = DT.Rows[i]["Charge"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["Charge"];
+                    _CompanyServicePointVM.CompanyID = DT.Rows[i]["CompanyID"] == System.DBNull.Value ? 0 : (int)DT.Rows[i]["CompanyID"];
+                    _CompanyServicePointVM.CurrencyType = DT.Rows[i]["CurrencyType"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["CurrencyType"];
+     
+                    _CompanyServicePointVM.MaxLimit = DT.Rows[i]["MaxLimit"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["MaxLimit"];
 
-                    _CompanyServicePointVM.MinLimit = (decimal)DT.Rows[i]["MinLimit"];
-                    _CompanyServicePointVM.ServiceType = (string)DT.Rows[i]["ServiceType"];
-                    _CompanyServicePointVM.ServiceTypeName = (string)DT.Rows[i]["ServiceTypeName"];
-                    _CompanyServicePointVM.State = (int)DT.Rows[i]["State"];
-                    _CompanyServicePointVM.SystemPointValue = (decimal)DT.Rows[i]["SystemPointValue"];
-                    _CompanyServicePointVM.WithdrawalPoint = (decimal)DT.Rows[i]["WithdrawalPoint"];
+                    _CompanyServicePointVM.MinLimit = DT.Rows[i]["MinLimit"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["MinLimit"];
+                    _CompanyServicePointVM.ServiceType = DT.Rows[i]["ServiceType"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ServiceType"];
+                    _CompanyServicePointVM.ServiceTypeName = DT.Rows[i]["ServiceTypeName"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ServiceTypeName"];
+                    _CompanyServicePointVM.State = DT.Rows[i]["State"] == System.DBNull.Value ? 0 : (int)DT.Rows[i]["State"];
+                    _CompanyServicePointVM.SystemPointValue = DT.Rows[i]["SystemPointValue"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["SystemPointValue"];
+
                     returnValue.Add(_CompanyServicePointVM);
                 }
             }
@@ -526,7 +653,7 @@ public partial class Common : System.Web.UI.Page
         return returnValue;
     }
 
-    public static List<ProviderPointVM> GetAllProviderPointByCompanyID(int CompanyID)
+    public static List<ProviderPointVM> GetAllProviderPointByCompanyID(int CompanyID,string CurrencyType)
     {
         List<ProviderPointVM> returnValue = null;
         string SS;
@@ -547,12 +674,13 @@ public partial class Common : System.Web.UI.Page
              " LEFT JOIN (SELECT ProviderCode,SUM(ISNULL(Amount, 0)) WProfit FROM ProviderManualHistory FMH " +
              " WHERE FMH.Type = 2 " +
              " GROUP BY ProviderCode) FMH ON FMH.ProviderCode = PC.ProviderCode " +
-             " WHERE PC.ProviderState = 0 And PC.forCompanyID=@CompanyID ";
+             " WHERE PC.ProviderState = 0 And PC.forCompanyID=@CompanyID And PP.CurrencyType=@CurrencyType ";
 
         DBCmd = new SqlCommand();
         DBCmd.CommandText = SS;
         DBCmd.CommandType = System.Data.CommandType.Text;
         DBCmd.Parameters.Add("@CompanyID", System.Data.SqlDbType.Int).Value = CompanyID;
+        DBCmd.Parameters.Add("@CurrencyType", SqlDbType.VarChar).Value = CurrencyType;
         DT = DBAccess.GetDB(DBConnStr, DBCmd);
         if (DT != null)
         {
@@ -562,25 +690,467 @@ public partial class Common : System.Web.UI.Page
                 for (int i = 0; i < DT.Rows.Count; i++)
                 {
                     ProviderPointVM _ProviderPointVM = new ProviderPointVM();
-                    _ProviderPointVM.CurrencyType = (string)DT.Rows[i]["CurrencyType"];
-                    _ProviderPointVM.exMessage = (string)DT.Rows[i]["exMessage"];
-                    _ProviderPointVM.ProviderAPIType = (int)DT.Rows[i]["ProviderAPIType"];
-                    _ProviderPointVM.ProviderCode = (string)DT.Rows[i]["ProviderCode"];
-                    _ProviderPointVM.ProviderFrozenAmount = (decimal)DT.Rows[i]["ProviderFrozenAmount"];
-                    _ProviderPointVM.ProviderName = (string)DT.Rows[i]["ProviderName"];
-                    _ProviderPointVM.ProviderPointValue = (decimal)DT.Rows[i]["ProviderPointValue"];
-                    _ProviderPointVM.SystemPointValue = (decimal)DT.Rows[i]["SystemPointValue"];
-                    _ProviderPointVM.TotalDepositePointValue = (decimal)DT.Rows[i]["TotalDepositePointValue"];
+               
+                
+                    _ProviderPointVM.ProviderAPIType = DT.Rows[i]["ProviderAPIType"] == System.DBNull.Value ? 0 : (int)DT.Rows[i]["ProviderAPIType"];
+                    _ProviderPointVM.ProviderCode = DT.Rows[i]["ProviderCode"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ProviderCode"];
+                    _ProviderPointVM.ProviderFrozenAmount = DT.Rows[i]["ProviderFrozenAmount"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["ProviderFrozenAmount"];
+                    _ProviderPointVM.ProviderName = DT.Rows[i]["ProviderName"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ProviderName"];
+                    _ProviderPointVM.SystemPointValue = DT.Rows[i]["SystemPointValue"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["SystemPointValue"]; 
+                    _ProviderPointVM.TotalDepositePointValue = DT.Rows[i]["TotalDepositePointValue"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["TotalDepositePointValue"];
 
-                    _ProviderPointVM.TotalProfitPointValue = (decimal)DT.Rows[i]["TotalProfitPointValue"];
-                    _ProviderPointVM.WithdrawPoint = (decimal)DT.Rows[i]["WithdrawPoint"];
-                    _ProviderPointVM.WithdrawProfit = (decimal)DT.Rows[i]["WithdrawProfit"];
+                    _ProviderPointVM.TotalProfitPointValue = DT.Rows[i]["TotalProfitPointValue"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["TotalProfitPointValue"];
+                    _ProviderPointVM.WithdrawPoint = DT.Rows[i]["WithdrawPoint"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["WithdrawPoint"];
+                    _ProviderPointVM.WithdrawProfit = DT.Rows[i]["WithdrawProfit"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["WithdrawProfit"];
                     returnValue.Add(_ProviderPointVM);
                 }
             }
         }
 
         return returnValue;
+    }
+
+    public static APIResult UpdateWithdrawalResultByWithdrawSerial(int Status, string WithdrawSerial, string ProviderCode, int WithdrawType, string ServiceType)
+    {
+        APIResult returnValue = new APIResult() {ResultState= APIResult.enumResultCode.ERR};
+        String SS = String.Empty;
+        SqlCommand DBCmd;
+        int DBreturn = -6;//其他錯誤
+        Withdrawal WithdrawData = GetWithdrawalByWithdrawSerial(WithdrawSerial);
+        decimal Charge;
+   
+        if (WithdrawData == null)
+        {
+            returnValue.Message = "订单不存在";
+            return returnValue;
+        }
+
+        if (WithdrawData.Status == 1)
+        {
+            returnValue.Message = "订单审核中";
+            return returnValue;
+        }
+
+        if (WithdrawData.Status == 2 || WithdrawData.Status == 3)
+        {
+            returnValue.Message = "订单已完成";
+            return returnValue;
+        }
+
+        if (Status != 3)
+        {
+            //取得供應商代付手續費
+            WithdrawLimit _WithdrawLimit = new WithdrawLimit()
+            {
+                CompanyID = WithdrawData.forCompanyID,
+                WithdrawLimitType = 0,
+                ProviderCode = ProviderCode
+            };
+
+            //0=上游手續費，API/1=提現手續費/2=代付手續費(下游)
+            var withdrawLimitResult = GetWithdrawLimitResultByCurrencyType(WithdrawData.CurrencyType, 0, ProviderCode, WithdrawData.forCompanyID);
+            if (withdrawLimitResult == null)
+            {
+                returnValue.Message = "尚未定供应商手续费";
+                return returnValue;
+            }
+            Charge = withdrawLimitResult.Charge;
+
+            //检查供应商通道额度
+            var ProviderPointModel = GetProviderPointByProviderCode(ProviderCode, WithdrawData.CurrencyType);
+            if (ProviderPointModel == null)
+            {
+                returnValue.Message = "供应商通道额度错误";
+                return returnValue;
+            }
+
+            if (WithdrawData.Amount + Charge > ProviderPointModel.SystemPointValue)
+            {
+                returnValue.Message = "供应商通道额度不足";
+                return returnValue;
+            }
+            //检查商户支付通道额度
+            var ServicePointModel = GetCompanyServicePointByServiceType(WithdrawData.forCompanyID, ServiceType, WithdrawData.CurrencyType);
+            if (ServicePointModel == null)
+            {
+                returnValue.Message = "商户支付通道额度错误";
+                return returnValue;
+            }
+
+            if (ServicePointModel.First().MaxLimit == 0 || ServicePointModel.First().MinLimit == 0)
+            {
+                returnValue.Message = "尚未设定商户支付通道限额";
+                return returnValue;
+            }
+
+            WithdrawData.CollectCharge = ServicePointModel.First().Charge;
+
+            if (WithdrawData.Amount + ServicePointModel.First().Charge > ServicePointModel.First().SystemPointValue)
+            {
+                if (WithdrawData.FloatType == 1)
+                {
+                    int intModifyCompanyServicePointResult = ModifyCompanyServicePointByWithdrawal(WithdrawData.WithdrawID, ServiceType, WithdrawData.forCompanyID, WithdrawData.CurrencyType, WithdrawData.Amount + ServicePointModel.First().Charge);
+                    string tmpReturnStr = "";
+                    if (intModifyCompanyServicePointResult != 0)
+                    {
+                        switch (intModifyCompanyServicePointResult)
+                        {
+                            case -1:
+                                tmpReturnStr = "支付通道扣点失败";
+                                break;
+                            case -2:
+                                tmpReturnStr = "商户支付通道额度不足";
+                                break;
+                            case -3:
+                                tmpReturnStr = "商户钱包额度不足";
+                                break;
+                            case -4:
+                                tmpReturnStr = "商户钱包不存在";
+                                break;
+                            case -5:
+                                tmpReturnStr = "锁定失败";
+                                break;
+                            case -6:
+                                tmpReturnStr = "支付通道加点失败";
+                                break;
+                            default:
+                                break;
+                        }
+              
+                        returnValue.Message = "支付通道调整额度失败,原因:" + tmpReturnStr;
+                        return returnValue;
+                    }
+
+                }
+                else
+                {
+                 
+                    returnValue.Message = "商户支付通道额度不足";
+                    return returnValue;
+                }
+
+            }
+
+            //修改訂單狀態為審核中
+            SS = " UPDATE Withdrawal  Set ConfirmByAdminID=@AdminID,ProviderCode=@ProviderCode,WithdrawType=@WithdrawType,Status=@Status,CollectCharge=@CollectCharge,CostCharge=@CostCharge,ServiceType=@ServiceType " +
+                 " WHERE WithdrawSerial=@WithdrawSerial";
+
+            DBCmd = new System.Data.SqlClient.SqlCommand();
+            DBCmd.CommandText = SS;
+            DBCmd.CommandType = CommandType.Text;
+            DBCmd.Parameters.Add("@AdminID", SqlDbType.Int).Value = 0;
+            DBCmd.Parameters.Add("@ProviderCode", SqlDbType.VarChar).Value = ProviderCode;
+            DBCmd.Parameters.Add("@ServiceType", SqlDbType.VarChar).Value = ServiceType;
+            DBCmd.Parameters.Add("@WithdrawType", SqlDbType.Int).Value = WithdrawType;
+            DBCmd.Parameters.Add("@CostCharge", SqlDbType.Int).Value = Charge;
+            DBCmd.Parameters.Add("@CollectCharge", SqlDbType.Int).Value = WithdrawData.CollectCharge;
+            DBCmd.Parameters.Add("@Status", SqlDbType.Int).Value = 1;
+            DBCmd.Parameters.Add("@WithdrawSerial", SqlDbType.VarChar).Value = WithdrawSerial;
+            DBreturn = DBAccess.ExecuteDB(DBConnStr, DBCmd);
+
+            if (DBreturn == 0)
+            {
+                returnValue.Message = "修改订单状态错误";
+                return returnValue;
+            }
+
+            WithdrawData.ProviderCode = ProviderCode;
+        }
+
+        //更改為失敗單
+        if (Status == 3)
+        {
+            SS = " UPDATE Withdrawal  SET Status=@Status,ConfirmByAdminID=@AdminID,FinishDate=@FinishDate" +
+                " WHERE WithdrawSerial=@WithdrawSerial";
+
+            DBCmd = new System.Data.SqlClient.SqlCommand();
+            DBCmd.CommandText = SS;
+            DBCmd.CommandType = CommandType.Text;
+            DBCmd.Parameters.Add("@Status", SqlDbType.Int).Value = Status;
+            DBCmd.Parameters.Add("@AdminID", SqlDbType.Int).Value = 0;
+            DBCmd.Parameters.Add("@WithdrawSerial", SqlDbType.VarChar).Value = WithdrawSerial;
+            DBCmd.Parameters.Add("@FinishDate", SqlDbType.DateTime).Value = DateTime.Now;
+            returnValue.Message = "审核完成";
+            DBAccess.ExecuteDB(DBConnStr, DBCmd);
+            returnValue.ResultState = APIResult.enumResultCode.OK;
+            return returnValue;
+        }
+        else
+        {
+            bool autoPay = false;
+            var ProviderData = GetProviderCodeResult(WithdrawData.ProviderCode);
+            if (ProviderData != null)
+            {
+                var ProviderAPIType = ProviderData.ProviderAPIType;
+
+                if ((ProviderAPIType & 2) == 2)
+                {
+                    autoPay = true;
+                }
+            }
+            if (autoPay)
+            {
+                //api自動代付
+                string GPayApiUrl = System.Configuration.ConfigurationManager.AppSettings["GPayApiUrl"];
+                string GPayBackendKey = System.Configuration.ConfigurationManager.AppSettings["GPayBackendKey"];
+                #region SignCheck
+                string strSign;
+                string sign;
+                WithdrawAPIResult returnRequireWithdrawal = null;
+
+                strSign = string.Format("WithdrawSerial={0}&GPayBackendKey={1}"
+                , WithdrawData.WithdrawSerial
+                , GPayBackendKey
+                );
+
+                sign = GetSHA256(strSign);
+
+                #endregion
+                var _RequireWithdrawalSet = new RequireWithdrawalSet();
+                _RequireWithdrawalSet.WithdrawSerial = WithdrawData.WithdrawSerial;
+                _RequireWithdrawalSet.Sign = sign;
+
+                var strRequireWithdrawal = RequestJsonAPI(GPayApiUrl + "SendWithdraw", Newtonsoft.Json.JsonConvert.SerializeObject(_RequireWithdrawalSet));
+
+                if (!string.IsNullOrEmpty(strRequireWithdrawal))
+                {
+                    returnRequireWithdrawal = Newtonsoft.Json.JsonConvert.DeserializeObject<WithdrawAPIResult>(strRequireWithdrawal);
+                    //OK = 0,ERR = 1,SignErr = 2,Invalidate = 3(查無此單) //Success=4 (交易已完成)
+                    returnValue.Message = returnRequireWithdrawal.Message;
+
+                    if ((int)returnRequireWithdrawal.Status == 1 || (int)returnRequireWithdrawal.Status == 2 || (int)returnRequireWithdrawal.Status == 3)
+                    {
+                        UpdateWithdrawalStatus(WithdrawSerial, 0);
+                        returnValue.Message = returnRequireWithdrawal.Message;
+                        return returnValue;
+                    }
+                    else
+                    {
+                        returnValue.ResultState = APIResult.enumResultCode.OK;
+                        returnValue.Message = "审核完成";
+                        return returnValue;
+                    }
+                }
+                else
+                {
+                    UpdateWithdrawalStatus(WithdrawSerial, 0);
+                    returnValue.Message = "API代付失败";
+                    return returnValue;
+                }
+            }
+            else
+            {
+                //更改訂單狀態回建立狀態
+                UpdateWithdrawalStatus(WithdrawSerial, 0);
+                returnValue.Message = "供应商尚未开启API代付";
+                return returnValue;
+            }
+        }
+
+    }
+
+
+    public static int UpdateWithdrawalStatus(string WithdrawSerial, int Status)
+    {
+        int DBreturn = -1;
+        String SS = String.Empty;
+        SqlCommand DBCmd;
+
+        SS = " UPDATE Withdrawal  SET Status=@Status" +
+             " WHERE WithdrawSerial=@WithdrawSerial";
+
+        DBCmd = new System.Data.SqlClient.SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = CommandType.Text;
+
+        DBCmd.Parameters.Add("@WithdrawSerial", SqlDbType.VarChar).Value = WithdrawSerial;
+        DBCmd.Parameters.Add("@Status", SqlDbType.Int).Value = Status;
+        DBreturn = DBAccess.ExecuteDB(DBConnStr, DBCmd);
+        return DBreturn;
+    }
+
+    public static Provider GetProviderCodeResult(string ProviderCode)
+    {
+        Provider returnValue = null;
+        string SS;
+        SqlCommand DBCmd = null;
+        DataTable DT;
+    
+        SS = "SELECT * FROM ProviderCode WITH (NOLOCK) WHERE ProviderCode=@ProviderCode";
+
+        DBCmd = new SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = System.Data.CommandType.Text;
+        DBCmd.Parameters.Add("@ProviderCode", SqlDbType.VarChar).Value = ProviderCode;
+        DT = DBAccess.GetDB(DBConnStr, DBCmd);
+     
+        if (DT != null)
+        {
+            if (DT.Rows.Count > 0)
+            {
+                returnValue = new Provider();
+                returnValue.ProviderAPIType = DT.Rows[0]["ProviderAPIType"] == System.DBNull.Value ? 0 : (int)DT.Rows[0]["ProviderAPIType"];
+                returnValue.ProviderCode = DT.Rows[0]["ProviderCode"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["ProviderCode"];
+            }
+        }
+
+        return returnValue;
+    }
+
+    public static ProviderPointVM GetProviderPointByProviderCode(string ProviderCode,string CurrencyType)
+    {
+        ProviderPointVM returnValue = null;
+        string SS;
+        SqlCommand DBCmd = null;
+        DataTable DT;
+
+        SS = " SELECT SystemPointValue " +
+             " FROM ProviderPoint " +
+             " WHERE ProviderCode=@ProviderCode ";
+
+        DBCmd = new SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = System.Data.CommandType.Text;
+        DBCmd.Parameters.Add("@ProviderCode", SqlDbType.VarChar).Value = ProviderCode;
+        DBCmd.Parameters.Add("@CurrencyType", SqlDbType.VarChar).Value = CurrencyType;
+        DT = DBAccess.GetDB(DBConnStr, DBCmd);
+        if (DT != null)
+        {
+            if (DT.Rows.Count > 0)
+            {
+                try
+                {
+                    returnValue = new ProviderPointVM();
+                    returnValue.SystemPointValue = DT.Rows[0]["SystemPointValue"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[0]["SystemPointValue"];
+                }
+                catch (Exception ex) 
+                {
+                    var a = ex.Message;
+                    throw;
+                }
+            
+            }
+        }
+
+        return returnValue;
+    }
+
+    public static WithdrawLimit GetWithdrawLimitResultByCurrencyType(string CurrencyType, int WithdrawLimitType, string ProviderCode, int CompanyID)
+    {
+        WithdrawLimit returnValue = null;
+        string SS = "";
+        SqlCommand DBCmd = null;
+        DataTable DT = null;
+        if (WithdrawLimitType == 0)
+        { //供應商資料
+            SS = "SELECT * FROM WithdrawLimit WHERE ProviderCode =@ProviderCode And WithdrawLimitType=@WithdrawLimitType And CurrencyType=@CurrencyType ";
+        }
+        else if (WithdrawLimitType == 1)
+        {   //營運商資料
+            SS = "SELECT * FROM WithdrawLimit WHERE forCompanyID =@forCompanyID And WithdrawLimitType=@WithdrawLimitType And CurrencyType=@CurrencyType ";
+        }
+
+        if (!String.IsNullOrEmpty(SS))
+        {
+            DBCmd = new SqlCommand();
+            DBCmd.CommandText = SS;
+            DBCmd.CommandType = System.Data.CommandType.Text;
+            DBCmd.Parameters.Add("@WithdrawLimitType", SqlDbType.Int).Value = WithdrawLimitType;
+            DBCmd.Parameters.Add("@ProviderCode", SqlDbType.VarChar).Value = ProviderCode;
+            DBCmd.Parameters.Add("@forCompanyID", SqlDbType.Int).Value = CompanyID;
+            DBCmd.Parameters.Add("@CurrencyType", SqlDbType.VarChar).Value = CurrencyType;
+            DT = DBAccess.GetDB(DBConnStr, DBCmd);
+        }
+
+
+        if (DT != null)
+        {
+            if (DT.Rows.Count > 0)
+            {
+                returnValue = new WithdrawLimit();
+                returnValue.WithdrawLimitType = DT.Rows[0]["WithdrawLimitType"] == System.DBNull.Value ? 0 : (int)DT.Rows[0]["WithdrawLimitType"];
+                returnValue.CurrencyType = DT.Rows[0]["CurrencyType"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["CurrencyType"];
+                returnValue.ProviderCode = DT.Rows[0]["ProviderCode"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["ProviderCode"];
+                returnValue.ServiceType = DT.Rows[0]["ServiceType"] == System.DBNull.Value ? "" : (string)DT.Rows[0]["ServiceType"];
+                returnValue.MaxLimit = DT.Rows[0]["MaxLimit"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[0]["MaxLimit"];
+                returnValue.MinLimit = DT.Rows[0]["MinLimit"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[0]["MinLimit"];
+                returnValue.Charge = DT.Rows[0]["Charge"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[0]["Charge"];
+            }
+        }
+
+        return returnValue;
+    }
+
+    public static List<CompanyServicePointVM> GetCompanyServicePointByServiceType(int CompanyID, string ServiceType, string CurrencyType)
+    {
+        List<CompanyServicePointVM> returnValue = null;
+        string SS;
+        SqlCommand DBCmd = null;
+        DataTable DT;
+
+        SS = " SELECT *,ServiceTypeName" +
+             " FROM  CompanyServicePoint" +
+             " LEFT JOIN ServiceType ON CompanyServicePoint.ServiceType=ServiceType.ServiceType" +
+              " LEFT JOIN WithdrawLimit ON WithdrawLimit.ServiceType=CompanyServicePoint.ServiceType And WithdrawLimit.CurrencyType= CompanyServicePoint.CurrencyType And WithdrawLimit.WithdrawLimitType=1 And CompanyServicePoint.CompanyID=WithdrawLimit.forCompanyID" +
+             " WHERE CompanyServicePoint.CompanyID = @CompanyID" +
+             " AND CompanyServicePoint.CurrencyType = @CurrencyType" +
+             " AND CompanyServicePoint.ServiceType = @ServiceType";
+        DBCmd = new SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = System.Data.CommandType.Text;
+        DBCmd.Parameters.Add("@CompanyID", SqlDbType.Int).Value = CompanyID;
+        DBCmd.Parameters.Add("@CurrencyType", SqlDbType.VarChar).Value = CurrencyType;
+        DBCmd.Parameters.Add("@ServiceType", SqlDbType.VarChar).Value = ServiceType;
+        DT = DBAccess.GetDB(DBConnStr, DBCmd);
+
+
+        if (DT != null)
+        {
+            if (DT.Rows.Count > 0)
+            {
+                returnValue = new List<CompanyServicePointVM>();
+                for (int i = 0; i < DT.Rows.Count; i++)
+                {
+                    CompanyServicePointVM _CompanyServicePointVM = new CompanyServicePointVM();
+
+                    _CompanyServicePointVM.Charge = DT.Rows[i]["Charge"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["Charge"];
+                    _CompanyServicePointVM.CompanyID = DT.Rows[i]["CompanyID"] == System.DBNull.Value ? 0 : (int)DT.Rows[i]["CompanyID"];
+                    _CompanyServicePointVM.CurrencyType = DT.Rows[i]["CurrencyType"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["CurrencyType"];
+
+                    _CompanyServicePointVM.MaxLimit = DT.Rows[i]["MaxLimit"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["MaxLimit"];
+
+                    _CompanyServicePointVM.MinLimit = DT.Rows[i]["MinLimit"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["MinLimit"];
+                    _CompanyServicePointVM.ServiceType = DT.Rows[i]["ServiceType"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ServiceType"];
+                    _CompanyServicePointVM.ServiceTypeName = DT.Rows[i]["ServiceTypeName"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ServiceTypeName"];
+                    _CompanyServicePointVM.SystemPointValue = DT.Rows[i]["SystemPointValue"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["SystemPointValue"];
+
+                    returnValue.Add(_CompanyServicePointVM);
+                }
+            }
+        }
+
+        return returnValue;
+    }
+
+    public static int ModifyCompanyServicePointByWithdrawal(int WithdrawID, string ServiceType, int CompanyID, string CurrencyType, decimal FinishtAmount)
+    {
+        int DBreturn = -9;
+        String SS = String.Empty;
+        SqlCommand DBCmd;
+        SS = "spModifyCompanyServicePointByWithdrawal";
+        DBCmd = new System.Data.SqlClient.SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = CommandType.StoredProcedure;
+        DBCmd.Parameters.Add("@WithdrawID", SqlDbType.Int).Value = WithdrawID;
+        DBCmd.Parameters.Add("@ServiceType", SqlDbType.VarChar).Value = ServiceType;
+        DBCmd.Parameters.Add("@CompanyID", SqlDbType.Int).Value = CompanyID;
+        DBCmd.Parameters.Add("@CurrencyType", SqlDbType.VarChar).Value = CurrencyType;
+        DBCmd.Parameters.Add("@FinishtAmount", SqlDbType.Decimal).Value = FinishtAmount;
+        DBCmd.Parameters.Add("@Return", SqlDbType.VarChar).Direction = System.Data.ParameterDirection.ReturnValue;
+        DBAccess.ExecuteDB(DBConnStr, DBCmd);
+        DBreturn = (int)DBCmd.Parameters["@Return"].Value;
+
+        return DBreturn;
     }
 
     public static string GetMD5(string DataString, bool Base64Encoding = true)
@@ -615,6 +1185,141 @@ public partial class Common : System.Web.UI.Page
 
 
         return RetValue.ToString();
+    }
+
+
+    public static string GetSHA256(string DataString, bool Base64Encoding = true)
+    {
+        return GetSHA256(System.Text.Encoding.UTF8.GetBytes(DataString), Base64Encoding);
+    }
+
+    public static string GetSHA256(byte[] Data, bool Base64Encoding = true)
+    {
+        System.Security.Cryptography.SHA256 SHA256Provider = new System.Security.Cryptography.SHA256CryptoServiceProvider();
+        byte[] hash;
+        System.Text.StringBuilder RetValue = new System.Text.StringBuilder();
+
+        hash = SHA256Provider.ComputeHash(Data);
+        SHA256Provider = null;
+
+        if (Base64Encoding)
+        {
+            RetValue.Append(System.Convert.ToBase64String(hash));
+        }
+        else
+        {
+            foreach (byte EachByte in hash)
+            {
+                // => .ToString("x2")
+                string ByteStr = EachByte.ToString("x");
+
+                ByteStr = new string('0', 2 - ByteStr.Length) + ByteStr;
+                RetValue.Append(ByteStr);
+            }
+        }
+
+
+        return RetValue.ToString();
+    }
+
+    public class UpdateWithdrawalResult
+    {
+        public int Status { get; set; }
+        public string Message { get; set; }
+        public decimal PaymentAmount { get; set; }
+    }
+
+    public class RequireWithdrawalSet
+    {
+        public string WithdrawSerial { get; set; }
+        public string Sign { get; set; }
+    }
+
+    public class Provider
+    {
+        public string ProviderCode { get; set; }
+        public string ProviderName { get; set; }
+        public string Introducer { get; set; }
+        public string ProviderUrl { get; set; }
+        public string MerchantCode { get; set; }
+        public string MerchantKey { get; set; }
+        public string NotifyAsyncUrl { get; set; }
+        public string NotifySyncUrl { get; set; }
+        public int ProviderAPIType { get; set; }
+        public int ProviderState { get; set; }
+        public int CollectType { get; set; }
+        public int forCompanyID { get; set; }
+        public decimal WithdrawRate { get; set; }
+    }
+
+    public class WithdrawLimit
+    {
+        public string CurrencyType { get; set; }
+        //0=Provider/1=Company/2=代付
+        public string ServiceType { get; set; }
+        public string ServiceTypeName { get; set; }
+        public int WithdrawLimitType { get; set; }
+        public string ProviderCode { get; set; }
+        public int CompanyID { get; set; }
+        public decimal MaxLimit { get; set; }
+        public decimal MinLimit { get; set; }
+        public decimal Charge { get; set; }
+    }
+
+    public static string RequestJsonAPI(string Url, string JsonString)
+    {
+        string result = string.Empty;
+        using (System.Net.Http.HttpClientHandler handler = new System.Net.Http.HttpClientHandler())
+        {
+            using (System.Net.Http.HttpClient client = new System.Net.Http.HttpClient(handler))
+            {
+                try
+                {
+                    #region 呼叫遠端 Web API
+
+                    System.Net.Http.HttpRequestMessage request = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Post,Url);
+                    System.Net.Http.HttpResponseMessage response = null;
+
+                    #region  設定相關網址內容
+
+                    // Accept 用於宣告客戶端要求服務端回應的文件型態 (底下兩種方法皆可任選其一來使用)
+                    //client.DefaultRequestHeaders.Accept.TryParseAdd("application/json");
+                    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+                    // Content-Type 用於宣告遞送給對方的文件型態
+                    //client.DefaultRequestHeaders.TryAddWithoutValidation("Content-Type", "application/json");
+
+
+                    // 將 data 轉為 json
+                    string json = JsonString;
+                    request.Content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
+                    response = client.SendAsync(request).GetAwaiter().GetResult();
+
+                    #endregion
+                    #endregion
+
+                    #region 處理呼叫完成 Web API 之後的回報結果
+                    if (response != null)
+                    {
+                        if (response.IsSuccessStatusCode == true)
+                        {
+                            // 取得呼叫完成 API 後的回報內容
+                            result = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                        }
+
+                    }
+
+                    #endregion
+
+                }
+                catch (Exception ex)
+                {
+                    //return ex.Message;
+                }
+            }
+        }
+
+        return result;
     }
 
     public class Withdrawal
@@ -814,6 +1519,21 @@ public partial class Common : System.Web.UI.Page
         public enumResultCode ResultState { get; set; }
         public string GUID { get; set; }
         public string Message { get; set; }
+    }
+
+    public class WithdrawAPIResult
+    {
+        public ResultStatus Status;
+        public string Message;
+    }
+
+    public enum ResultStatus
+    {
+        OK = 0,
+        ERR = 1,
+        SignErr = 2,
+        Invalidate = 3,
+        Success = 4
     }
 
     public static class DBAccess

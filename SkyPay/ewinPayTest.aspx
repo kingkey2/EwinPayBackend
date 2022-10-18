@@ -1,99 +1,7 @@
-﻿<%@ Page Language="C#" CodeFile="ProviderList.aspx.cs" Inherits="ProviderList" %>
+﻿<%@ Page Language="C#" CodeFile="ewinPayTest.aspx.cs" Inherits="ewinPayTest" %>
 
 <%
-    string paymentResult = "";
-    int CompanyID = -1;
-    string CompanyCode = Request.Params["CompanyCode"];
-    string Sign = Request.Params["Sign"];
-    string Timestamp = Request.Params["Timestamp"];
-    string strListProviderListResult = "";
-    List<Common.ProviderListResult> ListProviderListResult = null;
-    List<Common.ServiceData> ServiceDatas = null;
-    List<Common.ProviderPointVM> ProviderPoints = null;
-    Common.APIResult R = new Common.APIResult() { ResultState = Common.APIResult.enumResultCode.ERR };
-
-    if (CompanyCode == null)
-    {
-        R.ResultState = Common.APIResult.enumResultCode.ERR;
-        R.Message = "The parameter CompanyCode not Exist";
-        Response.Write(R.Message);
-        Response.Flush();
-        Response.End();
-    }
-
-    if (Sign == null)
-    {
-        R.ResultState = Common.APIResult.enumResultCode.ERR;
-        R.Message = "The parameter Sign not Exist";
-        Response.Write(R.Message);
-        Response.Flush();
-        Response.End();
-    }
-
-    if (!Common.CheckTimestamp(long.Parse(Timestamp)))
-    {
-        R.ResultState = Common.APIResult.enumResultCode.ERR;
-        R.Message = "Timestamp Expired";
-        Response.Write(R.Message);
-        Response.Flush();
-        Response.End();
-    }
-    //if (Common.CheckInIP(InIP))
-    //{
-
-    if (Common.CheckProviderListSign(CompanyCode,Sign,Timestamp))
-    {
-        CompanyID=Common.GetCompanyIDByCompanyCode(CompanyCode);
-        if (CompanyID != -1)
-        {
-            ListProviderListResult = Common.GetProviderListResult(CompanyID);
-
-            if (ListProviderListResult != null)
-            {
-                ServiceDatas = Common.GetProviderListServiceData(CompanyID);
-                ProviderPoints = Common.GetAllProviderPoint(CompanyID);
-
-                foreach (var item in ListProviderListResult)
-                {
-                    if (ServiceDatas != null)
-                    {
-                        item.ServiceDatas = ServiceDatas.Where(w => w.ProviderCode == item.ProviderCode).ToList();
-                    }
-
-                    if (ProviderPoints != null)
-                    {
-                        item.ProviderListPoints = ProviderPoints.Where(w => w.ProviderCode == item.ProviderCode).ToList();
-                    }
-                }
-
-                strListProviderListResult=Newtonsoft.Json.JsonConvert.SerializeObject(ListProviderListResult);
-            }
-            else
-            {
-                R.ResultState = Common.APIResult.enumResultCode.ERR;
-                R.Message = "No Provider Data";
-            }
-        }
-        else
-        {
-            R.ResultState = Common.APIResult.enumResultCode.ERR;
-            R.Message = "CompanyCode Error";
-            Response.Write(R.Message);
-            Response.Flush();
-            Response.End();
-        }
-    }
-    else
-    {
-        R.ResultState = Common.APIResult.enumResultCode.ERR;
-        R.Message = "Sign Fail";
-    }
-    //}
-    //else
-    //{
-    //    R.ResultState = APIResult.enumResultCode.ERR;
-    //    R.Message = "IP Fail:" + InIP;
-    //}
+   
 
 
 
@@ -112,70 +20,6 @@
     <title></title>
 
 
-<link rel="stylesheet" href="/VPay/assets/plugins/bootstrap/css/bootstrap.min.css">
-    <!-- Bootstrap Select Css -->
-    <link href="/VPay/assets/plugins/bootstrap-select/css/bootstrap-select.css" rel="stylesheet" />
-    <link rel="stylesheet" href="/VPay/assets/plugins/jvectormap/jquery-jvectormap-2.0.3.min.css" />
-    <link rel="stylesheet" href="/VPay/assets/plugins/morrisjs/morris.min.css" />
-    <!-- Custom Css -->
-    <link rel="stylesheet" href="/VPay/assets/css/main.css">
-    <link rel="stylesheet" href="/VPay/assets/css/color_skins.css">
-    <!-- JQuery DataTable Css -->
-    <link rel="stylesheet" href="/VPay/assets/plugins/jquery-datatable/dataTables.bootstrap4.min.css">
-
-    <!-- JQuery sweetalert Css -->
-    <link href="/VPay/assets/plugins/sweetalert/sweetalert.css" rel="stylesheet" />
-    <!-- JQuery jquery-nestable Css -->
-    <link href="/VPay/assets/plugins/nestable/jquery-nestable.css" rel="stylesheet" />
-    <!-- datetimepicker Css-->
-    <link href="/VPay/assets/plugins/bootstrap-material-datetimepicker/css/bootstrap-material-datetimepicker.css" rel="stylesheet" />
-    <!-- JQuery multi-select Css -->
-    <link href="/VPay/assets/plugins/multi-select/css/multi-select.css" rel="stylesheet" />
-    <link href="/VPay/assets/css/ecommerce.css" rel="stylesheet" />
-    <!-- jquery-ui Css -->
-    <link href="/VPay/assets/css/jquery-ui.css" rel="stylesheet" />
-    <link href="/VPay/assets/css/ui.tabs.overflowResize.css" rel="stylesheet" />
-    <!-- Jquery Core Js -->
-    <script src="/VPay/assets/js/jquery-3.3.1.min.js"></script>
-    <script src="/VPay/assets/js/D3/d3.min.js"></script>
-    <script src="/VPay/assets/bundles/libscripts.bundle.js"></script> <!--Lib Scripts Plugin Js ( jquery.v3.2.1, Bootstrap4 js)-->
-    <script src="/VPay/assets/bundles/vendorscripts.bundle.js"></script>  <!--slimscroll, waves Scripts Plugin Js-->
-    <script src="/VPay/assets/plugins/multi-select/js/jquery.multi-select.js"></script>
-    <script src="/VPay/assets/plugins/momentjs/moment.js"></script> <!-- Moment Plugin Js -->
-    <script src="/VPay/assets/bundles/morrisscripts.bundle.js"></script><!-- Morris Plugin Js -->
-    <script src="/VPay/assets/bundles/jvectormap.bundle.js"></script> <!-- JVectorMap Plugin Js -->
-    <script src="/VPay/assets/bundles/knob.bundle.js"></script> <!-- Jquery Knob-->
-    <script src="/VPay/assets/bundles/mainscripts.bundle.js"></script>
-    <script src="/VPay/assets/js/pages/index.js"></script>
-    <script src="/VPay/assets/plugins/nestable/jquery.nestable.js"></script>
-    <script src="/VPay/assets/plugins/jquery-spinner/js/jquery.spinner.js"></script>
-    <!-- Jquery DataTable Plugin Js -->
-    <script src="/VPay/assets/bundles/datatablescripts.bundle.js"></script>
-    <script src="/VPay/assets/plugins/jquery-datatable/buttons/dataTables.buttons.min.js"></script>
-    <script src="/VPay/assets/plugins/jquery-datatable/buttons/buttons.bootstrap4.min.js"></script>
-    <script src="/VPay/assets/plugins/jquery-datatable/buttons/buttons.colVis.min.js"></script>
-    <script src="/VPay/assets/plugins/jquery-datatable/buttons/buttons.html5.min.js"></script>
-    <script src="/VPay/assets/plugins/jquery-datatable/buttons/buttons.print.min.js"></script>
-    <script src="/VPay/assets/js/pages/tables/jquery-datatable.js"></script>
-
-    <script src="/VPay/assets/plugins/jquery-datatable/dataTables.responsive.min.js"></script>
-    <script src="/VPay/assets/plugins/bootstrap-notify/bootstrap-notify.min.js"></script>
-    <script src="/VPay/assets/plugins/jquery-inputmask/jquery.inputmask.bundle.js"></script>
-    <!-- basic-form-elements Js -->
-    <!-- datetimepicker Js -->
-    <script src="/VPay/assets/plugins/bootstrap-material-datetimepicker/js/bootstrap-material-datetimepicker.js"></script>
-    <!-- sweetalert Plugin Js -->
-    <script src="/VPay/assets/plugins/sweetalert/sweetalert.min.js"></script>
-    <script src="/VPay/assets/plugins/jquery-spinner/js/jquery.spinner.js"></script>
-    <script src="/VPay/assets/js/BackendJS/BackendAPI.js?20200326"></script>
-    <script src="/VPay/assets/js/AutoNumeric.js"></script>
-    <script src="/VPay/assets/js/ion.sound.min.js"></script>
-    <!-- JQuery 頁籤 Js -->
-    <script src="/VPay/assets/js/jquery-ui.js"></script>
-    <script src="/VPay/assets/js/ui.tabs.overflowResize.js"></script>
-    <script src="/VPay/assets/js/ui.tabs.addTab.js"></script>
-    <script src="/VPay/assets/js/ui.tabs.closable.js"></script>
-    <script src="/Ewin/Common.js"></script>
     <style>
 
 
@@ -996,301 +840,97 @@
     </style>
 </head>
 <script>
-    var strListProviderListResult = '<%=strListProviderListResult%>';
-    var jsonListProviderListResult;
-    var apiURL = "/Ewin/ProviderList.aspx";
-    var c = new common();
-    var chineseTableLang = {
-        "processing": "处理中...",
-        "loadingRecords": "载入中...",
-        "lengthMenu": "显示 _MENU_ 项结果",
-        "zeroRecords": "没有符合的结果",
-        "info": "显示第 _START_ 至 _END_ 项结果，共 _TOTAL_ 项",
-        "infoEmpty": "显示第 0 至 0 项结果，共 0 项",
-        "infoFiltered": "(從 _MAX_ 项结果中过滤)",
-        "infoPostFix": "",
-        "search": "搜寻:",
-        "paginate": {
-            "first": "第一页",
-            "previous": "上一页",
-            "next": "下一页",
-            "last": "最后一页"
-        },
-        "aria": {
-            "sortAscending": ": 升幂划分",
-            "sortDescending": ": 降幂划分"
-        }
+    var apiURL = "/ewinPayTest.aspx";
+    function providerList() {
+        var postObj = {};
+        callService(apiURL + "/GetProviderList", postObj, function (success, o) {
+            if (success) {
+                var data= JSON.parse(o);
+                window.open(data.d);
+            } else {
+                alert("网路错误:" + o);
+            }
+        });
+    }
+
+    function paymentRecord() {
+        var postObj = {};
+        callService(apiURL + "/PaymentRecord", postObj, function (success, o) {
+            if (success) {
+                var data = JSON.parse(o);
+                window.open(data.d);
+            } else {
+                alert("网路错误:" + o);
+            }
+        });
+    }
+
+
+    function withdrawalRecord() {
+        var postObj = {};
+        callService(apiURL + "/WithdrawalRecord", postObj, function (success, o) {
+            if (success) {
+                var data = JSON.parse(o);
+
+                window.open(data.d);
+            } else {
+                alert("网路错误:" + o);
+            }
+        });
+    }
+
+
+    function withdrawReview() {
+        var postObj = {};
+        callService(apiURL + "/WithdrawReview", postObj, function (success, o) {
+            if (success) {
+                var data = JSON.parse(o);
+
+                window.open(data.d);
+            } else {
+                alert("网路错误:" + o);
+            }
+        });
+    }
+
+    function callService(URL, postObject, cb) {
+        var xmlHttp = new XMLHttpRequest;
+        var postData;
+
+        if (postObject)
+            postData = JSON.stringify(postObject);
+
+        xmlHttp.open("POST", URL, true);
+        xmlHttp.onreadystatechange = function () {
+            if (this.readyState == 4) {
+                var contentText = this.responseText;
+
+                if (this.status == "200") {
+                    if (cb) {
+                        cb(true, contentText);
+                    }
+                } else {
+                    cb(false, contentText);
+                }
+            }
+        };
+
+        xmlHttp.timeout = 30000;  // 30s
+        xmlHttp.ontimeout = function () {
+            if (cb)
+                cb(false, "Timeout");
+        };
+
+        xmlHttp.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+        xmlHttp.send(postData);
     };
-    $(function () {
-        if (strListProviderListResult != "") {
-            jsonListProviderListResult = JSON.parse(strListProviderListResult);
-            CreateProviderListTable(jsonListProviderListResult);
-        }
-    });
-
-    function CreateProviderListTable(data) {
-
-        ProviderServiceTable = $('#table_ProviderList').DataTable({
-            data: data,
-            columns: [
-                {
-                    "title": "", "data": "ProviderState", "visible": false
-                },
-                {
-                    "title": "供应商名称", "data": "",
-                    "render": function (data, display, rowdata) {
-                        var numProviderAPIType = parseInt(rowdata.ProviderAPIType);
-
-                        var retValue = "";
-                        retValue +=
-                            `<div class='row'><div class="col-sm-4" style="padding-top: 10px;">${rowdata.ProviderName}&nbsp;&nbsp</div>
-                             <div class="col-sm"><input type="checkbox" onclick="changeProviderCodeState('${rowdata.ProviderCode}')" ${rowdata.ProviderState == 0 ? checked = "checked" : checked = ""}/><text>全部功能</text></div>
-                             <div class="col-sm"><input type="checkbox" onclick="changeProviderAPIType('${rowdata.ProviderCode}',1)" ${(numProviderAPIType & 1) == 1 ? checked = "checked" : checked = ""}/><text>充值</text></br>
-                             <input type="checkbox" onclick="changeProviderAPIType('${rowdata.ProviderCode}',2)" ${(numProviderAPIType & 2) == 2 ? checked = "checked" : checked = ""}/><text>提款</text></div>`;
-
-
-                        return retValue;
-                    }
-                },
-                {
-                    "title": "可提取金额范围", "data": "",
-                    "render": function (data, display, rowdata) {
-                        let retValue = "";
-
-                        retValue = `</br>最&nbsp;&nbsp;低：${toCurrency(rowdata.MinLimit)}</br>最&nbsp;&nbsp;高：${toCurrency(rowdata.MaxLimit)}</br>手续费：${rowdata.Charge} 元 `;
-
-                        return retValue;
-                    }
-                },
-                {
-                    "title": "支付方式", "data": "",
-                    "render": function (data, display, rowdata) {
-                        let retValue = "";
-                        if (rowdata.ServiceDatas != null) {
-                            for (var i = 0; i < rowdata.ServiceDatas.length; i++) {
-                                let data = rowdata.ServiceDatas[i];
-                              
-                                retValue +=
-                                    `
-                                     <div style='display: inline-block;'><input type="checkbox" onclick="changeProviderServiceState('${data.ProviderCode}','${data.ServiceType}','${data.CurrencyType}')" ${data.State == 0 ? checked = "checked" : checked = ""}/></div>
-                                     <div style='width:100px;display: inline-block;'>${data.ServiceTypeName}</div>
-                                     <div style='width:200px;display: inline-block;'>充值限額 :${toCurrency(data.MinOnceAmount)} ~ ${toCurrency(data.MaxOnceAmount)}</div>
-                                     <div style='width:50px;display: inline-block;'>費率 :${data.CostRate}% </div>
-                                     `;
-                            }
-                            retValue = '<table><tbody>' + retValue + '</tbody></table>';
-                        }
-                        return retValue;
-                    }
-                },
-                {
-                    "title": "帐户余额", "data": "",
-                    "render": function (data, display, rowdata) {
-                        let retValue = "";
-                        if (rowdata.ProviderListPoints != null) {
-                            for (var i = 0; i < rowdata.ProviderListPoints.length; i++) {
-                                let data = rowdata.ProviderListPoints[i];
-                                retValue += `<span style="color:green">可用额度：${toCurrency(data.SystemPointValue - data.WithdrawPoint)} </span></br><span style="color:blue">冻结：${toCurrency(data.ProviderFrozenAmount)} </span></br><span style="color:red">提领中：${toCurrency(data.WithdrawPoint)} </span>`;
-                            }
-                        }
-                        return retValue;
-                    }
-                }
-                //{
-                //    "title": "提供功能", "data": "ProviderAPIType",
-                //    "render": function (data, display, rowdata) {
-                //        let retValue = "";
-                //        let aa = checkedProviderAPIType(data);
-                //        let bb = aa.split(',');
-                //        for (var i = 0; i < bb.length; i++) {
-                //            retValue += bb[i] + "</br>";
-                //        }
-                //        return retValue;
-                //    }
-                //}
-            ],
-            rowCallback: function (row, data) { },
-            filter: true,         //右上搜尋
-            info: false,
-            ordering: true, //排序
-            processing: true,
-            retrieve: true,
-            order: [[1, "asc"]],
-            paging: true,    //分頁
-            scrollX: true,
-            autoWidth: false,
-            language: chineseTableLang
-        });
-    }
-
-    function changeProviderServiceState(providerCode, serviceType, currencyType) {
-        wrapperFadeIn();
-  
-        postObj = {
-            ServiceType: serviceType,
-            CurrencyType: currencyType,
-            ProviderCode: providerCode
-        }
-
-        c.callService(apiURL + "/ChangeProviderServiceState", postObj, function (success, o) {
-            if (success) {
-                o = c.getJSON(o);
-                if (o.ResultCode == 0) {
-
-                }
-                else {
-                    switch (o.ResultCode) {
-                        case 4:
-                            alert("权限不足");
-                            break;
-                        case 7:
-                            alert("您已断线请重新登入");
-                            break;
-                        default:
-                            alert("其他错误");
-                            break;
-                    }
-                }
-            } else {
-                alert("网路错误:" + o);
-            }
-            wrapperFadeOut();
-        });
-    }
-
-    function changeProviderCodeState(providerCode) {
-
-        wrapperFadeIn();
-
-        postObj = {
-            ProviderCode: providerCode
-        }
-
-        c.callService(apiURL + "/ChangeProviderCodeState", postObj, function (success, o) {
-            if (success) {
-                o = c.getJSON(o);
-                if (o.ResultCode == 0) {
-
-                } else {
-                    switch (o.ResultCode) {
-                        case 4:
-                            alert("权限不足");
-                            break;
-                        case 7:
-                            alert("您已断线请重新登入");
-                            break;
-                        default:
-                            alert("其他错误");
-                            break;
-                    }
-                }
-            } else {
-                alert("网路错误:" + o);
-            }
-
-            wrapperFadeOut();
-        });
-
-    }
-
-    function changeProviderAPIType(providerCode, setAPIType) {
-        parent.wrapperFadeIn();
-        postObj = {
-            ProviderCode: providerCode,
-            setAPIType: setAPIType
-        }
-
-        c.callService(apiURL + "/ChangeProviderAPIType", postObj, function (success, o) {
-            if (success) {
-                o = c.getJSON(o);
-                if (o.ResultCode == 0) {
-
-                } else {
-                    switch (o.ResultCode) {
-                        case 4:
-                            alert("权限不足");
-                            break;
-                        case 7:
-                            alert("您已断线请重新登入");
-                            break;
-                        default:
-                            alert("其他错误");
-                            break;
-                    }
-                }
-    
-            } else {
-                alert("网路错误:" + o);
-            }
-
-            wrapperFadeOut();
-        });
-    }
-
-    function wrapperFadeOut() {
-        $(".page-loader-wrapper").fadeOut();
-    }
-
-    function wrapperFadeIn() {
-        $(".page-loader-wrapper").fadeIn();
-    }
-
-
-    function toCurrency(num) {
-
-        num = parseFloat(Number(num).toFixed(2));
-        var parts = num.toString().split('.');
-        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        return parts.join('.');
-    }
 </script>
-<body class="theme-cyan">
+<body>
 
-      <!-- Page Loader -->
-    <div class="page-loader-wrapper" style="display:none;">
-        <div class="loader">
-            <div class="m-t-30"><img class="zmdi-hc-spin" src="/VPay/assets/images/logo_S_w.svg" width="48" height="48" alt="sQuare"></div>
-            <p>Please wait...</p>
-        </div>
-    </div>
-
-    <div class="block-header paper-wrap">
-        <div class="row">
-            <div class="col col-lg-3 col-md-3 col-sm-3">
-                <h2>供应商列表</h2>
-            </div>
-            <div class="col col-lg-9 col-md-9 col-sm-9 hideDiv">
-                <div class="tips">
-                    <span></span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="container-fluid">
-        <div class="row clearfix">
-            <div class="col-lg-12 divDetailData">
-                <div class="card">
-                    <div class="header">
-                        <div class="row">
-                            <div class="col-lg-7 col-md-7 col-sm-7">
-                                <h2><strong>供应商列表</strong></h2>
-                            </div>
-             
-                        </div>
-                    </div>
-                    <div class="body">
-                        <div>
-                            <table style="width:100%" class="table table-bordered table-striped table-hover dataTable tt-table nowrap" id="table_ProviderList">
-
-                                <tbody></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <button onclick="providerList()">供應商列表</button>
+    <button onclick="withdrawReview()">出款審核</button>
+    <button onclick="paymentRecord()">充值訂單查詢</button>
+    <button onclick="withdrawalRecord()">代付訂單查詢</button>
 </body>
 </html>
 
