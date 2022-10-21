@@ -14,9 +14,8 @@ using System.Data;
 
 public partial class ewinPayTest : System.Web.UI.Page
 {
-    //測試站 CompanyCode
     public static string CompanyCode = "OCW_PHP";
-    //測試站 CompanyKey
+
     public static string CompanyKey = "a8513205c0044cb480d5c3c903271966";
     //測試Url
     public static string EwinPayUrl = "http://epaybackend.dev4.mts.idv.tw/Ewin";

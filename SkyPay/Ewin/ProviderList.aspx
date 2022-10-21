@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" CodeFile="ProviderList.aspx.cs" Inherits="ProviderList" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="ProviderList.aspx.cs" Inherits="ProviderList" %>
 
 <%
     string paymentResult = "";
@@ -72,6 +72,9 @@
             {
                 R.ResultState = Common.APIResult.enumResultCode.ERR;
                 R.Message = "No Provider Data";
+                         Response.Write(R.Message);
+                    Response.Flush();
+                    Response.End();
             }
         }
         else
@@ -87,6 +90,9 @@
     {
         R.ResultState = Common.APIResult.enumResultCode.ERR;
         R.Message = "Sign Fail";
+                 Response.Write(R.Message);
+                    Response.Flush();
+                    Response.End();
     }
     //}
     //else
@@ -1257,7 +1263,7 @@
     <div class="block-header paper-wrap">
         <div class="row">
             <div class="col col-lg-3 col-md-3 col-sm-3">
-                <h2>供应商列表</h2>
+                <h2>渠道列表</h2>
             </div>
             <div class="col col-lg-9 col-md-9 col-sm-9 hideDiv">
                 <div class="tips">
@@ -1274,7 +1280,7 @@
                     <div class="header">
                         <div class="row">
                             <div class="col-lg-7 col-md-7 col-sm-7">
-                                <h2><strong>供应商列表</strong></h2>
+                                <h2><strong></strong></h2>
                             </div>
              
                         </div>

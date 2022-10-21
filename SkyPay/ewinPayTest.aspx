@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" CodeFile="ewinPayTest.aspx.cs" Inherits="ewinPayTest" %>
+﻿<%@ Page Language="C#" CodeBehind="ewinPayTest.aspx.cs" Inherits="ewinPayTest" %>
 
 <%
    

@@ -1,88 +1,90 @@
-﻿<%@ Page Language="C#" CodeFile="WithdrawReview.aspx.cs" Inherits="WithdrawReview" %>
-
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="WithdrawReview.aspx.cs" Inherits="WithdrawReview" %>
 <%
-        dynamic paymentReport;
-        string paymentResult = "";
+    dynamic paymentReport;
+    string paymentResult = "";
 
-        string Timestamp = Request.Params["Timestamp"];
-        string OrderID = Request.Params["OrderID"];
-        string CompanyCode = Request.Params["CompanyCode"];
-        string Sign = Request.Params["Sign"];
-        int CompanyID = -1;
-        Common.APIResult R = new Common.APIResult() { ResultState = Common.APIResult.enumResultCode.ERR };
+    string Timestamp = Request.Params["Timestamp"];
+    string OrderID = Request.Params["OrderID"];
+    string CompanyCode = Request.Params["CompanyCode"];
+    string Sign = Request.Params["Sign"];
+    int CompanyID = -1;
+    Common.APIResult R = new Common.APIResult() { ResultState = Common.APIResult.enumResultCode.ERR };
 
-        if (OrderID == null)
+    if (OrderID == null)
+    {
+        R.ResultState = Common.APIResult.enumResultCode.ERR;
+        R.Message = "The parameter orderID not Exist";
+        Response.Write(R.Message);
+        Response.Flush();
+        Response.End();
+    }
+
+    if (CompanyCode == null)
+    {
+        R.ResultState = Common.APIResult.enumResultCode.ERR;
+        R.Message = "The parameter CompanyCode not Exist";
+        Response.Write(R.Message);
+        Response.Flush();
+        Response.End();
+    }
+
+    if (Sign == null)
+    {
+        R.ResultState = Common.APIResult.enumResultCode.ERR;
+        R.Message = "The parameter Sign not Exist";
+        Response.Write(R.Message);
+        Response.Flush();
+        Response.End();
+    }
+
+    if (!Common.CheckTimestamp(long.Parse(Timestamp)))
+    {
+        R.ResultState = Common.APIResult.enumResultCode.ERR;
+        R.Message = "Timestamp Expired";
+        Response.Write(R.Message);
+        Response.Flush();
+        Response.End();
+    }
+    //if (Common.CheckInIP(InIP))
+    //{
+
+    if (Common.CheckWithdrawReviewSign(CompanyCode, OrderID, Sign, Timestamp))
+    {
+
+        CompanyID = Common.GetCompanyKeyByCompanyID(CompanyCode);
+
+        if (CompanyID == -1)
         {
             R.ResultState = Common.APIResult.enumResultCode.ERR;
-            R.Message = "The parameter orderID not Exist";
+            R.Message = "Company Code Error";
             Response.Write(R.Message);
             Response.Flush();
             Response.End();
         }
 
-        if (CompanyCode == null)
+        paymentReport = Common.GetWithdrawalByOrderID(OrderID, CompanyID);
+        if (paymentReport != null)
         {
-            R.ResultState = Common.APIResult.enumResultCode.ERR;
-            R.Message = "The parameter CompanyCode not Exist";
-            Response.Write(R.Message);
-            Response.Flush();
-            Response.End();
-        }
-
-        if (Sign == null)
-        {
-            R.ResultState = Common.APIResult.enumResultCode.ERR;
-            R.Message = "The parameter Sign not Exist";
-            Response.Write(R.Message);
-            Response.Flush();
-            Response.End();
-        }
-
-        if (!Common.CheckTimestamp(long.Parse(Timestamp)))
-        {
-            R.ResultState = Common.APIResult.enumResultCode.ERR;
-            R.Message = "Timestamp Expired";
-            Response.Write(R.Message);
-            Response.Flush();
-            Response.End();
-        }
-        //if (Common.CheckInIP(InIP))
-        //{
-
-        if (Common.CheckWithdrawReviewSign(CompanyCode, OrderID, Sign,Timestamp))
-        {
-            CompanyID = Common.GetCompanyKeyByCompanyID(CompanyCode);
-
-            if (CompanyID==-1)
-            {
-                R.ResultState = Common.APIResult.enumResultCode.ERR;
-                R.Message = "Company Code Error";
-                Response.Write(R.Message);
-                Response.Flush();
-                Response.End();
-            }
-
-            paymentReport = Common.GetWithdrawalByOrderID(OrderID,CompanyID);
-
-            if (paymentReport != null)
-            {
-                paymentResult = Newtonsoft.Json.JsonConvert.SerializeObject(paymentReport);
-            }
-            else
-            {
-                R.ResultState = Common.APIResult.enumResultCode.ERR;
-                R.Message = "Payment Not Exist";
-                Response.Write(R.Message);
-                Response.Flush();
-                Response.End();
-            }
+            paymentResult = Newtonsoft.Json.JsonConvert.SerializeObject(paymentReport);
         }
         else
         {
             R.ResultState = Common.APIResult.enumResultCode.ERR;
-            R.Message = "Sign Fail";
+            R.Message = "Payment Not Exist";
+            Response.Write(R.Message);
+            Response.Flush();
+            Response.End();
         }
     }
+    else
+    {
+        R.ResultState = Common.APIResult.enumResultCode.ERR;
+        R.Message = "Sign Fail";
+        Response.Write(R.Message);
+        Response.Flush();
+        Response.End();
+    }
+    //}
     //else
     //{
     //    R.ResultState = APIResult.enumResultCode.ERR;
@@ -121,6 +123,7 @@
     <script src="/VPay/assets/js/BackendJS/BackendAPI.js?20200508"></script>
     <script src="/VPay/assets/js/AutoNumeric.js"></script>
     <script src="/Ewin/Common.js"></script>
+
     <style>
         ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
             color: black !important;
@@ -976,8 +979,8 @@
             $('#modal_ServiceTypeName').text('');
             $('#modal_ServiceType').text('');
 
-           
-      
+
+
             $('#modal_CompanyName').text(data.CompanyName);
             $('#modal_WithdrawSerial').text(data.WithdrawSerial);
             $('#modal_DownOrderID').text(data.DownOrderID);
@@ -1028,7 +1031,7 @@
                 $('#modal_ProviderName').text(data.ProviderName);
                 $('#modal_ServiceTypeName').text(data.ServiceTypeName);
                 $('#modal_ServiceTypePoint').parent().hide();
-                
+
                 $('#modal-footer').hide();
             }
 
@@ -1173,7 +1176,7 @@
         var status = modifyStatus;
         var providerCode = $('#modal_select_providercode').val();
         var serviceType = $('#modal_ServiceType').text().trim();
-        if (modifyStatus!=3) {
+        if (modifyStatus != 3) {
             if (providerCode == "-1") {
                 alert("尚未选择供应商");
                 return;
@@ -1188,10 +1191,10 @@
                 }
             }
         }
-    
+
 
         wrapperFadeIn();
-     
+
         postObj = {
             Status: status,
             WithdrawSerial: withdrawSerial,
@@ -1204,6 +1207,7 @@
                 o = c.getJSON(o);
                 if (o.ResultCode == 0) {
                     alert("处理完成");
+
                     $('#modal-footer').hide();
                 }
                 else {
@@ -1261,11 +1265,13 @@
                 </div>
                 <div class="modal-footer" id="modal-footer">
                     <button onclick="saveReviewResult(1)" type="button" class="btn btn-primary btn-round waves-effect">确认</button>
-                    <button onclick="saveReviewResult(3)" type="button" class="btn btn-primary btn-round waves-effect">失敗</button>
+                    <button onclick="saveReviewResult(3)" type="button" style="background-color: black;" class="btn btn-primary btn-round waves-effect">失敗</button>
             </div>
         </div>
     </div>
 </body>
 </html>
+
+
 
 

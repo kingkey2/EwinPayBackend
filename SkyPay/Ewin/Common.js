@@ -430,6 +430,38 @@
         }
     };
 
+    this.callService = function (URL, postObject, cb) {
+        var xmlHttp = new XMLHttpRequest;
+        var postData;
+
+        if (postObject)
+            postData = JSON.stringify(postObject);
+
+        xmlHttp.open("POST", URL, true);
+        xmlHttp.onreadystatechange = function () {
+            if (this.readyState == 4) {
+                var contentText = this.responseText;
+
+                if (this.status == "200") {
+                    if (cb) {
+                        cb(true, contentText);
+                    }
+                } else {
+                    cb(false, contentText);
+                }
+            }
+        };
+
+        xmlHttp.timeout = 30000;  // 30s
+        xmlHttp.ontimeout = function () {
+            if (cb)
+                cb(false, "Timeout");
+        };
+
+        xmlHttp.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+        xmlHttp.send(postData);
+    };
+
     function findNeedClearChildren(o) {
         var cChildren = o.getAttribute("ClearChildren");
 

@@ -344,11 +344,11 @@
     <Content Include="document\vi.js" />
     <Content Include="document\VPAYAPI.html" />
     <Content Include="document\webfontloader.js" />
-    <Content Include="Ewin\Common.js" />
     <Content Include="ewinPayTest.aspx" />
+    <Content Include="Ewin\Common.js" />
+    <Content Include="Ewin\PaymentRecord.aspx" />
     <Content Include="Ewin\WithdrawReview.aspx" />
     <Content Include="Ewin\ProviderList.aspx" />
-    <Content Include="Ewin\PaymentRecord.aspx" />
     <Content Include="VPay\assets\background\bg.jpg" />
     <Content Include="VPay\assets\background\nav_bg.jpg" />
     <Content Include="VPay\assets\bundles\datatablescripts.bundle.js" />
@@ -800,11 +800,11 @@
     <Content Include="App_Code\Backend\BackendFunction.cs" />
     <Content Include="App_Code\Backend\BackendModel.cs" />
     <Content Include="App_Code\Redis\RedisCache.cs" />
-    <Compile Include="Ewin\Common.cs">
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
     <Compile Include="ewinPayTest.aspx.cs">
       <DependentUpon>ewinPayTest.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Ewin\Common.cs">
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Ewin\WithdrawReview.aspx.cs">
@@ -938,7 +938,9 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="App_Code\Ewin\" />
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

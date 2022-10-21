@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="Common.cs" Inherits="Common" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Common.cs" Inherits="Common" %>
 
 <%
     dynamic paymentReport;
@@ -85,6 +85,9 @@
             {
                 R.ResultState = APIResult.enumResultCode.ERR;
                 R.Message = "Payment Not Exist";
+                         Response.Write(R.Message);
+                    Response.Flush();
+                    Response.End();
             }
         }
         else if (PaymentType == "1")
@@ -99,6 +102,9 @@
             {
                 R.ResultState = APIResult.enumResultCode.ERR;
                 R.Message = "Payment Not Exist";
+                         Response.Write(R.Message);
+                    Response.Flush();
+                    Response.End();
             }
         }
         else
@@ -114,6 +120,9 @@
     {
         R.ResultState = APIResult.enumResultCode.ERR;
         R.Message = "Sign Fail";
+                 Response.Write(R.Message);
+                    Response.Flush();
+                    Response.End();
     }
     //}
     //else

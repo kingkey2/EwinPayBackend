@@ -7051,7 +7051,7 @@ public class BackendController : ApiController
         {
             CompanyID = AdminData.forCompanyID;
         }
-        else if (AdminData.CompanyType == 1)
+        else if (AdminData.CompanyType == 0)
         {
             CompanyID = fromBody.forCompanyID;
         }

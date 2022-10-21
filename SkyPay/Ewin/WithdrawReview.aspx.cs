@@ -12,7 +12,7 @@ using System.Data.SqlClient;
 using System.Data;
 
 
-public partial class WithdrawReview: System.Web.UI.Page
+public partial class WithdrawReview : System.Web.UI.Page
 {
     [WebMethod]
     [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
@@ -23,13 +23,13 @@ public partial class WithdrawReview: System.Web.UI.Page
 
     [WebMethod]
     [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
-    public static ProviderPointResult GetWithdrawDetailPointResult(int CompanyID,string CurrencyType)
+    public static ProviderPointResult GetWithdrawDetailPointResult(int CompanyID, string CurrencyType)
     {
         ProviderPointResult retValue = new ProviderPointResult();
- 
-        retValue.ProviderPointResults =Common.GetAllProviderPointByCompanyID(CompanyID, CurrencyType);
+
+        retValue.ProviderPointResults = Common.GetAllProviderPointByCompanyID(CompanyID, CurrencyType);
         retValue.CompanyServicePointResults = Common.GetCompanyServicePointDetail(CompanyID, CurrencyType);
-    
+
         if (retValue.ProviderPointResults != null)
         {
             retValue.ResultCode = APIResult.enumResult.OK;
@@ -62,17 +62,17 @@ public partial class WithdrawReview: System.Web.UI.Page
 
     [WebMethod]
     [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
-    public static APIResult ChangeProviderAPIType(string ProviderCode,int setAPIType)
+    public static APIResult ChangeProviderAPIType(string ProviderCode, int setAPIType)
     {
         APIResult retValue = new APIResult();
-     
-        System.Data.DataTable DT =Common.RedisCache.ProviderCode.GetProviderCode(ProviderCode);
+
+        System.Data.DataTable DT = Common.RedisCache.ProviderCode.GetProviderCode(ProviderCode);
 
         if (((int)DT.Rows[0]["ProviderAPIType"] & setAPIType) == setAPIType)
         {
             setAPIType = 0 - setAPIType;
         }
-  
+
         if (Common.ChangeProviderAPIType(ProviderCode, setAPIType) > 0)
         {
             retValue.ResultCode = APIResult.enumResult.OK;
@@ -91,7 +91,7 @@ public partial class WithdrawReview: System.Web.UI.Page
     {
         Common.APIResult result = new Common.APIResult();
         result = Common.UpdateWithdrawalResultByWithdrawSerial(Status, WithdrawSerial, ProviderCode, 1, ServiceType);
- 
+
         return result;
     }
 
