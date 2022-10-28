@@ -13,15 +13,16 @@ namespace SkyPay.Backend
         {
             var amount = decimal.Parse(Request.Params["amount"]);
             var serviceType = Request.Params["serviceType"];
+            var currencyType = Request.Params["currencyType"];
             var isTestSite = Request.Params["isTestSite"];
-            SendPayment(amount, serviceType, isTestSite);
+            SendPayment(amount, serviceType, isTestSite, currencyType);
         }
 
-        public void SendPayment(decimal amount, string serviceType, string isTestSite)
+        public void SendPayment(decimal amount, string serviceType, string isTestSite,string currencyType)
         {
 
             var CompanyCode = "VPayTest";
-            var CurrencyType = "JPY";
+            var CurrencyType = currencyType;
             var ServiceType = serviceType;
             var ClientIP = "";
             var OrderID = Guid.NewGuid().ToString("N");
@@ -32,8 +33,8 @@ namespace SkyPay.Backend
             var CompanyKey = "";
             if (isTestSite.ToUpper() == "TRUE")
             {
-                ReturnURL = "http://gpay.dev4.mts.idv.tw" + "/api/CallBack/TestCompanyReturn?result=AAA";
-                URL = "http://gpay.dev4.mts.idv.tw" + "/api/Gate/RequirePayment";
+                ReturnURL = "http://epay.dev4.mts.idv.tw" + "/api/CallBack/TestCompanyReturn?result=AAA";
+                URL = "http://epay.dev4.mts.idv.tw" + "/api/Gate/RequirePaying";
                 CompanyKey = "81a5ad6e8048459590f47a13c4a48e09";
                 ///"http://cn.thespeedpay.com/Result.cshtml?
                 //ReturnURL = "http://cn.thespeedpay.com" + "/api/CallBack/TestCompanyReturn?result=AAA";
@@ -50,6 +51,7 @@ namespace SkyPay.Backend
             var Sign = GetGPaySign(OrderID, OrderAmount, OrderDate, ServiceType, CurrencyType, CompanyCode, CompanyKey);
 
             System.Collections.Specialized.NameValueCollection data = new System.Collections.Specialized.NameValueCollection();
+            var data2 = new Newtonsoft.Json.Linq.JObject();
             data.Add("ManageCode", CompanyCode);
             data.Add("Currency", CurrencyType);
             data.Add("Service", ServiceType);
@@ -60,7 +62,18 @@ namespace SkyPay.Backend
             data.Add("RevolveURL", ReturnURL);
             data.Add("UserName", "ヨウ アスカ");
             data.Add("Sign", Sign);
-            var jsondata= Newtonsoft.Json.JsonConvert.SerializeObject(data);
+
+            data2.Add("ManageCode", CompanyCode);
+            data2.Add("Currency", CurrencyType);
+            data2.Add("Service", ServiceType);
+            data2.Add("CustomerIP", "121.1.1.1");
+            data2.Add("OrderID", OrderID);
+            data2.Add("OrderDate", OrderDate.ToString("yyyy-MM-dd HH:mm:ss"));
+            data2.Add("OrderAmount", OrderAmount.ToString("#.##"));
+            data2.Add("RevolveURL", ReturnURL);
+            data2.Add("UserName", "ヨウ アスカ");
+            data2.Add("Sign", Sign);
+            var jsondata= Newtonsoft.Json.JsonConvert.SerializeObject(data2);
             RedirectAndPOST(this.Page, URL, data);
         }
     
@@ -83,6 +96,8 @@ namespace SkyPay.Backend
             strForm.Append("<form id=\"" + formID + "\" name=\"" +
                            formID + "\" action=\"" + url +
                            "\" method=\"POST\">");
+
+            var a = Newtonsoft.Json.JsonConvert.SerializeObject(data);
 
             foreach (string key in data)
             {

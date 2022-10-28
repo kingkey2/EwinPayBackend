@@ -1003,6 +1003,7 @@
                             { title: "支付类型", data: 'ServiceTypeName' },
                             { title: "供應商", data: 'ProviderName' },
                             { title: "支付代码", data: 'ServiceType' },
+                            { title: "币别", data: 'CurrencyType' },
                             { title: "手续费(%)", data: 'CollectRate' },
                             {
                                 title: "最低金额", data: 'MinOnceAmount',
@@ -1073,7 +1074,8 @@
             return;
         }
         var serviceType = $($(objbtn).parent().parent().find('td')[3]).html();
-        window.open('/VPay/sendPayment.aspx?amount=' + amount + "&serviceType=" + serviceType + "&isTestSite=" + isTestSite);
+        var currencyType = $($(objbtn).parent().parent().find('td')[4]).html();
+        window.open('/VPay/sendPayment.aspx?amount=' + amount + "&serviceType=" + serviceType + "&isTestSite=" + isTestSite + "&currencyType=" + currencyType);
   
     }
 

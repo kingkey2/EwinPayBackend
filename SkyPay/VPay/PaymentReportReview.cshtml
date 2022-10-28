@@ -1123,9 +1123,7 @@
         $("#select_ServiceType").append('<option value="0">' + "全部" + '</option>');
         if (servicetypedata) {
             $.each(servicetypedata, function (i, item) {
-                if (servicetypedata[i].ServiceType == "JOOB01") {
                     $("#select_ServiceType").append('<option value="' + servicetypedata[i].ServiceType + '">' + servicetypedata[i].ServiceTypeName + '</option>');
-                }
             })   
         }
 

@@ -1852,6 +1852,7 @@ public class DBViewModel {
     public class TestPageCompanyService {
         public string ServiceTypeName { get; set; }
         public string ServiceType { get; set; }
+        public string CurrencyType { get; set; }
         public string ProviderName { get; set; }
         public decimal CollectRate { get; set; }
         public decimal MaxOnceAmount { get; set; }

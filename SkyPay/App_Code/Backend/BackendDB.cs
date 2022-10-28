@@ -15380,19 +15380,12 @@ public class BackendDB
         SqlCommand DBCmd;
         DataTable DT;
 
-        SS = " select ServiceTypeName,CP.*," +
-             " STUFF((" +
-             " Select  ',' + ProviderName" +
-             " From GPayRelation GP LEFT JOIN" +
-             " ProviderCode PC ON PC.ProviderCode = GP.ProviderCode" +
-             " where forCompanyID = @CompanyID AND GP.ServiceType = CP.ServiceType AND GP.CurrencyType = 'JPY'" +
-             " For Xml Path(''))" +
-             " , 1, 1, '') as ProviderName,PS.State ProviderState " +
-             " From CompanyService CP" +
-             " LEFT JOIN ServiceType ST ON ST.ServiceType=CP.ServiceType" +
-             "  LEFT JOIN GPayRelation GR ON GR.forCompanyID = CP.forCompanyID AND GR.ServiceType = CP.ServiceType " +
-             " LEFT JOIN ProviderService PS ON GR.ServiceType = PS.ServiceType AND GR.ProviderCode = PS.ProviderCode " +
-             " where  CP.forCompanyID = @CompanyID And CP.CurrencyType = 'JPY'";
+        SS = " Select ServiceTypeName,CP.*, STUFF((Select  distinct(',' + ProviderName)  From GPayRelation GP" +
+             " LEFT JOIN ProviderCode PC ON PC.ProviderCode = GP.ProviderCode where CP.forCompanyID = @CompanyID" +
+             " AND GP.ServiceType = CP.ServiceType  For Xml Path('')) , 1, 1, '') as ProviderName,PS.State ProviderState" +
+             " From CompanyService CP LEFT JOIN ServiceType ST ON ST.ServiceType = CP.ServiceType" +
+             " LEFT JOIN GPayRelation GR ON GR.forCompanyID = CP.forCompanyID AND GR.ServiceType = CP.ServiceType AND CP.CurrencyType = GR.CurrencyType" +
+             " LEFT JOIN ProviderService PS ON GR.ServiceType = PS.ServiceType AND GR.ProviderCode = PS.ProviderCode   where CP.forCompanyID = @CompanyID";
 
         DBCmd = new System.Data.SqlClient.SqlCommand();
         DBCmd.CommandText = SS;
