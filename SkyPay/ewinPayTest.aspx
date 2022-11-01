@@ -893,6 +893,19 @@
         });
     }
 
+    function setEPayCompanyService() {
+        var postObj = {};
+        callService(apiURL + "/SetEPayCompanyService", postObj, function (success, o) {
+            if (success) {
+                var data = JSON.parse(o);
+
+                window.open(data.d);
+            } else {
+                alert("网路错误:" + o);
+            }
+        });
+    }
+    
     function callService(URL, postObject, cb) {
         var xmlHttp = new XMLHttpRequest;
         var postData;
@@ -931,6 +944,7 @@
     <button onclick="withdrawReview()">出款審核</button>
     <button onclick="paymentRecord()">充值訂單查詢</button>
     <button onclick="withdrawalRecord()">代付訂單查詢</button>
+    <button onclick="setEPayCompanyService()">代付訂單查詢</button>
 </body>
 </html>
 

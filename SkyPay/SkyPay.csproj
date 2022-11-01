@@ -347,6 +347,7 @@
     <Content Include="ewinPayTest.aspx" />
     <Content Include="Ewin\Common.js" />
     <Content Include="Ewin\PaymentRecord.aspx" />
+    <Content Include="Ewin\SetEPayCompanyService.aspx" />
     <Content Include="Ewin\WithdrawReview.aspx" />
     <Content Include="Ewin\ProviderList.aspx" />
     <Content Include="VPay\assets\background\bg.jpg" />
@@ -805,6 +806,10 @@
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Ewin\Common.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Ewin\SetEPayCompanyService.aspx.cs">
+      <DependentUpon>SetEPayCompanyService.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Ewin\WithdrawReview.aspx.cs">

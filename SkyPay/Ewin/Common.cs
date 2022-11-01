@@ -158,6 +158,173 @@ public partial class Common : System.Web.UI.Page
         return ret;
     }
 
+    public static List<CompanyPointVM> GetCompanyPointTableResult(int CompanyID, string CurrencyType)
+    {
+        List<CompanyPointVM> returnValue = null;
+        string SS;
+        SqlCommand DBCmd = null;
+        DataTable DT;
+
+        SS = " SELECT CompanyTable.CompanyName,CompanyPoint.*,CompanyServicePoint.SystemPointValue AS AutoWithdrawAmount" +
+              " FROM   CompanyPoint" +
+              " LEFT JOIN CompanyServicePoint ON CompanyServicePoint.CompanyID=CompanyPoint.forCompanyID And CompanyServicePoint.CurrencyType=CompanyPoint.CurrencyType And CompanyServicePoint.ServiceType='OOB02'" +
+              " LEFT JOIN CompanyTable WITH (NOLOCK) ON CompanyPoint.forCompanyID = CompanyTable.CompanyID" +
+              " WHERE CompanyPoint.forCompanyID = @CompanyID" +
+              " AND CompanyPoint.CurrencyType = @CurrencyType";
+
+        DBCmd = new SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = System.Data.CommandType.Text;
+        DBCmd.Parameters.Add("@CompanyID", SqlDbType.Int).Value = CompanyID;
+        DBCmd.Parameters.Add("@CurrencyType", SqlDbType.VarChar).Value = CurrencyType;
+        DT = DBAccess.GetDB(DBConnStr, DBCmd);
+
+        if (DT != null)
+        {
+            if (DT.Rows.Count > 0)
+            {
+                returnValue = new List<CompanyPointVM>();
+                for (int i = 0; i < DT.Rows.Count; i++)
+                {
+                    var _CompanyPointVM = new CompanyPointVM();
+                    _CompanyPointVM.AutoWithdrawAmount = DT.Rows[i]["AutoWithdrawAmount"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["AutoWithdrawAmount"];
+             
+     
+                    _CompanyPointVM.CompanyName = DT.Rows[i]["CompanyName"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["CompanyName"];
+                    _CompanyPointVM.CurrencyType = DT.Rows[i]["CurrencyType"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["CurrencyType"];
+                    _CompanyPointVM.forCompanyID = DT.Rows[i]["forCompanyID"] == System.DBNull.Value ? 0 : (int)DT.Rows[i]["forCompanyID"];
+
+                    _CompanyPointVM.PointValue = DT.Rows[i]["PointValue"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["PointValue"];
+                    returnValue.Add(_CompanyPointVM);
+                }
+               
+                foreach (var data in returnValue)
+                {
+                    //檢查錢包金額是否足夠
+                    var CanUseCompanyPointDT = GetCanUseCompanyPoint(CompanyID, data.CurrencyType);
+
+                    ////錢包檢查
+                    if (CanUseCompanyPointDT != null && CanUseCompanyPointDT.Rows.Count > 0)
+                    {
+                        data.LockPointValue = (decimal)CanUseCompanyPointDT.Rows[0]["PointValue"] - (decimal)CanUseCompanyPointDT.Rows[0]["CanUsePoint"];
+                        data.FrozenPoint = (decimal)CanUseCompanyPointDT.Rows[0]["FrozenPoint"];
+                    }
+                }
+            }
+        }
+
+        return returnValue;
+    }
+
+    public static List<CompanyServicePointVM> GetCompanyServicePointDetail2(int CompanyID, string CurrencyType)
+    {
+        List<CompanyServicePointVM> returnValue = null;
+        string SS;
+        SqlCommand DBCmd = null;
+        DataTable DT;
+
+        SS = " SELECT " +
+             " (SELECT COUNT(FP.FrozenID) FROM FrozenPoint FP WHERE FP.ServiceType = CompanyServicePoint.ServiceType And FP.forCompanyID = @CompanyID AND FP.CurrencyType =@CurrencyType And FP.Status=0) FrozenServiceCount," +
+             " ISNULL((SELECT SUM(FP.CompanyFrozenAmount) FROM FrozenPoint FP WHERE FP.ServiceType = CompanyServicePoint.ServiceType And FP.forCompanyID = @CompanyID AND FP.CurrencyType =@CurrencyType  And FP.Status=0),0) FrozenServicePoint" +
+             ",CompanyServicePoint.*,ServiceTypeName,WithdrawLimit.MaxLimit,WithdrawLimit.MinLimit,WithdrawLimit.Charge" +
+             " FROM  CompanyServicePoint" +
+             " LEFT JOIN ServiceType ON CompanyServicePoint.ServiceType=ServiceType.ServiceType" +
+             " LEFT JOIN WithdrawLimit ON WithdrawLimit.ServiceType=CompanyServicePoint.ServiceType And WithdrawLimit.CurrencyType=@CurrencyType And WithdrawLimit.WithdrawLimitType=1 And WithdrawLimit.forCompanyID=@CompanyID" +
+             " WHERE CompanyServicePoint.CompanyID = @CompanyID" +
+             " AND CompanyServicePoint.CurrencyType = @CurrencyType";
+
+        DBCmd = new SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = System.Data.CommandType.Text;
+        DBCmd.Parameters.Add("@CompanyID", SqlDbType.Int).Value = CompanyID;
+        DBCmd.Parameters.Add("@CurrencyType", SqlDbType.VarChar).Value = CurrencyType;
+        DT = DBAccess.GetDB(DBConnStr, DBCmd);
+
+        if (DT.Rows.Count > 0)
+        {
+            returnValue = new List<CompanyServicePointVM>();
+            for (int i = 0; i < DT.Rows.Count; i++)
+            {
+                CompanyServicePointVM _CompanyServicePointVM = new CompanyServicePointVM();
+
+                _CompanyServicePointVM.Charge = DT.Rows[i]["Charge"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["Charge"];
+                _CompanyServicePointVM.CompanyID = DT.Rows[i]["CompanyID"] == System.DBNull.Value ? 0 : (int)DT.Rows[i]["CompanyID"];
+                _CompanyServicePointVM.CurrencyType = DT.Rows[i]["CurrencyType"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["CurrencyType"];
+
+                _CompanyServicePointVM.MaxLimit = DT.Rows[i]["MaxLimit"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["MaxLimit"];
+
+                _CompanyServicePointVM.MinLimit = DT.Rows[i]["MinLimit"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["MinLimit"];
+                _CompanyServicePointVM.ServiceType = DT.Rows[i]["ServiceType"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ServiceType"];
+                _CompanyServicePointVM.ServiceTypeName = DT.Rows[i]["ServiceTypeName"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ServiceTypeName"];
+                _CompanyServicePointVM.SystemPointValue = DT.Rows[i]["SystemPointValue"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["SystemPointValue"];
+
+                returnValue.Add(_CompanyServicePointVM);
+            }
+        }
+
+        return returnValue;
+    }
+
+    public static int DisableCompanyService(int CompanyID, string ServiceType, string CurrencyType)
+    {
+        int returnValue = 0;
+        String SS = String.Empty;
+        SqlCommand DBCmd;
+
+        SS = " UPDATE CompanyService";
+        SS += " SET State = (CASE State WHEN 1 THEN 0 ELSE 1 END)";
+        SS += " WHERE forCompanyID=@forCompanyID And ServiceType=@ServiceType And CurrencyType=@CurrencyType";
+
+        DBCmd = new System.Data.SqlClient.SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = CommandType.Text;
+        DBCmd.Parameters.Add("@forCompanyID", SqlDbType.Int).Value = CompanyID;
+        DBCmd.Parameters.Add("@ServiceType", SqlDbType.NVarChar).Value = ServiceType;
+        DBCmd.Parameters.Add("@CurrencyType", SqlDbType.NVarChar).Value = CurrencyType;
+
+        returnValue = DBAccess.ExecuteDB(DBConnStr, DBCmd);
+        RedisCache.CompanyService.UpdateCompanyService(CompanyID, ServiceType, CurrencyType);
+        return returnValue;
+
+    }
+
+    public static DataTable GetCanUseCompanyPoint(int CompanyID, string CurrencyType)
+    {
+        string SS;
+        System.Data.SqlClient.SqlCommand DBCmd = null;
+        System.Data.DataTable DT;
+
+
+        SS = " SELECT (CP.PointValue " +
+             "	-(SELECT ISNULL(SUM(W.Amount + W.CollectCharge),0) " +
+             "   	   FROM Withdrawal W " +
+             "	   WHERE W.Status <> 2 AND W.Status <> 3 AND W.Status <> 8  AND W.Status <> 90 AND W.Status <> 91 AND W.forCompanyID = CP.forCompanyID AND W.CurrencyType = CP.CurrencyType)" +
+             "	-(SELECT ISNULL(SUM(SC.SummaryNetAmount),0) " +
+             "	   FROM CompanyService CS " +
+             "	   INNER JOIN SummaryCompanyByDate SC ON CS.forCompanyID = SC.forCompanyID AND CS.CurrencyType = SC.CurrencyType AND SC.ServiceType = CS.ServiceType " +
+             "			AND   ((CS.CheckoutType = 0 AND 1 = 0 ) " +
+             "			      OR (CS.CheckoutType = 1 AND SC.SummaryDate = dbo.GetReportDate(GETDATE()))" +
+             "			      OR (CS.CheckoutType = 2 AND DATEPART(WEEKDAY, GETDATE()-1) = 7 AND " +
+             "	                  (SC.SummaryDate = dbo.GetReportDate(GETDATE()) OR SC.SummaryDate =  dbo.GetReportDate(DATEADD(day, -1, getdate()))))" +
+             "				  OR (CS.CheckoutType = 2 AND DATEPART(WEEKDAY, GETDATE()-1) = 6 AND  SC.SummaryDate = dbo.GetReportDate(GETDATE())))" +
+             "	   WHERE CS.forCompanyID = CP.forCompanyID AND CS.CurrencyType = CP.CurrencyType)) AS CanUsePoint, " +
+             " 	 ISNULL((Select SUM(CompanyFrozenAmount) FROM FrozenPoint where FrozenPoint.forCompanyID=CP.forCompanyID AND FrozenPoint.CurrencyType=CP.CurrencyType AND FrozenPoint.Status=0),0) AS FrozenPoint," +
+             "	   CP.* " +
+             " FROM CompanyPoint AS CP " +
+             " WHERE CP.forCompanyID = @CompanyID " +
+             " AND CP.CurrencyType = @CurrencyType ";
+
+
+        DBCmd = new System.Data.SqlClient.SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = System.Data.CommandType.Text;
+        DBCmd.Parameters.Add("@CompanyID", System.Data.SqlDbType.Int).Value = CompanyID;
+        DBCmd.Parameters.Add("@CurrencyType", System.Data.SqlDbType.VarChar).Value = CurrencyType;
+        DT = DBAccess.GetDB(DBConnStr, DBCmd);
+
+        return DT;
+    }
+
     public static Withdrawal GetWithdrawalByOrderID(string OrderID,int CompanyID)
     {
         string SS;
@@ -391,6 +558,64 @@ public partial class Common : System.Web.UI.Page
         return returnValue;
     }
 
+    public static List<GPayRelation> GetGPayRelationResult(string ServiceType, string CurrencyType, string ProviderCode = "", int forCompanyID = 0)
+    {
+        List<GPayRelation> returnValue = null;
+        string SS;
+        SqlCommand DBCmd = null;
+        DataTable DT;
+        SS = " SELECT GPayRelation.*,ProviderName FROM GPayRelation WITH (NOLOCK) " +
+             " JOIN ProviderCode WITH (NOLOCK) ON ProviderCode.ProviderCode=GPayRelation.ProviderCode " +
+             " WHERE  GPayRelation.ServiceType =@ServiceType AND GPayRelation.CurrencyType =@CurrencyType ";
+
+        if (ProviderCode != "")
+        {
+            SS += " AND GPayRelation.ProviderCode=@ProviderCode";
+        }
+        else
+        {
+            SS += " AND GPayRelation.forCompanyID=@forCompanyID";
+        }
+
+        DBCmd = new SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = System.Data.CommandType.Text;
+        DBCmd.Parameters.Add("@ServiceType", SqlDbType.VarChar).Value = ServiceType;
+        DBCmd.Parameters.Add("@CurrencyType", SqlDbType.VarChar).Value = CurrencyType;
+        if (ProviderCode != "")
+        {
+            DBCmd.Parameters.Add("@ProviderCode", SqlDbType.VarChar).Value = ProviderCode;
+        }
+        else
+        {
+            DBCmd.Parameters.Add("@forCompanyID", SqlDbType.Int).Value = forCompanyID;
+        }
+        DT = DBAccess.GetDB(DBConnStr, DBCmd);
+
+        if (DT != null)
+        {
+            if (DT.Rows.Count > 0)
+            {
+
+                returnValue = new List<GPayRelation>();
+                for (int i = 0; i < DT.Rows.Count; i++)
+                {
+                    GPayRelation _GPayRelation = new GPayRelation();
+                    _GPayRelation.CurrencyType = DT.Rows[i]["CurrencyType"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["CurrencyType"];
+                    _GPayRelation.forCompanyID = DT.Rows[i]["forCompanyID"] == System.DBNull.Value ? 0 : (int)DT.Rows[i]["forCompanyID"];
+                    _GPayRelation.ProviderCode = DT.Rows[i]["ProviderCode"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ProviderCode"];
+                    _GPayRelation.ProviderName = DT.Rows[i]["ProviderName"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ProviderName"];
+                    _GPayRelation.ServiceType = DT.Rows[i]["ServiceType"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ServiceType"];
+                    _GPayRelation.Weight = DT.Rows[i]["Weight"] == System.DBNull.Value ? 0 : (int)DT.Rows[i]["Weight"];
+                  
+                    returnValue.Add(_GPayRelation);
+                }
+            }
+        }
+
+        return returnValue;
+    }
+
     public static List<ProviderPointVM> GetAllProviderPoint(int CompanyID)
     {
         List<ProviderPointVM> returnValue = null;
@@ -501,6 +726,29 @@ public partial class Common : System.Web.UI.Page
         }
 
         return returnValue;
+    }
+
+    public static string GetCurrencyByCompanyID(int CompanyID)
+    {
+        string ret = "";
+        string SS;
+        System.Data.SqlClient.SqlCommand DBCmd;
+        DataTable DT;
+        DBCmd = new System.Data.SqlClient.SqlCommand();
+        object DBreturn;
+        SS = " SELECT CurrencyType From CompanyTable Where CompanyID=@CompanyID ";
+
+        DBCmd = new SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = System.Data.CommandType.Text;
+        DBCmd.Parameters.Add("@CompanyID", SqlDbType.Int).Value = CompanyID;
+        DBreturn = DBAccess.GetDBValue(DBConnStr, DBCmd);
+        if (DBreturn != null)
+        {
+            ret = DBreturn.ToString();
+        }
+
+        return ret;
     }
 
     public static int GetCompanyIDByCompanyCode(string CompanyCode)
@@ -1153,6 +1401,182 @@ public partial class Common : System.Web.UI.Page
         return DBreturn;
     }
 
+    public static List<WithdrawLimit> GetCompanyWithdrawRelationResult(int CompanyID)
+    {
+        List<WithdrawLimit> returnValue = null;
+        string SS;
+        SqlCommand DBCmd = null;
+        DataTable DT;
+
+        SS = " SELECT WithdrawLimit.* FROM WithdrawLimit WITH (NOLOCK)" +
+             " WHERE forCompanyID =@CompanyID And WithdrawLimitType =2 ";
+
+        DBCmd = new SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = System.Data.CommandType.Text;
+        DBCmd.Parameters.Add("@CompanyID", SqlDbType.Int).Value = CompanyID;
+
+        DT = DBAccess.GetDB(DBConnStr, DBCmd);
+
+        if (DT != null)
+        {
+            if (DT.Rows.Count > 0)
+            {
+                returnValue = new List<WithdrawLimit>();
+                for (int i = 0; i < DT.Rows.Count; i++)
+                {
+                    WithdrawLimit _WithdrawLimit = new WithdrawLimit();
+
+                    _WithdrawLimit.Charge = DT.Rows[i]["Charge"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["Charge"];
+                    _WithdrawLimit.CompanyID = DT.Rows[i]["CompanyID"] == System.DBNull.Value ? 0 : (int)DT.Rows[i]["CompanyID"];
+                    _WithdrawLimit.CurrencyType = DT.Rows[i]["CurrencyType"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["CurrencyType"];
+
+                    _WithdrawLimit.MaxLimit = DT.Rows[i]["MaxLimit"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["MaxLimit"];
+
+                    _WithdrawLimit.MinLimit = DT.Rows[i]["MinLimit"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["MinLimit"];
+                    _WithdrawLimit.ProviderCode = DT.Rows[i]["ProviderCode"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ProviderCode"];
+                    _WithdrawLimit.ServiceType = DT.Rows[i]["ServiceType"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ServiceType"];
+                    _WithdrawLimit.ServiceTypeName = DT.Rows[i]["ServiceTypeName"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ServiceTypeName"];
+
+                    _WithdrawLimit.WithdrawLimitType = DT.Rows[i]["WithdrawLimitType"] == System.DBNull.Value ? 0 : (int)DT.Rows[i]["WithdrawLimitType"];
+
+                    returnValue.Add(_WithdrawLimit);
+                }
+            }
+        }
+
+        return returnValue;
+    }
+
+    public static List<WithdrawLimit> GetWithdrawLimitResult(WithdrawLimit data)
+    {
+        List<WithdrawLimit> returnValue = null;
+        string SS = "";
+        SqlCommand DBCmd = null;
+        DataTable DT = null;
+        if (data.WithdrawLimitType == 0)
+        { //供應商資料
+            SS = "SELECT * FROM WithdrawLimit WHERE ProviderCode =@ProviderCode And WithdrawLimitType=@WithdrawLimitType";
+        }
+        else if (data.WithdrawLimitType == 1)
+        {   //營運商資料
+            SS = " SELECT WithdrawLimit.*,ServiceType.ServiceTypeName FROM WithdrawLimit " +
+                 " LEFT JOIN ServiceType ON ServiceType.ServiceType=WithdrawLimit.ServiceType" +
+                 " WHERE forCompanyID =@forCompanyID And WithdrawLimitType=@WithdrawLimitType";
+        }
+
+
+        if (!String.IsNullOrEmpty(SS))
+        {
+            DBCmd = new SqlCommand();
+            DBCmd.CommandText = SS;
+            DBCmd.CommandType = System.Data.CommandType.Text;
+            DBCmd.Parameters.Add("@WithdrawLimitType", SqlDbType.Int).Value = data.WithdrawLimitType;
+            DBCmd.Parameters.Add("@ProviderCode", SqlDbType.VarChar).Value = data.ProviderCode;
+            DBCmd.Parameters.Add("@forCompanyID", SqlDbType.Int).Value = data.CompanyID;
+            DT = DBAccess.GetDB(DBConnStr, DBCmd);
+        }
+
+
+        if (DT != null)
+        {
+            if (DT.Rows.Count > 0)
+            {
+                returnValue = new List<WithdrawLimit>();
+                for (int i = 0; i < DT.Rows.Count; i++)
+                {
+                    WithdrawLimit _WithdrawLimit = new WithdrawLimit();
+
+                    _WithdrawLimit.Charge = DT.Rows[i]["Charge"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["Charge"];
+                    _WithdrawLimit.CurrencyType = DT.Rows[i]["CurrencyType"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["CurrencyType"];
+
+                    _WithdrawLimit.MaxLimit = DT.Rows[i]["MaxLimit"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["MaxLimit"];
+
+                    _WithdrawLimit.MinLimit = DT.Rows[i]["MinLimit"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["MinLimit"];
+                    _WithdrawLimit.ProviderCode = DT.Rows[i]["ProviderCode"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ProviderCode"];
+                    _WithdrawLimit.ServiceType = DT.Rows[i]["ServiceType"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ServiceType"];
+                    _WithdrawLimit.ServiceTypeName = DT.Rows[i]["ServiceTypeName"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ServiceTypeName"];
+
+                    _WithdrawLimit.WithdrawLimitType = DT.Rows[i]["WithdrawLimitType"] == System.DBNull.Value ? 0 : (int)DT.Rows[i]["WithdrawLimitType"];
+
+                    returnValue.Add(_WithdrawLimit);
+                }
+            }
+        }
+
+        return returnValue;
+    }
+
+    public static List<CompanyServiceTableResult> GetCompanyServiceTableByCompanyID(int CompanyID)
+    {
+        List<CompanyServiceTableResult> returnValue = null;
+        String SS = String.Empty;
+        SqlCommand DBCmd;
+        DataTable DT;
+
+        SS = " SELECT CompanyService.*," +
+                 "        CompanyName," +
+                 "        ServiceType.ServiceTypeName," +
+                 "        (SELECT Count (GPayRelation.CurrencyType)" +
+                 "         FROM   GPayRelation WITH (NOLOCK)" +
+                 "         WHERE  GPayRelation.CurrencyType = CompanyService.CurrencyType" +
+                 "                AND GPayRelation.ServiceType = CompanyService.ServiceType" +
+                 "                AND GPayRelation.forCompanyID = CompanyService.forCompanyID) AS GPayRelationCount" +
+                 " FROM   CompanyService WITH (NOLOCK)" +
+                 "        LEFT JOIN CompanyTable" +
+                 "               ON CompanyService.forCompanyID = CompanyTable.CompanyID" +
+                 "        LEFT JOIN ServiceType" +
+                 "               ON ServiceType.ServiceType = CompanyService.ServiceType" +
+                 " WHERE  CompanyService.forCompanyID = @CompanyID ";
+
+        DBCmd = new System.Data.SqlClient.SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = CommandType.Text;
+        DBCmd.Parameters.Add("@CompanyID", SqlDbType.Int).Value = CompanyID;
+
+        DT = DBAccess.GetDB(DBConnStr, DBCmd);
+
+        if (DT != null)
+        {
+            if (DT.Rows.Count > 0)
+            {
+                returnValue = new List<CompanyServiceTableResult>();
+                for (int i = 0; i < DT.Rows.Count; i++)
+                {
+                    CompanyServiceTableResult _CompanyServiceTableResult = new CompanyServiceTableResult();
+
+                    _CompanyServiceTableResult.CheckoutType = DT.Rows[i]["CheckoutType"] == System.DBNull.Value ? 0 : (int)DT.Rows[i]["CheckoutType"];
+                    _CompanyServiceTableResult.CollectCharge = DT.Rows[i]["CollectCharge"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["CollectCharge"];
+           
+                    _CompanyServiceTableResult.CurrencyType = DT.Rows[i]["CurrencyType"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["CurrencyType"];
+
+                    _CompanyServiceTableResult.Description = DT.Rows[i]["Description"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["Description"];
+                    _CompanyServiceTableResult.DeviceType = DT.Rows[i]["DeviceType"] == System.DBNull.Value ? 0 : (int)DT.Rows[i]["DeviceType"];
+                    _CompanyServiceTableResult.forCompanyID = DT.Rows[i]["forCompanyID"] == System.DBNull.Value ? 0 : (int)DT.Rows[i]["forCompanyID"];
+                    _CompanyServiceTableResult.GPayRelationCount = DT.Rows[i]["GPayRelationCount"] == System.DBNull.Value ? 0 : (int)DT.Rows[i]["GPayRelationCount"];
+
+                    _CompanyServiceTableResult.MaxDaliyAmount = DT.Rows[i]["MaxDaliyAmount"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["MaxDaliyAmount"];
+
+                    _CompanyServiceTableResult.MaxDaliyAmountByUse = DT.Rows[i]["MaxDaliyAmountByUse"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["MaxDaliyAmountByUse"];
+
+                    _CompanyServiceTableResult.MaxOnceAmount = DT.Rows[i]["MaxOnceAmount"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["MaxOnceAmount"];
+
+                    _CompanyServiceTableResult.MinOnceAmount = DT.Rows[i]["MinOnceAmount"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["MinOnceAmount"];
+
+                    _CompanyServiceTableResult.ServiceType = DT.Rows[i]["ServiceType"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ServiceType"];
+
+                    _CompanyServiceTableResult.ServiceTypeName = DT.Rows[i]["ServiceTypeName"] == System.DBNull.Value ? "" : (string)DT.Rows[i]["ServiceTypeName"];
+
+                    _CompanyServiceTableResult.State = DT.Rows[i]["State"] == System.DBNull.Value ? 0 : (int)DT.Rows[i]["State"];
+
+                    returnValue.Add(_CompanyServiceTableResult);
+                }
+            }
+        }
+
+        return returnValue;
+    }
+
     public static string GetMD5(string DataString, bool Base64Encoding = true)
     {
         return GetMD5(System.Text.Encoding.UTF8.GetBytes(DataString), Base64Encoding);
@@ -1320,6 +1744,42 @@ public partial class Common : System.Web.UI.Page
         }
 
         return result;
+    }
+
+    public class CompanyServiceTableResult : CompanyService
+    {
+        public string RoleName { get; set; }
+        public string CreateDate2 { get; set; }
+        public string ServiceTypeName { get; set; }
+        public string Description { get; set; }
+        public int GPayRelationCount { get; set; }
+        public List<GPayRelation> GPayRelations { get; set; }
+    }
+
+    public class GPayRelation
+    {
+        public int forCompanyID { get; set; }
+        public string ProviderCode { get; set; }
+        public string ServiceType { get; set; }
+        public string CurrencyType { get; set; }
+        public string ProviderName { get; set; }
+        public int Weight { get; set; }
+    }
+
+    public class CompanyService
+    {
+        public int CheckoutType { get; set; }
+        public int forCompanyID { get; set; }
+        public string ServiceType { get; set; }
+        public string CurrencyType { get; set; }
+        public decimal CollectRate { get; set; }
+        public decimal CollectCharge { get; set; }
+        public decimal MaxDaliyAmount { get; set; }
+        public decimal MaxOnceAmount { get; set; }
+        public decimal MinOnceAmount { get; set; }
+        public int DeviceType { get; set; }
+        public int State { get; set; }
+        public decimal MaxDaliyAmountByUse { get; set; }
     }
 
     public class Withdrawal
@@ -1506,6 +1966,27 @@ public partial class Common : System.Web.UI.Page
         public string CurrencyType { get; set; }
         public string ServiceType { get; set; }
         public decimal SystemPointValue { get; set; }
+    }
+
+    public class CompanyPointVM : CompanyPoint
+    {
+        public string CompanyName { get; set; }
+        public decimal LockPointValue { get; set; }
+        public decimal AutoWithdrawAmount { get; set; }
+        public decimal MaxLimit { get; set; }
+        public decimal MinLimit { get; set; }
+        public decimal Charge { get; set; }
+        public int CompanyCount { get; set; }
+    }
+
+    public class CompanyPoint
+    {
+        public int forCompanyID { get; set; }
+        public string CurrencyType { get; set; }
+        public decimal PointValue { get; set; }
+        public decimal CanUsePoint { get; set; }
+        public decimal FrozenPoint { get; set; }
+        public decimal InWithdrawProcessPoint { get; set; }
     }
 
     public class APIResult
@@ -2254,6 +2735,66 @@ public partial class Common : System.Web.UI.Page
     #region Redis
     public static class RedisCache
     {
+        public static class CompanyService
+        {
+            private static string XMLPath = "CompanyService";
+            private static int DBIndex = 0;
+
+            public static System.Data.DataTable GetCompanyService(int CompanyID, string ServiceType, string CurrencyType)
+            {
+                string Key1;
+                System.Data.DataTable DT;
+
+                Key1 = XMLPath + ":" + CompanyID.ToString() + "." + ServiceType + "." + CurrencyType;
+                if (KeyExists(DBIndex, Key1))
+                {
+                    DT = DTReadFromRedis(DBIndex, Key1);
+                }
+                else
+                {
+                    DT = UpdateCompanyService(CompanyID, ServiceType, CurrencyType);
+                }
+
+                return DT;
+            }
+
+            public static System.Data.DataTable UpdateCompanyService(int CompanyID, string ServiceType, string CurrencyType)
+            {
+                string SS;
+                System.Data.SqlClient.SqlCommand DBCmd;
+                System.Data.DataTable DT;
+                string Key;
+
+                Key = XMLPath + ":" + CompanyID.ToString() + "." + ServiceType + "." + CurrencyType;
+
+                SS = "SELECT * FROM CompanyService WITH (NOLOCK) WHERE forCompanyID=@CompanyID AND ServiceType=@ServiceType AND CurrencyType=@CurrencyType";
+                DBCmd = new System.Data.SqlClient.SqlCommand();
+                DBCmd.CommandText = SS;
+                DBCmd.CommandType = System.Data.CommandType.Text;
+                DBCmd.Parameters.Add("@CompanyID", System.Data.SqlDbType.Int).Value = CompanyID.ToString();
+                DBCmd.Parameters.Add("@ServiceType", System.Data.SqlDbType.VarChar).Value = ServiceType;
+                DBCmd.Parameters.Add("@CurrencyType", System.Data.SqlDbType.VarChar).Value = CurrencyType;
+                DT = DBAccess.GetDB(DBConnStr, DBCmd);
+
+                if (DT.Rows.Count > 0)
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        try
+                        {
+                            DTWriteToRedis(DBIndex, DT, Key);
+                            break;
+                        }
+                        catch (Exception ex)
+                        {
+                        }
+                    }
+                }
+
+                return DT;
+            }
+        }
+
         public static class ProviderService
         {
             private static string XMLPath = "ProviderService";

@@ -18,7 +18,8 @@ public partial class ewinPayTest : System.Web.UI.Page
 
     public static string CompanyKey = "a8513205c0044cb480d5c3c903271966";
     //測試Url
-    public static string EwinPayUrl = "http://epaybackend.dev4.mts.idv.tw/Ewin";
+    //public static string EwinPayUrl = "http://epaybackend.dev4.mts.idv.tw/Ewin";
+    public static string EwinPayUrl = "http://localhost:9458/Ewin";
     //正式Url
     public static string OfficialEwinPayUrl = "https://backend.ewin-pay.com/Ewin";
 
@@ -36,6 +37,16 @@ public partial class ewinPayTest : System.Web.UI.Page
         string Timestamp = ConvertUtcTimestamp(DateTime.UtcNow);
         string Sign = GetProviderListSign(Timestamp);
         string Url = EwinPayUrl + "/ProviderList.aspx?CompanyCode=" + CompanyCode + "&Timestamp=" + Timestamp + "&Sign=" + Sign;
+        return Url;
+    }
+
+    [WebMethod]
+    [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+    public static string SetEPayCompanyService()
+    {
+        string Timestamp = ConvertUtcTimestamp(DateTime.UtcNow);
+        string Sign = GetProviderListSign(Timestamp);
+        string Url = EwinPayUrl + "/SetEPayCompanyService.aspx?CompanyCode=" + CompanyCode + "&Timestamp=" + Timestamp + "&Sign=" + Sign;
         return Url;
     }
 
