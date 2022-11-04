@@ -184,7 +184,6 @@
     <script src="/Ewin/Common.js"></script>
     <style>
 
-
         ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
             color: black !important;
             opacity: 1; /* Firefox */
@@ -1003,8 +1002,10 @@
 </head>
 <script>
     var strListProviderListResult = '<%=strListProviderListResult%>';
+    var companyID = <%=CompanyID%>;
     var jsonListProviderListResult;
     var apiURL = "/Ewin/ProviderList.aspx";
+    var isCreatedTable = false;
     var c = new common();
     var chineseTableLang = {
         "processing": "处理中...",
@@ -1027,15 +1028,94 @@
             "sortDescending": ": 降幂划分"
         }
     };
+    var ProviderData;
     $(function () {
         if (strListProviderListResult != "") {
             jsonListProviderListResult = JSON.parse(strListProviderListResult);
             CreateProviderListTable(jsonListProviderListResult);
+            ProviderData = jsonListProviderListResult;
         }
+
+        var withdrawLimitModal = `<div class="modal fade" style="background-color: rgba(0, 0, 0, 0.4);" data-backdrop=false id="withdrawLimitModal" tabindex="-1" role="dialog" aria-hidden="true">
+                            <div class="modal-dialog modal-sm" role="document">
+                            <div class="modal-content">
+                            <div class="modal-header">
+                            <h4 class="title">代付金额调整</h4>
+                            </div>
+                            <div class="modal-body" id="withdrawLimitModalBody">
+                                <span style="display: block;margin-bottom:5px;">最低金額:<input class="thousand-symbols" id="withdrawLimitModal_MinLimit" style="margin-left: 5px"/></span>
+                                <span style="display: block;margin-bottom:5px;">最高金额:<input class="thousand-symbols" id="withdrawLimitModal_MaxLimit" style="margin-left: 5px"/></span>
+                                <span style="display: block">手续费:<input class="thousand-symbols" id="withdrawLimitModal_Charge" style="margin-left: 5px"/></span>
+                                <input id="withdrawLimitModal_ProviderCode" style="display:none;" />
+                            </div>
+                            <div class="modal-footer">
+                            <button onclick="withdrawLimitModalSave()" type="button" class="btn btn-primary btn-round waves-effect">修改</button>
+                            <button onclick="withdrawLimitModalCancel()" type="button" class="btn btn-secondary btn-round waves-effect">取消</button>
+                            </div>
+                            </div>
+                            </div>
+                            </div>`;
+        $('body').append(withdrawLimitModal);
+
+
+        new AutoNumeric.multiple('.thousand-symbols', 'floatPos', { allowDecimalPadding: false, decimalPlaces: 4, modifyValueOnWheel: false });
+        new AutoNumeric.multiple('.percent', 'integer', { allowDecimalPadding: false, decimalPlaces: 4, minimumValue: 0, maximumValue: 100 });
     });
 
-    function CreateProviderListTable(data) {
+    function withdrawLimitModalSave() {
 
+        wrapperFadeIn();
+        var MinLimit = toNumber($('#withdrawLimitModal_MinLimit').val());
+        var MaxLimit = toNumber($('#withdrawLimitModal_MaxLimit').val());
+        var Charge = toNumber($('#withdrawLimitModal_Charge').val());
+        var ProviderCode =  $('#withdrawLimitModal_ProviderCode').val();
+        toNumber($('#withdrawLimitModal_MaxLimit').val());
+        postObj = {
+            ProviderCode: ProviderCode,
+            CompanyID: companyID,
+            MaxLimit: MaxLimit,
+            MinLimit: MinLimit,
+            Charge: Charge
+        }
+
+        c.callService(apiURL + "/UpdateProviderWithdrawLimitResult", postObj, function (success, o) {
+            if (success) {
+                o = c.getJSON(o);
+                if (o.ResultCode == 0) {
+                    withdrawLimitModalCancel();
+                    updateProviderList();
+                } else {
+                    switch (o.ResultCode) {
+                        case 4:
+                            alert("权限不足");
+                            break;
+                        case 7:
+                            alert("您已断线请重新登入");
+                            break;
+                        default:
+                            alert("其他错误");
+                            break;
+                    }
+                }
+            } else {
+                alert("网路错误:" + o);
+            }
+        
+            wrapperFadeOut();
+        });
+    }
+
+    function toNumber(num) {
+        var returnNum = Number(num.trim().replace(/,/g, ""));
+        return returnNum;
+    }
+
+    function withdrawLimitModalCancel() {
+        $('#withdrawLimitModal').modal('hide');
+    }
+
+    function CreateProviderListTable(data) {
+        isCreatedTable = true;
         ProviderServiceTable = $('#table_ProviderList').DataTable({
             data: data,
             columns: [
@@ -1063,7 +1143,9 @@
                     "render": function (data, display, rowdata) {
                         let retValue = "";
 
-                        retValue = `</br>最&nbsp;&nbsp;低：${toCurrency(rowdata.MinLimit)}</br>最&nbsp;&nbsp;高：${toCurrency(rowdata.MaxLimit)}</br>手续费：${rowdata.Charge} 元 `;
+                        retValue = `<div style="padding-bottom:10px;">
+                                     最&nbsp;&nbsp;低：${toCurrency(rowdata.MinLimit)}</br>最&nbsp;&nbsp;高：${toCurrency(rowdata.MaxLimit)}</br>手续费：${rowdata.Charge} 元 
+                                      <button style="margin-left:5px;" onclick="showWithdrawLimitModal('${rowdata.ProviderCode}')">调整</button></div>`;
 
                         return retValue;
                     }
@@ -1077,11 +1159,11 @@
                                 let data = rowdata.ServiceDatas[i];
                               
                                 retValue +=
-                                    `
+                                    `<div style="padding-bottom:10px;">
                                      <div style='display: inline-block;'><input type="checkbox" onclick="changeProviderServiceState('${data.ProviderCode}','${data.ServiceType}','${data.CurrencyType}')" ${data.State == 0 ? checked = "checked" : checked = ""}/></div>
                                      <div style='width:100px;display: inline-block;'>${data.ServiceTypeName}</div>
                                      <div style='width:200px;display: inline-block;'>充值限額 :${toCurrency(data.MinOnceAmount)} ~ ${toCurrency(data.MaxOnceAmount)}</div>
-                                     <div style='width:50px;display: inline-block;'>費率 :${data.CostRate}% </div>
+                                     <div style='width:100px;display: inline-block;'>費率 :${data.CostRate}% </div><button style="margin-left:5px;" onclick="alert(123)">調整</button></div>
                                      `;
                             }
                             retValue = '<table><tbody>' + retValue + '</tbody></table>';
@@ -1129,6 +1211,60 @@
         });
     }
 
+    function showWithdrawLimitModal(providerCode) {
+        var providerdata = ProviderData.find(w => w.ProviderCode == providerCode);
+        if (providerdata) {
+            $('#withdrawLimitModal_MinLimit').val(providerdata.MinLimit);
+            $('#withdrawLimitModal_MaxLimit').val(providerdata.MaxLimit);
+            $('#withdrawLimitModal_Charge').val(providerdata.Charge);
+            $('#withdrawLimitModal_ProviderCode').val(providerdata.ProviderCode);
+
+            new AutoNumeric.multiple('.thousand-symbols', 'floatPos', { allowDecimalPadding: false, decimalPlaces: 4, modifyValueOnWheel: false });
+            $('#withdrawLimitModal').modal('show');
+        }
+
+    }
+
+    function updateProviderList(){
+        postObj = {
+            CompanyID: companyID
+        }
+        wrapperFadeIn();
+        c.callService(apiURL + "/GetProviderListResult", postObj, function (success, o) {
+            if (success) {
+                if (isCreatedTable) {
+                    ProviderServiceTable.clear().draw();
+                }
+                o = c.getJSON(o);
+                if (o.ResultCode == 0) {
+                    if (!isCreatedTable) {
+                        $("#div_table_ProviderList").empty();
+                        $("#div_table_ProviderList").append('<table style="width:100%" class="table table-bordered table-striped table-hover dataTable tt-table nowrap" id="table_ProviderList"></table >');
+                        createSummaryCompanyByDateTable(o.ProviderListResult);
+                    } else {
+                        ProviderServiceTable.rows.add(o.ProviderListResult).draw(); // Add new data
+                    }
+                } else {
+                    switch (o.ResultCode) {
+                        case 4:
+                            alert("权限不足");
+                            break;
+                        case 7:
+                            alert("您已断线请重新登入");
+                            break;
+                        default:
+                            alert("其他错误");
+                            break;
+                    }
+                }
+            } else {
+                alert("网路错误:" + o);
+                wrapperFadeOut();
+            }
+            wrapperFadeOut();
+        });
+    }
+
     function changeProviderServiceState(providerCode, serviceType, currencyType) {
         wrapperFadeIn();
   
@@ -1165,11 +1301,18 @@
     }
 
     function changeProviderCodeState(providerCode) {
+        var MinLimit = $('#withdrawLimitModal_MinLimit').val();
+        var MaxLimit = $('#withdrawLimitModal_MaxLimit').val();
+        var Charge = $('#withdrawLimitModal_Charge').val();
+        var ProviderCode = $('#withdrawLimitModal_ProviderCode').val();
 
         wrapperFadeIn();
 
         postObj = {
-            ProviderCode: providerCode
+            ProviderCode: providerCode,
+            Charge: Charge,
+            MaxLimit: MaxLimit,
+            MinLimit: MinLimit
         }
 
         c.callService(apiURL + "/ChangeProviderCodeState", postObj, function (success, o) {
@@ -1249,6 +1392,7 @@
         parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
         return parts.join('.');
     }
+
 </script>
 <body class="theme-cyan">
 
@@ -1286,10 +1430,8 @@
                         </div>
                     </div>
                     <div class="body">
-                        <div>
+                        <div id="div_table_ProviderList">
                             <table style="width:100%" class="table table-bordered table-striped table-hover dataTable tt-table nowrap" id="table_ProviderList">
-
-                                <tbody></tbody>
                             </table>
                         </div>
                     </div>

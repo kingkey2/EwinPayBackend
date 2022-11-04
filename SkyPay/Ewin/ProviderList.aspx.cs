@@ -83,6 +83,58 @@ public partial class ProviderList: System.Web.UI.Page
         return retValue;
     }
 
+    [WebMethod]
+    [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+    public static APIResult UpdateProviderWithdrawLimitResult(int CompanyID, string ProviderCode, decimal MaxLimit, decimal MinLimit, decimal Charge)
+    {
+        APIResult retValue = new APIResult();
+        string CurrencyType= Common.GetCurrencyTypeByCompanyID(CompanyID);
+        var DBreturn = Common.UpdateProviderWithdrawLimitResult(CurrencyType, ProviderCode, MaxLimit, MinLimit, Charge);
+        if (DBreturn > 0)
+        {
+            retValue.ResultCode = APIResult.enumResult.OK;
+        }
+        else
+        {
+            retValue.ResultCode = APIResult.enumResult.Error;
+        }
+        return retValue;
+    }
+
+    [WebMethod]
+    [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+    public static ProviderListResults GetProviderListResult(int CompanyID)
+    {
+        ProviderListResults retValue = new ProviderListResults();
+        retValue.ProviderListResult = Common.GetProviderListResult(CompanyID);
+
+        if (retValue.ProviderListResult != null)
+        {
+            var ServiceDatas = Common.GetProviderListServiceData(CompanyID);
+            var ProviderPoints = Common.GetAllProviderPoint(CompanyID);
+
+            foreach (var item in retValue.ProviderListResult)
+            {
+                if (ServiceDatas != null)
+                {
+                    item.ServiceDatas = ServiceDatas.Where(w => w.ProviderCode == item.ProviderCode).ToList();
+                }
+
+                if (ProviderPoints != null)
+                {
+                    item.ProviderListPoints = ProviderPoints.Where(w => w.ProviderCode == item.ProviderCode).ToList();
+                }
+            }
+
+            retValue.ResultCode = APIResult.enumResult.OK;
+        }
+        else
+        {
+            retValue.ResultCode = APIResult.enumResult.NoData;
+        }
+        return retValue;
+    }
+    
     public class APIResult
     {
         public enum enumResult
@@ -107,5 +159,10 @@ public partial class ProviderList: System.Web.UI.Page
         }
         public enumResult ResultCode;
         public string Message;
+    }
+
+    public class ProviderListResults: APIResult
+    {
+        public List<Common.ProviderListResult> ProviderListResult { get; set; }
     }
 }

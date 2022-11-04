@@ -115,8 +115,6 @@ public partial class Common : System.Web.UI.Page
         string ret = null;
         string SS;
         System.Data.SqlClient.SqlCommand DBCmd;
-        PaymentReport returnValue = null;
-        DataTable DT;
         DBCmd = new System.Data.SqlClient.SqlCommand();
         object DBreturn;
         SS = " SELECT CompanyKey From CompanyTable Where CompanyCode=@CompanyCode ";
@@ -153,6 +151,29 @@ public partial class Common : System.Web.UI.Page
         if (DBreturn != null)
         {
             ret = Convert.ToInt32(DBreturn);
+        }
+
+        return ret;
+    }
+
+    public static string GetCurrencyTypeByCompanyID(int CompanyID)
+    {
+        string ret = null;
+        string SS;
+        System.Data.SqlClient.SqlCommand DBCmd;
+        DataTable DT;
+        DBCmd = new System.Data.SqlClient.SqlCommand();
+        object DBreturn;
+        SS = " SELECT CurrencyType From CompanyTable Where CompanyID=@CompanyID ";
+
+        DBCmd = new SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = System.Data.CommandType.Text;
+        DBCmd.Parameters.Add("@CompanyID", SqlDbType.Int).Value = CompanyID;
+        DBreturn = DBAccess.GetDBValue(DBConnStr, DBCmd);
+        if (DBreturn != null)
+        {
+            ret = Convert.ToString(DBreturn);
         }
 
         return ret;
@@ -554,6 +575,31 @@ public partial class Common : System.Web.UI.Page
                 }
             }
         }
+
+        return returnValue;
+    }
+
+    public static int UpdateProviderWithdrawLimitResult(string CurrencyType,string ProviderCode,decimal MaxLimit,decimal MinLimit,decimal Charge)
+    {
+        int returnValue;
+        string SS;
+        System.Data.SqlClient.SqlCommand DBCmd = null;
+
+        SS = " UPDATE WithdrawLimit SET MaxLimit=@MaxLimit,MinLimit=@MinLimit,Charge=@Charge " +
+             " WHERE ProviderCode=@ProviderCode And WithdrawLimitType=@WithdrawLimitType And CurrencyType=@CurrencyType";
+
+        DBCmd = new System.Data.SqlClient.SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = CommandType.Text;
+        DBCmd.Parameters.Add("@CurrencyType", SqlDbType.VarChar).Value = CurrencyType;
+        DBCmd.Parameters.Add("@WithdrawLimitType", SqlDbType.Int).Value = 0;
+        DBCmd.Parameters.Add("@ProviderCode", SqlDbType.VarChar).Value = ProviderCode;
+        DBCmd.Parameters.Add("@MaxLimit", SqlDbType.Decimal).Value = MaxLimit;
+        DBCmd.Parameters.Add("@MinLimit", SqlDbType.Decimal).Value = MinLimit;
+        DBCmd.Parameters.Add("@Charge", SqlDbType.Decimal).Value = Charge;
+        returnValue = DBAccess.ExecuteDB(DBConnStr, DBCmd);
+
+        RedisCache.ProviderWithdrawLimit.UpdateProviderAPIWithdrawLimit(ProviderCode, CurrencyType);
 
         return returnValue;
     }
@@ -2735,6 +2781,148 @@ public partial class Common : System.Web.UI.Page
     #region Redis
     public static class RedisCache
     {
+
+        public static class ProviderWithdrawLimit
+        {
+            private static string XMLPath_ProviderCode_API = "WithdrawLimit_ProviderAPI";
+            private static string XMLPath_ProviderCode_Backend = "WithdrawLimit_ProviderBackend";
+            private static int DBIndex = 0;
+
+            public static System.Data.DataTable GetProviderAPIWithdrawLimit(string ProviderCode, string CurrencyType)
+            {
+                string Key1;
+                System.Data.DataTable DT;
+
+                Key1 = XMLPath_ProviderCode_API + ":" + ProviderCode + "." + CurrencyType;
+                if (KeyExists(DBIndex, Key1))
+                {
+                    DT = DTReadFromRedis(DBIndex, Key1);
+                }
+                else
+                {
+                    DT = UpdateProviderAPIWithdrawLimit(ProviderCode, CurrencyType);
+                }
+
+                return DT;
+            }
+
+            public static System.Data.DataTable GetProviderBackendWithdrawLimit(string ProviderCode, string CurrencyType)
+            {
+                string Key1;
+                System.Data.DataTable DT;
+
+                Key1 = XMLPath_ProviderCode_Backend + ":" + ProviderCode + "." + CurrencyType;
+                if (KeyExists(DBIndex, Key1))
+                {
+                    DT = DTReadFromRedis(DBIndex, Key1);
+                }
+                else
+                {
+                    DT = UpdateProviderBackendWithdrawLimit(ProviderCode, CurrencyType);
+                }
+
+                return DT;
+            }
+
+            public static System.Data.DataTable UpdateProviderAPIWithdrawLimit(string ProviderCode, string CurrencyType)
+            {
+                string SS;
+                System.Data.SqlClient.SqlCommand DBCmd;
+                System.Data.DataTable DT;
+                string Key;
+
+                Key = XMLPath_ProviderCode_API + ":" + ProviderCode + "." + CurrencyType;
+
+                SS = "SELECT * FROM WithdrawLimit WITH (NOLOCK) WHERE WithdrawLimitType=0 AND CurrencyType=@CurrencyType AND ProviderCode=@ProviderCode";
+                DBCmd = new System.Data.SqlClient.SqlCommand();
+                DBCmd.CommandText = SS;
+                DBCmd.CommandType = System.Data.CommandType.Text;
+                DBCmd.Parameters.Add("@CurrencyType", System.Data.SqlDbType.VarChar).Value = CurrencyType;
+                DBCmd.Parameters.Add("@ProviderCode", System.Data.SqlDbType.VarChar).Value = ProviderCode;
+
+
+                DT = DBAccess.GetDB(DBConnStr, DBCmd);
+
+                if (DT.Rows.Count > 0)
+                {
+
+                    for (int i = 0; i < 3; i++)
+                    {
+                        try
+                        {
+                            DTWriteToRedis(DBIndex, DT, Key);
+                            break;
+                        }
+                        catch (Exception ex)
+                        {
+                        }
+                    }
+                }
+
+                return DT;
+            }
+
+            public static System.Data.DataTable UpdateProviderBackendWithdrawLimit(string ProviderCode, string CurrencyType)
+            {
+                string SS;
+                System.Data.SqlClient.SqlCommand DBCmd;
+                System.Data.DataTable DT;
+                string Key;
+
+                Key = XMLPath_ProviderCode_Backend + ":" + ProviderCode + "." + CurrencyType;
+
+                SS = "SELECT * FROM WithdrawLimit WITH (NOLOCK) WHERE WithdrawLimitType=3 AND CurrencyType=@CurrencyType AND ProviderCode=@ProviderCode";
+                DBCmd = new System.Data.SqlClient.SqlCommand();
+                DBCmd.CommandText = SS;
+                DBCmd.CommandType = System.Data.CommandType.Text;
+                DBCmd.Parameters.Add("@CurrencyType", System.Data.SqlDbType.VarChar).Value = CurrencyType;
+                DBCmd.Parameters.Add("@ProviderCode", System.Data.SqlDbType.VarChar).Value = ProviderCode;
+
+
+                DT = DBAccess.GetDB(DBConnStr, DBCmd);
+
+                if (DT.Rows.Count > 0)
+                {
+
+                    for (int i = 0; i < 3; i++)
+                    {
+                        try
+                        {
+                            DTWriteToRedis(DBIndex, DT, Key);
+                            break;
+                        }
+                        catch (Exception ex)
+                        {
+                        }
+                    }
+                }
+
+                return DT;
+            }
+
+            public static void DeleteProviderAPIWithdrawLimit(string ProviderCode, string CurrencyType)
+            {
+                string Key1;
+
+                Key1 = XMLPath_ProviderCode_API + ":" + ProviderCode + "." + CurrencyType;
+                if (KeyExists(DBIndex, Key1))
+                {
+                    KeyDelete(DBIndex, Key1);
+                }
+            }
+
+            public static void DeleteProviderBackendWithdrawLimit(string ProviderCode, string CurrencyType)
+            {
+                string Key1;
+
+                Key1 = XMLPath_ProviderCode_Backend + ":" + ProviderCode + "." + CurrencyType;
+                if (KeyExists(DBIndex, Key1))
+                {
+                    KeyDelete(DBIndex, Key1);
+                }
+            }
+        }
+
         public static class CompanyService
         {
             private static string XMLPath = "CompanyService";

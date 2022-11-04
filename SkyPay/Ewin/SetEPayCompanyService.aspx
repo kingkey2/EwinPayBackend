@@ -1249,6 +1249,37 @@
 
     }
 
+    function GetSelectedCompanyService() {
+
+        var parentCompanyID = EditData.data.ParentCompanyID
+        var serviceType = EditData.data.ServiceType;
+        var currencyType = EditData.data.CurrencyType;
+
+        api.getSelectedCompanyService(parentCompanyID, serviceType, currencyType, function (success, obj) {
+            if (obj.ResultCode == 0) {
+                uplineCompanyService = obj.CompanyServiceResult;
+                setNotifyLabelText(obj.CompanyServiceResult);
+            } else {
+                var message = ""
+                switch (obj.ResultCode) {
+                    case 4:
+                        alert("权限不足");
+                        break;
+                    case 5:
+                        alert("上线尚未设定渠道");
+                        break;
+                    case 7:
+                        alert("您已断线请重新登入");
+                        break;
+                    default:
+                        alert("其他错误");
+                        break;
+                }
+            }
+        });
+
+    }
+
     function updateCompanyService() {
         var html = ` <div class="container-fluid">
         <div class="row clearfix">

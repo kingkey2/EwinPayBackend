@@ -1374,6 +1374,7 @@
             if (isCreatedTable) {
                 Table.clear().draw();
             }
+
             if (obj.ResultCode == 0) {
                 if (!isCreatedTable) {
                     $("#div_table_SummaryCompanyByDateTable").empty();
@@ -1412,7 +1413,6 @@
     //搜尋
     $("#btnCompanySearch").on("click", function () {
         //#region 驗證
-
         var dateinputval = $('#dateinput').val().split('-');
         var startDate = dateinputval[0];
         var endDate = dateinputval[1];
