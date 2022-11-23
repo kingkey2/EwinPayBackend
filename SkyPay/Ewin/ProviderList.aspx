@@ -1029,6 +1029,8 @@
         }
     };
     var ProviderData;
+    var isInit = false;
+    var isInit2 = false;
     $(function () {
         if (strListProviderListResult != "") {
             jsonListProviderListResult = JSON.parse(strListProviderListResult);
@@ -1043,6 +1045,7 @@
                             <h4 class="title">代付金额调整</h4>
                             </div>
                             <div class="modal-body" id="withdrawLimitModalBody">
+                                <span style="display: block;margin-bottom:5px;">渠道:<span id="withdrawLimitModal_ProviderName" style="margin-left: 5px"></span></span>
                                 <span style="display: block;margin-bottom:5px;">最低金額:<input class="thousand-symbols" id="withdrawLimitModal_MinLimit" style="margin-left: 5px"/></span>
                                 <span style="display: block;margin-bottom:5px;">最高金额:<input class="thousand-symbols" id="withdrawLimitModal_MaxLimit" style="margin-left: 5px"/></span>
                                 <span style="display: block">手续费:<input class="thousand-symbols" id="withdrawLimitModal_Charge" style="margin-left: 5px"/></span>
@@ -1058,8 +1061,33 @@
         $('body').append(withdrawLimitModal);
 
 
-        new AutoNumeric.multiple('.thousand-symbols', 'floatPos', { allowDecimalPadding: false, decimalPlaces: 4, modifyValueOnWheel: false });
-        new AutoNumeric.multiple('.percent', 'integer', { allowDecimalPadding: false, decimalPlaces: 4, minimumValue: 0, maximumValue: 100 });
+        var providerServiceModal = `<div class="modal fade" style="background-color: rgba(0, 0, 0, 0.4);" data-backdrop=false id="providerServiceModal" tabindex="-1" role="dialog" aria-hidden="true">
+                            <div class="modal-dialog modal-sm" role="document">
+                            <div class="modal-content">
+                            <div class="modal-header">
+                            <h4 class="title">代收金额调整</h4>
+                            </div>
+                            <div class="modal-body" id="providerServiceModalBody">
+                                <span style="display: block;margin-bottom:5px;">渠道:<span id="providerServiceModal_ProviderName" style="margin-left: 5px"></span></span>
+                                <span style="display: block;margin-bottom:5px;">支付通道:<span id="providerServiceModal_ServiceTypeName" style="margin-left: 5px"></span></span>
+                                <span style="display: block;margin-bottom:5px;">最低金額:<input class="thousand-symbols" id="providerServiceModal_MinLimit" style="margin-left: 5px"/></span>
+                                <span style="display: block;margin-bottom:5px;">最高金额:<input class="thousand-symbols" id="providerServiceModal_MaxLimit" style="margin-left: 5px"/></span>
+                                <span style="display: block">费率(%):<input class="percent" id="providerServiceModal_Charge" style="margin-left: 5px"/></span>
+                                <input id="providerServiceModal_ProviderCode" style="display:none;" />
+                                <input id="providerServiceModal_ServiceType" style="display:none;" />
+                            </div>
+                            <div class="modal-footer">
+                            <button onclick="providerServiceModalSave()" type="button" class="btn btn-primary btn-round waves-effect">修改</button>
+                            <button onclick="providerServiceModalCancel()" type="button" class="btn btn-secondary btn-round waves-effect">取消</button>
+                            </div>
+                            </div>
+                            </div>
+                            </div>`;
+        $('body').append(providerServiceModal);
+
+
+         AutoNumeric.multiple('.thousand-symbols', 'floatPos', { allowDecimalPadding: false, decimalPlaces: 4, modifyValueOnWheel: false });
+         AutoNumeric.multiple('.percent', 'integer', { allowDecimalPadding: false, decimalPlaces: 4, minimumValue: 0, maximumValue: 100 });
     });
 
     function withdrawLimitModalSave() {
@@ -1069,7 +1097,7 @@
         var MaxLimit = toNumber($('#withdrawLimitModal_MaxLimit').val());
         var Charge = toNumber($('#withdrawLimitModal_Charge').val());
         var ProviderCode =  $('#withdrawLimitModal_ProviderCode').val();
-        toNumber($('#withdrawLimitModal_MaxLimit').val());
+
         postObj = {
             ProviderCode: ProviderCode,
             CompanyID: companyID,
@@ -1105,6 +1133,51 @@
         });
     }
 
+    function providerServiceModalSave() {
+
+        wrapperFadeIn();
+        var MinOnceAmount = toNumber($('#providerServiceModal_MinLimit').val());
+        var MaxOnceAmount = toNumber($('#providerServiceModal_MaxLimit').val());
+        var CostRate = toNumber($('#providerServiceModal_Charge').val());
+        var ProviderCode = $('#providerServiceModal_ProviderCode').val();
+        var ServiceType = $('#providerServiceModal_ServiceType').val();
+       
+        postObj = {
+            ProviderCode: ProviderCode,
+            CompanyID: companyID,
+            MaxOnceAmount: MaxOnceAmount,
+            MinOnceAmount: MinOnceAmount,
+            CostRate: CostRate,
+            ServiceType: ServiceType
+        }
+
+        c.callService(apiURL + "/UpdateProviderServiceResult", postObj, function (success, o) {
+            if (success) {
+                o = c.getJSON(o);
+                if (o.ResultCode == 0) {
+                    providerServiceModalCancel();
+                    updateProviderList();
+                } else {
+                    switch (o.ResultCode) {
+                        case 4:
+                            alert("权限不足");
+                            break;
+                        case 7:
+                            alert("您已断线请重新登入");
+                            break;
+                        default:
+                            alert("其他错误");
+                            break;
+                    }
+                }
+            } else {
+                alert("网路错误:" + o);
+            }
+
+            wrapperFadeOut();
+        });
+    }
+
     function toNumber(num) {
         var returnNum = Number(num.trim().replace(/,/g, ""));
         return returnNum;
@@ -1112,6 +1185,10 @@
 
     function withdrawLimitModalCancel() {
         $('#withdrawLimitModal').modal('hide');
+    }
+
+    function providerServiceModalCancel() {
+        $('#providerServiceModal').modal('hide');
     }
 
     function CreateProviderListTable(data) {
@@ -1145,7 +1222,7 @@
 
                         retValue = `<div style="padding-bottom:10px;">
                                      最&nbsp;&nbsp;低：${toCurrency(rowdata.MinLimit)}</br>最&nbsp;&nbsp;高：${toCurrency(rowdata.MaxLimit)}</br>手续费：${rowdata.Charge} 元 
-                                      <button style="margin-left:5px;" onclick="showWithdrawLimitModal('${rowdata.ProviderCode}')">调整</button></div>`;
+                                      <button style="margin-left:5px;" onclick="showWithdrawLimitModal('${rowdata.ProviderCode}','${rowdata.ProviderName}')">调整</button></div>`;
 
                         return retValue;
                     }
@@ -1163,7 +1240,7 @@
                                      <div style='display: inline-block;'><input type="checkbox" onclick="changeProviderServiceState('${data.ProviderCode}','${data.ServiceType}','${data.CurrencyType}')" ${data.State == 0 ? checked = "checked" : checked = ""}/></div>
                                      <div style='width:100px;display: inline-block;'>${data.ServiceTypeName}</div>
                                      <div style='width:200px;display: inline-block;'>充值限額 :${toCurrency(data.MinOnceAmount)} ~ ${toCurrency(data.MaxOnceAmount)}</div>
-                                     <div style='width:100px;display: inline-block;'>費率 :${data.CostRate}% </div><button style="margin-left:5px;" onclick="alert(123)">調整</button></div>
+                                     <div style='width:100px;display: inline-block;'>費率 :${data.CostRate}% </div><button style="margin-left:5px;" onclick="showProviderServiceModal('${data.ProviderCode}','${data.ServiceType}','${data.ServiceTypeName}','${rowdata.ProviderName}')">調整</button></div>
                                      `;
                             }
                             retValue = '<table><tbody>' + retValue + '</tbody></table>';
@@ -1211,16 +1288,39 @@
         });
     }
 
-    function showWithdrawLimitModal(providerCode) {
+    function showWithdrawLimitModal(providerCode,providerName) {
         var providerdata = ProviderData.find(w => w.ProviderCode == providerCode);
         if (providerdata) {
+            $('#withdrawLimitModal_ProviderName').text(providerName);
             $('#withdrawLimitModal_MinLimit').val(providerdata.MinLimit);
             $('#withdrawLimitModal_MaxLimit').val(providerdata.MaxLimit);
             $('#withdrawLimitModal_Charge').val(providerdata.Charge);
             $('#withdrawLimitModal_ProviderCode').val(providerdata.ProviderCode);
-
-            new AutoNumeric.multiple('.thousand-symbols', 'floatPos', { allowDecimalPadding: false, decimalPlaces: 4, modifyValueOnWheel: false });
             $('#withdrawLimitModal').modal('show');
+        }
+
+    }
+
+    function showProviderServiceModal(providerCode, serviceType, serviceTypeName, providerName) {
+        var providerdata = ProviderData.find(w => w.ProviderCode == providerCode);
+        if (providerdata) {
+            var serviceData = providerdata.ServiceDatas.find(w => w.ServiceType == serviceType);
+
+            if (serviceData) {
+           
+                $('#providerServiceModal_ProviderName').text(providerName);
+                $('#providerServiceModal_ServiceTypeName').text(serviceTypeName);
+                //$('#providerServiceModal_MinLimit').val(serviceData.MinOnceAmount);
+                AutoNumeric.getAutoNumericElement('#providerServiceModal_MinLimit').set(serviceData.MinOnceAmount);
+              //  $('#providerServiceModal_MaxLimit').val(serviceData.MaxOnceAmount);
+                AutoNumeric.getAutoNumericElement('#providerServiceModal_MaxLimit').set(serviceData.MaxOnceAmount);
+                //$('#providerServiceModal_Charge').val(serviceData.CostRate);
+                AutoNumeric.getAutoNumericElement('#providerServiceModal_Charge').set(serviceData.CostRate);
+                $('#providerServiceModal_ProviderCode').val(providerdata.ProviderCode);
+                $('#providerServiceModal_ServiceType').val(serviceData.ServiceType);
+                $('#providerServiceModal').modal('show');
+            }
+            
         }
 
     }
@@ -1237,10 +1337,11 @@
                 }
                 o = c.getJSON(o);
                 if (o.ResultCode == 0) {
+                    ProviderData = o.ProviderListResult;
                     if (!isCreatedTable) {
                         $("#div_table_ProviderList").empty();
                         $("#div_table_ProviderList").append('<table style="width:100%" class="table table-bordered table-striped table-hover dataTable tt-table nowrap" id="table_ProviderList"></table >');
-                        createSummaryCompanyByDateTable(o.ProviderListResult);
+                        CreateProviderListTable(o.ProviderListResult);   
                     } else {
                         ProviderServiceTable.rows.add(o.ProviderListResult).draw(); // Add new data
                     }
@@ -1383,7 +1484,6 @@
     function wrapperFadeIn() {
         $(".page-loader-wrapper").fadeIn();
     }
-
 
     function toCurrency(num) {
 

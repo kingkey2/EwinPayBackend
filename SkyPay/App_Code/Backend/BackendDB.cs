@@ -8968,10 +8968,16 @@ public class BackendDB
         DBModel.Withdrawal WithdrawData = GetWithdrawalByWithdrawSerial(WithdrawSerial);
         decimal Charge;
         string AutoWithdrawalProviderCode = "";
-        string CompanyCode = "";
         int GroupID = 0;
         DBModel.Company CompanyModel = null;
-        DBModel.ProxyProvider ProxyProviderModel = null;
+        int CompanyType;
+
+        CompanyType = GetCompanyTypeByWithdrawSerial(WithdrawSerial);
+        if (CompanyType == -1)
+        {
+            returnValue.Message = "商户状态有误";
+            return returnValue;
+        }
 
         if (WithdrawData == null)
         {
@@ -9035,73 +9041,81 @@ public class BackendDB
                 returnValue.Status = -1;
                 return returnValue;
             }
-            //检查商户支付通道额度
-            var ServicePointModel = GetCompanyServicePointByServiceType(WithdrawData.forCompanyID, ServiceType, WithdrawData.CurrencyType);
-            if (ServicePointModel == null)
-            {
-                returnValue.WithdrawalData = WithdrawData;
-                returnValue.Message = "商户支付通道额度错误";
-                returnValue.Status = -1;
-                return returnValue;
-            }
 
-            if (ServicePointModel.First().MaxLimit == 0 || ServicePointModel.First().MinLimit == 0)
+            if (CompanyType != 4)
             {
-                returnValue.WithdrawalData = WithdrawData;
-                returnValue.Message = "尚未设定商户支付通道限额";
-                returnValue.Status = -1;
-                return returnValue;
-            }
-
-            WithdrawData.CollectCharge = ServicePointModel.First().Charge;
-
-            if (WithdrawData.Amount + ServicePointModel.First().Charge > ServicePointModel.First().SystemPointValue)
-            {
-                if (WithdrawData.FloatType == 1)
+                //检查商户支付通道额度
+                var ServicePointModel = GetCompanyServicePointByServiceType(WithdrawData.forCompanyID, ServiceType, WithdrawData.CurrencyType);
+                if (ServicePointModel == null)
                 {
-                    int intModifyCompanyServicePointResult = ModifyCompanyServicePointByWithdrawal(WithdrawData.WithdrawID, ServiceType, WithdrawData.forCompanyID, WithdrawData.CurrencyType, WithdrawData.Amount + ServicePointModel.First().Charge);
-                    string tmpReturnStr = "";
-                    if (intModifyCompanyServicePointResult != 0)
+                    returnValue.WithdrawalData = WithdrawData;
+                    returnValue.Message = "商户支付通道额度错误";
+                    returnValue.Status = -1;
+                    return returnValue;
+                }
+
+                if (ServicePointModel.First().MaxLimit == 0 || ServicePointModel.First().MinLimit == 0)
+                {
+                    returnValue.WithdrawalData = WithdrawData;
+                    returnValue.Message = "尚未设定商户支付通道限额";
+                    returnValue.Status = -1;
+                    return returnValue;
+                }
+
+                WithdrawData.CollectCharge = ServicePointModel.First().Charge;
+
+                if (WithdrawData.Amount + ServicePointModel.First().Charge > ServicePointModel.First().SystemPointValue)
+                {
+                    if (false)
                     {
-                        switch (intModifyCompanyServicePointResult)
+                        int intModifyCompanyServicePointResult = ModifyCompanyServicePointByWithdrawal(WithdrawData.WithdrawID, ServiceType, WithdrawData.forCompanyID, WithdrawData.CurrencyType, WithdrawData.Amount + ServicePointModel.First().Charge);
+                        string tmpReturnStr = "";
+                        if (intModifyCompanyServicePointResult != 0)
                         {
-                            case -1:
-                                tmpReturnStr = "支付通道扣点失败";
-                                break;
-                            case -2:
-                                tmpReturnStr = "商户支付通道额度不足";
-                                break;
-                            case -3:
-                                tmpReturnStr = "商户钱包额度不足";
-                                break;
-                            case -4:
-                                tmpReturnStr = "商户钱包不存在";
-                                break;
-                            case -5:
-                                tmpReturnStr = "锁定失败";
-                                break;
-                            case -6:
-                                tmpReturnStr = "支付通道加点失败";
-                                break;
-                            default:
-                                break;
+                            switch (intModifyCompanyServicePointResult)
+                            {
+                                case -1:
+                                    tmpReturnStr = "支付通道扣点失败";
+                                    break;
+                                case -2:
+                                    tmpReturnStr = "商户支付通道额度不足";
+                                    break;
+                                case -3:
+                                    tmpReturnStr = "商户钱包额度不足";
+                                    break;
+                                case -4:
+                                    tmpReturnStr = "商户钱包不存在";
+                                    break;
+                                case -5:
+                                    tmpReturnStr = "锁定失败";
+                                    break;
+                                case -6:
+                                    tmpReturnStr = "支付通道加点失败";
+                                    break;
+                                default:
+                                    break;
+                            }
+                            returnValue.WithdrawalData = WithdrawData;
+                            returnValue.Message = "支付通道调整额度失败,原因:" + tmpReturnStr;
+                            returnValue.Status = -1;
+                            return returnValue;
                         }
+
+                    }
+                    else
+                    {
                         returnValue.WithdrawalData = WithdrawData;
-                        returnValue.Message = "支付通道调整额度失败,原因:" + tmpReturnStr;
+                        returnValue.Message = "商户支付通道额度不足";
                         returnValue.Status = -1;
                         return returnValue;
                     }
 
                 }
-                else
-                {
-                    returnValue.WithdrawalData = WithdrawData;
-                    returnValue.Message = "商户支付通道额度不足";
-                    returnValue.Status = -1;
-                    return returnValue;
-                }
-
             }
+            else {
+                WithdrawData.CollectCharge = Charge;
+            }
+       
 
             //修改訂單狀態為審核中
             SS = " UPDATE Withdrawal  Set ConfirmByAdminID=@AdminID,ProviderCode=@ProviderCode,WithdrawType=@WithdrawType,Status=@Status,CollectCharge=@CollectCharge,CostCharge=@CostCharge,ServiceType=@ServiceType " +
@@ -9284,7 +9298,31 @@ public class BackendDB
 
     }
 
-  
+
+    public int GetCompanyTypeByWithdrawSerial(string WithdrawSerial)
+    {
+        int ret = -1;
+        string SS;
+        System.Data.SqlClient.SqlCommand DBCmd;
+        DataTable DT;
+        DBCmd = new System.Data.SqlClient.SqlCommand();
+        object DBreturn;
+        SS = " SELECT CompanyType From Withdrawal W JOIN CompanyTable CT ON CT.CompanyID=W.forCompanyID  " +
+             " Where WithdrawSerial=@WithdrawSerial ";
+
+        DBCmd = new SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = System.Data.CommandType.Text;
+        DBCmd.Parameters.Add("@WithdrawSerial", SqlDbType.VarChar).Value = WithdrawSerial;
+        DBreturn = DBAccess.GetDBValue(DBConnStr, DBCmd);
+        if (DBreturn != null)
+        {
+            ret = int.Parse(DBreturn.ToString());
+        }
+
+        return ret;
+    }
+
     public int ModifyCompanyServicePointByWithdrawal(int WithdrawID, string ServiceType, int CompanyID, string CurrencyType, decimal FinishtAmount)
     {
         int DBreturn = -9;

@@ -102,7 +102,7 @@ public partial class ProviderList: System.Web.UI.Page
     }
 
     [WebMethod]
-    [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+    [ScriptMethod(ResponseFormat = ResponseFormat.Json)] 
     public static ProviderListResults GetProviderListResult(int CompanyID)
     {
         ProviderListResults retValue = new ProviderListResults();
@@ -134,7 +134,27 @@ public partial class ProviderList: System.Web.UI.Page
         }
         return retValue;
     }
-    
+
+    [WebMethod]
+    [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+    public static APIResult UpdateProviderServiceResult(int CompanyID, string ProviderCode, decimal MaxOnceAmount, decimal MinOnceAmount, decimal CostRate,string ServiceType)
+    {
+        APIResult retValue = new APIResult();
+        string CurrencyType = Common.GetCurrencyTypeByCompanyID(CompanyID);
+
+        if (Common.UpdateProviderService(ProviderCode, ServiceType, CurrencyType,CostRate, MaxOnceAmount, MinOnceAmount) > 0)
+        {
+         
+            retValue.ResultCode = APIResult.enumResult.OK;
+        }
+        else
+        {
+            retValue.ResultCode = APIResult.enumResult.Error;
+        }
+     
+        return retValue;
+    }
+
     public class APIResult
     {
         public enum enumResult
