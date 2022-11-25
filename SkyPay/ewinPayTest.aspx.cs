@@ -56,7 +56,7 @@ public partial class ewinPayTest : System.Web.UI.Page
     {
         string Timestamp = ConvertUtcTimestamp(DateTime.UtcNow);
         //Ewin訂單號
-        string OrderID = "PW2022101811420000001872";
+        string OrderID = "PW101N8631587269791715332220221123151053";
         string Sign = GetWithdrawReviewSign(Timestamp, OrderID);
         string Url = EwinPayUrl + "/WithdrawReview.aspx?CompanyCode=" + CompanyCode + "&Timestamp=" + Timestamp + "&Sign=" + Sign+ "&OrderID="+ OrderID;
         return Url;
@@ -71,7 +71,7 @@ public partial class ewinPayTest : System.Web.UI.Page
         string Timestamp = ConvertUtcTimestamp(DateTime.UtcNow);
 
         //Ewin訂單號
-        string OrderID = "PW2022101811420000001872";
+        string OrderID = "PW101N8631587269791715332220221123151053";
         string Sign = GetPaymentSign(Timestamp, OrderID, PaymentType);
         string Url = EwinPayUrl + "/PaymentRecord.aspx?CompanyCode=" + CompanyCode + "&Timestamp=" + Timestamp + "&Sign=" + Sign+ "&OrderID="+ OrderID+ "&PaymentType="+ PaymentType;
         return Url;

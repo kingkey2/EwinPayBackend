@@ -975,12 +975,7 @@
         if (paymentResult != "") {
             data = JSON.parse(paymentResult);
             var ProcessStatus = "";
-            $('#modal_ServiceTypePoint').text('');
-            $('#modal_ServiceTypeName').text('');
             $('#modal_ServiceType').text('');
-
-
-
             $('#modal_CompanyName').text(data.CompanyName);
             $('#modal_WithdrawSerial').text(data.WithdrawSerial);
             $('#modal_DownOrderID').text(data.DownOrderID);
@@ -1026,11 +1021,8 @@
             } else {
                 $('#div_select_providercode').hide();
                 $('#div_select_companyservicepoint').hide();
-                $('#span_select_companyservicepoint').show();
                 $('#span_select_providercode').show();
                 $('#modal_ProviderName').text(data.ProviderName);
-                $('#modal_ServiceTypeName').text(data.ServiceTypeName);
-                $('#modal_ServiceTypePoint').parent().hide();
 
                 $('#modal-footer').hide();
             }
@@ -1059,7 +1051,7 @@
 
         parent.wrapperFadeIn();
         $('#modal_select_providercode').find('option').remove();
-        $('#modal_select_companyservicepoint').find('option').remove();
+     
         postObj = {
             CompanyID: companyid,
             CurrencyType: currencyType
@@ -1081,7 +1073,7 @@
                     });
 
                     createProviderSelect(providerDataSort);
-                    checkCompanyServiceExist(o.CompanyServicePointResults, serviceType, currencyType);
+                    //checkCompanyServiceExist(o.CompanyServicePointResults, serviceType, currencyType);
                     parent.wrapperFadeOut();
                 }
                 else {
@@ -1133,44 +1125,6 @@
         });
     }
 
-    function checkCompanyServiceExist(data, selectedServiceType, currencyType) {
-
-        data = data.filter(function (element) {
-            return element.State == 0 && element.CurrencyType == currencyType;
-        });
-
-        if (data) {
-            var selecteddata = data.find(function (element) {
-                return element.ServiceType == selectedServiceType;
-            });
-
-            if (selecteddata) {
-                $('#span_select_companyservicepoint').show();
-                $('#div_select_companyservicepoint').hide();
-                $('#modal_ServiceTypePoint').text(selecteddata.SystemPointValue);
-                $('#modal_ServiceTypeName').text(selecteddata.ServiceTypeName);
-                $('#modal_ServiceType').text(selecteddata.ServiceType);
-            } else {
-                $('#span_select_companyservicepoint').hide();
-                $('#div_select_companyservicepoint').show();
-                createCompanyServiceSelect(data);
-            }
-
-        }
-    }
-
-    function createCompanyServiceSelect(data) {
-
-        if (data) {
-            $("#modal_select_companyservicepoint").append('<option value="-1">' + '选择扣款通道' + '</option>');
-
-            $.each(data, function (i, item) {
-
-                $("#modal_select_companyservicepoint").append('<option  value="' + data[i].ServiceType + '">' + data[i].ServiceTypeName + " / " + toCurrency(data[i].SystemPointValue) + " /限额:" + toCurrency(data[i].MinLimit) + "~" + toCurrency(data[i].MaxLimit) + ",手续费:" + data[i].Charge + '</option>');
-            })
-        }
-    }
-
     function saveReviewResult(modifyStatus) {
         var withdrawSerial = $('#modal_WithdrawSerial').text();
         var status = modifyStatus;
@@ -1180,15 +1134,6 @@
             if (providerCode == "-1") {
                 alert("尚未选择供应商");
                 return;
-            }
-
-            if (serviceType == "") {
-                if ($('#modal_select_companyservicepoint').val() == "-1") {
-                    alert("尚未选择支付通道");
-                    return;
-                } else {
-                    serviceType = $('#modal_select_companyservicepoint').val();
-                }
             }
         }
 
@@ -1255,12 +1200,7 @@
                     <div id="div_select_providercode"><span>渠道:
                         <select class="show-tick" id="modal_select_providercode"></select></span></div>
                         <span id="span_select_providercode" style="display: block">
-                        渠道:<span id="modal_ProviderName" style="margin-left: 5px"></span></span>
-                    <div id="div_select_companyservicepoint"><span>商户扣款支付类型:
-                        <select class="show-tick" id="modal_select_companyservicepoint"></select></span></div>
-                    <span id="span_select_companyservicepoint" style="display: block">
-                        商户扣款支付类型:<span id="modal_ServiceTypeName" style="margin-left: 5px"></span><span>
-                        (剩余额度: <span id="modal_ServiceTypePoint" style="color: red;"></span>)</span></span>
+                        渠道:<span id="modal_ProviderName" style="margin-left: 5px"></span></span>           
                     <span id="modal_ServiceType" style="display: none"></span>
                 </div>
                 <div class="modal-footer" id="modal-footer">

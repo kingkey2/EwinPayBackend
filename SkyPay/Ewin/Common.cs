@@ -1,12 +1,15 @@
 ﻿using Microsoft.CSharp.RuntimeBinder;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
-
+using System.Text;
 
 /// <summary>
 /// Common 的摘要描述
@@ -1192,6 +1195,8 @@ public partial class Common : System.Web.UI.Page
             returnValue.Message = "审核完成";
             DBAccess.ExecuteDB(DBConnStr, DBCmd);
             returnValue.ResultState = APIResult.enumResultCode.OK;
+            ReSendWithdrawal(WithdrawData.WithdrawSerial, false);
+
             return returnValue;
         }
         else
@@ -1265,9 +1270,128 @@ public partial class Common : System.Web.UI.Page
                 return returnValue;
             }
         }
-
     }
 
+    public static void ReSendWithdrawal(string WithdrawSerial, bool isReSendWithdraw)
+    {
+        string GPayApiUrl = System.Configuration.ConfigurationManager.AppSettings["GPayApiUrl"];
+        string GPayBackendKey = System.Configuration.ConfigurationManager.AppSettings["GPayBackendKey"];
+
+        #region SignCheck
+        string strSign;
+        string sign;
+        //APIResult objReturnValue = null;
+        APIResult objReturnValue = new APIResult();
+        strSign = string.Format("WithdrawSerial={0}&GPayBackendKey={1}"
+                                  , WithdrawSerial
+                                  , GPayBackendKey
+                                  );
+
+        sign = GetSHA256(strSign);
+
+        #endregion
+
+        var _ReSendWithdraw = new ReSendWithdrawSet();
+        _ReSendWithdraw.isReSendWithdraw = isReSendWithdraw;
+        _ReSendWithdraw.WithdrawSerial = WithdrawSerial;
+        _ReSendWithdraw.Sign = sign;
+
+        System.Threading.Tasks.Task.Run(() =>
+        {
+            RequestJsonAPI(GPayApiUrl + "ReSendWithdraw", JsonConvert.SerializeObject(_ReSendWithdraw), WithdrawSerial, "");
+        });
+        //var returnValue = CodingControl.RequestJsonAPI(GPayApiUrl + "ReSendWithdraw", JsonConvert.SerializeObject(_ReSendWithdraw), WithdrawSerial, "");
+
+
+        //if (!string.IsNullOrEmpty(returnValue))
+        //{
+        //    objReturnValue = JsonConvert.DeserializeObject<APIResult>(returnValue);
+        //}
+
+        //return objReturnValue;
+    }
+
+    public static string RequestJsonAPI(string Url, string JsonString, string PaymentSerial, string ProviderCode)
+    {
+        string result = null;
+        using (HttpClientHandler handler = new HttpClientHandler())
+        {
+            using (HttpClient client = new HttpClient(handler))
+            {
+                try
+                {
+                    #region 呼叫遠端 Web API
+
+                    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, Url);
+                    HttpResponseMessage response = null;
+
+                    #region  設定相關網址內容
+
+                    // Accept 用於宣告客戶端要求服務端回應的文件型態 (底下兩種方法皆可任選其一來使用)
+                    //client.DefaultRequestHeaders.Accept.TryParseAdd("application/json");
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                    // Content-Type 用於宣告遞送給對方的文件型態
+                    //client.DefaultRequestHeaders.TryAddWithoutValidation("Content-Type", "application/json");
+
+
+                    // 將 data 轉為 json
+                    string json = JsonString;
+                    request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+                    response = client.SendAsync(request).GetAwaiter().GetResult();
+
+                    #endregion
+                    #endregion
+
+                    #region 處理呼叫完成 Web API 之後的回報結果
+                    if (response != null)
+                    {
+                        if (response.IsSuccessStatusCode == true)
+                        {
+                            // 取得呼叫完成 API 後的回報內容
+                            result = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                            //PayDB.InsertPaymentTransferLog("状态码:" + response.StatusCode + ", ReSendWithdraw回传结果:" + result, 2, PaymentSerial, ProviderCode);
+                        }
+                        else
+                        {
+                            InsertPaymentTransferLog("状态码有误:" + response.StatusCode + ", ReSendWithdraw回传结果:" + response.Content, 2, PaymentSerial, ProviderCode);
+                        }
+                    }
+                    else
+                    {
+                       InsertPaymentTransferLog("ReSendWithdraw:回传为空值", 2, PaymentSerial, ProviderCode);
+                    }
+                    #endregion
+
+                }
+                catch (Exception ex)
+                {
+                    InsertPaymentTransferLog("ReSendWithdraw系统错误:" + ex.Message, 2, PaymentSerial, ProviderCode);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public static void InsertPaymentTransferLog(string Message, int Type, string PaymentSerial, string ProviderCode)
+    {
+        string SS;
+        System.Data.SqlClient.SqlCommand DBCmd = null;
+
+        SS = "INSERT INTO PaymentTransferLog (forPaymentSerial, Message, Type,forProviderCode)" +
+             "                  VALUES (@PaymentSerial,@Message, @Type,@ProviderCode);";
+        DBCmd = new System.Data.SqlClient.SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = System.Data.CommandType.Text;
+        DBCmd.Parameters.Add("@Type", System.Data.SqlDbType.Int).Value = Type;
+        DBCmd.Parameters.Add("@PaymentSerial", System.Data.SqlDbType.VarChar).Value = PaymentSerial;
+        DBCmd.Parameters.Add("@ProviderCode", System.Data.SqlDbType.VarChar).Value = ProviderCode;
+        DBCmd.Parameters.Add("@Message", System.Data.SqlDbType.NVarChar).Value = Message;
+
+        DBAccess.ExecuteDB(DBConnStr, DBCmd);
+
+    }
 
     public static int UpdateWithdrawalStatus(string WithdrawSerial, int Status)
     {
@@ -1815,6 +1939,13 @@ public partial class Common : System.Web.UI.Page
         }
 
         return result;
+    }
+
+    public class ReSendWithdrawSet
+    {
+        public string WithdrawSerial { get; set; }
+        public string Sign { get; set; }
+        public bool isReSendWithdraw { get; set; }
     }
 
     public class CompanyServiceTableResult : CompanyService

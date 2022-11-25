@@ -28,7 +28,7 @@ public partial class WithdrawReview : System.Web.UI.Page
         ProviderPointResult retValue = new ProviderPointResult();
 
         retValue.ProviderPointResults = Common.GetAllProviderPointByCompanyID(CompanyID, CurrencyType);
-        retValue.CompanyServicePointResults = Common.GetCompanyServicePointDetail(CompanyID, CurrencyType);
+        //retValue.CompanyServicePointResults = Common.GetCompanyServicePointDetail(CompanyID, CurrencyType);
 
         if (retValue.ProviderPointResults != null)
         {

@@ -1255,7 +1255,7 @@
                         if (rowdata.ProviderListPoints != null) {
                             for (var i = 0; i < rowdata.ProviderListPoints.length; i++) {
                                 let data = rowdata.ProviderListPoints[i];
-                                retValue += `<span style="color:green">可用额度：${toCurrency(data.SystemPointValue - data.WithdrawPoint)} </span></br><span style="color:blue">冻结：${toCurrency(data.ProviderFrozenAmount)} </span></br><span style="color:red">提领中：${toCurrency(data.WithdrawPoint)} </span>`;
+                                retValue += `<span style="color:green">可用额度：${toCurrency(data.SystemPointValue - data.WithdrawPoint)} </span></br><span style="color:blue">冻结：${toCurrency(data.ProviderFrozenAmount)} </span></br><span style="color:red">提领中：${toCurrency(data.WithdrawPoint)} </span> <button style="margin-left:5px;" onclick="showWithdrawLimitModal('${rowdata.ProviderCode}','${rowdata.ProviderName}')">額度调整</button>`;
                             }
                         }
                         return retValue;
