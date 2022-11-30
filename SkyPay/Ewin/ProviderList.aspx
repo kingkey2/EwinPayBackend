@@ -998,6 +998,10 @@
         border: 0;
         background: none;
     }
+
+        ::placeholder {
+            color:gray !important;
+        }
     </style>
 </head>
 <script>
@@ -1037,6 +1041,26 @@
             CreateProviderListTable(jsonListProviderListResult);
             ProviderData = jsonListProviderListResult;
         }
+
+        var updateProviderPointModal = `<div class="modal fade" style="background-color: rgba(0, 0, 0, 0.4);" data-backdrop=false id="updateProviderPointModal" tabindex="-1" role="dialog" aria-hidden="true">
+                            <div class="modal-dialog modal-sm" role="document">
+                            <div class="modal-content">
+                            <div class="modal-header">
+                            <h4 class="title">渠道金额调整</h4>
+                            </div>
+                            <div class="modal-body" id="updateProviderPointModalBody">
+                                <span style="display: block;margin-bottom:5px;">渠道:<span id="updateProviderPointModal_ProviderName" style="margin-left: 5px"></span></span>
+                                <span style="display: block;margin-bottom:5px;">金額:<input class="thousand-symbols" placeholder="加負號(-)為扣除額度" id="updateProviderPointModal_Amount" style="margin-left: 5px"/></span>
+                                <input id="updateProviderPointModal_ProviderCode" style="display:none;" />
+                            </div>
+                            <div class="modal-footer">
+                            <button onclick="updateProviderPointModalSave()" type="button" class="btn btn-primary btn-round waves-effect">修改</button>
+                            <button onclick="updateProviderPointModalCancel()" type="button" class="btn btn-secondary btn-round waves-effect">取消</button>
+                            </div>
+                            </div>
+                            </div>
+                            </div>`;
+        $('body').append(updateProviderPointModal);
 
         var withdrawLimitModal = `<div class="modal fade" style="background-color: rgba(0, 0, 0, 0.4);" data-backdrop=false id="withdrawLimitModal" tabindex="-1" role="dialog" aria-hidden="true">
                             <div class="modal-dialog modal-sm" role="document">
@@ -1178,6 +1202,47 @@
         });
     }
 
+    function updateProviderPointModalSave() {
+
+        wrapperFadeIn();
+        var Amount = toNumber($('#updateProviderPointModal_Amount').val());
+        var ProviderCode = $('#updateProviderPointModal_ProviderCode').val();
+
+        postObj = {
+            ProviderCode: ProviderCode,
+            CompanyID: companyID,
+            Amount: Amount,
+            Description:""
+        }
+
+        c.callService(apiURL + "/InsertManualHistory", postObj, function (success, o) {
+            if (success) {
+                o = c.getJSON(o);
+                if (o.ResultCode == 0) {
+                    alert("更新成功");
+                    updateProviderPointModalCancel();
+                    updateProviderList();
+                } else {
+                    switch (o.ResultCode) {
+                        case 4:
+                            alert("权限不足");
+                            break;
+                        case 7:
+                            alert("您已断线请重新登入");
+                            break;
+                        default:
+                            alert("其他错误");
+                            break;
+                    }
+                }
+            } else {
+                alert("网路错误:" + o);
+            }
+
+            wrapperFadeOut();
+        });
+    }
+
     function toNumber(num) {
         var returnNum = Number(num.trim().replace(/,/g, ""));
         return returnNum;
@@ -1185,6 +1250,10 @@
 
     function withdrawLimitModalCancel() {
         $('#withdrawLimitModal').modal('hide');
+    }
+
+    function updateProviderPointModalCancel(){
+        $('#updateProviderPointModal').modal('hide');
     }
 
     function providerServiceModalCancel() {
@@ -1255,7 +1324,7 @@
                         if (rowdata.ProviderListPoints != null) {
                             for (var i = 0; i < rowdata.ProviderListPoints.length; i++) {
                                 let data = rowdata.ProviderListPoints[i];
-                                retValue += `<span style="color:green">可用额度：${toCurrency(data.SystemPointValue - data.WithdrawPoint)} </span></br><span style="color:blue">冻结：${toCurrency(data.ProviderFrozenAmount)} </span></br><span style="color:red">提领中：${toCurrency(data.WithdrawPoint)} </span> <button style="margin-left:5px;" onclick="showWithdrawLimitModal('${rowdata.ProviderCode}','${rowdata.ProviderName}')">額度调整</button>`;
+                                retValue += `<span style="color:green">可用额度：${toCurrency(data.SystemPointValue - data.WithdrawPoint)} </span></br><span style="color:blue">冻结：${toCurrency(data.ProviderFrozenAmount)} </span></br><span style="color:red">提领中：${toCurrency(data.WithdrawPoint)} </span> <button style="margin-left:5px;" onclick="showUpdateProviderPointModal('${rowdata.ProviderCode}','${rowdata.ProviderName}')">額度调整</button>`;
                             }
                         }
                         return retValue;
@@ -1297,6 +1366,18 @@
             $('#withdrawLimitModal_Charge').val(providerdata.Charge);
             $('#withdrawLimitModal_ProviderCode').val(providerdata.ProviderCode);
             $('#withdrawLimitModal').modal('show');
+        }
+
+    }
+
+    function showUpdateProviderPointModal(providerCode,providerName) {
+        var providerdata = ProviderData.find(w => w.ProviderCode == providerCode);
+        if (providerdata) {
+   
+                $('#updateProviderPointModal_ProviderName').text(providerName);
+                $('#updateProviderPointModal_ProviderCode').val(providerdata.ProviderCode);
+                $('#updateProviderPointModal_Amount').val('');
+                $('#updateProviderPointModal').modal('show');
         }
 
     }

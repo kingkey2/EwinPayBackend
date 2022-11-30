@@ -2597,17 +2597,19 @@
         var serviceType = $('#modal_ServiceType').text().trim();
         var withdrawType = $('input[name="PayType"]:checked').val();
         //var serviceTypePoint = parseFloat($('#modal_ServiceTypePoint').text().trim());
-        if (providerCode == "-1") {
-            parent.warningAlert("尚未选择供应商");
-            return;
-        }
-
-        if (serviceType == "") {
-            if ($('#modal_select_companyservicepoint').val() == "-1") {
-                parent.warningAlert("尚未选择支付通道");
+        if (modifyStatus != 3) {
+            if (providerCode == "-1") {
+                parent.warningAlert("尚未选择供应商");
                 return;
-            } else {
-                serviceType = $('#modal_select_companyservicepoint').val();
+            }
+
+            if (serviceType == "") {
+                if ($('#modal_select_companyservicepoint').val() == "-1") {
+                    parent.warningAlert("尚未选择支付通道");
+                    return;
+                } else {
+                    serviceType = $('#modal_select_companyservicepoint').val();
+                }
             }
         }
 

@@ -971,65 +971,71 @@
             "sortDescending": ": 降幂划分"
         }
     };
+    var orderid = '<%=OrderID%>';
+    var companyid = <%=CompanyID%>;
     $(function () {
         if (paymentResult != "") {
             data = JSON.parse(paymentResult);
-            var ProcessStatus = "";
-            $('#modal_ServiceType').text('');
-            $('#modal_CompanyName').text(data.CompanyName);
-            $('#modal_WithdrawSerial').text(data.WithdrawSerial);
-            $('#modal_DownOrderID').text(data.DownOrderID);
-            $('#modal_BankCard').text(data.BankCard);
-            $('#modal_CurrencyType').text(data.CurrencyType);
-            $('#modal_Amount').text(toCurrency(data.Amount));
-            $('#modal_BankName').text(data.BankName);
-            $('#modal_BankBranchName').text(data.BankBranchName);
-            $('#modal_BankCardName').text(data.BankCardName);
-            $('#modal_OwnCity').text(data.OwnCity);
-            $('#modal_OwnProvince').text(data.OwnProvince);
-
-            switch (data.Status) {
-                case 0:
-                    ProcessStatus = '未处理';
-                    break;
-                case 1:
-                    ProcessStatus = '<span style="color:orange;font-weight:900">进行中</span>';
-                    break;
-                case 2:
-                    ProcessStatus = '<span style="color:green;font-weight:900">成功</span>';
-                    break;
-                case 3:
-                    ProcessStatus = '<span style="color:red;font-weight:900">失敗</span>';
-                    break;
-                case 9:
-                    ProcessStatus = '审核退回';
-                    break;
-                case 13:
-                    ProcessStatus = '重审';
-                    break;
-                case 14:
-                    ProcessStatus = '系统问题单';
-                    break;
-                default:
-                    return '';
-                    break;
-            }
-            $('#modal_Status').html(ProcessStatus);
-            if (data.Status == 0) {
-                getProviderCodeResult(data.forCompanyID, data.ServiceType, data.CurrencyType);
-                $('#span_select_providercode').hide();
-            } else {
-                $('#div_select_providercode').hide();
-                $('#div_select_companyservicepoint').hide();
-                $('#span_select_providercode').show();
-                $('#modal_ProviderName').text(data.ProviderName);
-
-                $('#modal-footer').hide();
-            }
-
-            $('#WithdrawalModal').modal('show');
+            updateBaseInfo(data);
         }
     });
+
+    function updateBaseInfo(data) {
+        var ProcessStatus = "";
+        $('#modal_ServiceType').text('');
+        $('#modal_CompanyName').text(data.CompanyName);
+        $('#modal_WithdrawSerial').text(data.WithdrawSerial);
+        $('#modal_DownOrderID').text(data.DownOrderID);
+        $('#modal_BankCard').text(data.BankCard);
+        $('#modal_CurrencyType').text(data.CurrencyType);
+        $('#modal_Amount').text(toCurrency(data.Amount));
+        $('#modal_BankName').text(data.BankName);
+        $('#modal_BankBranchName').text(data.BankBranchName);
+        $('#modal_BankCardName').text(data.BankCardName);
+        $('#modal_OwnCity').text(data.OwnCity);
+        $('#modal_OwnProvince').text(data.OwnProvince);
+
+        switch (data.Status) {
+            case 0:
+                ProcessStatus = '未处理';
+                break;
+            case 1:
+                ProcessStatus = '<span style="color:orange;font-weight:900">进行中</span>';
+                break;
+            case 2:
+                ProcessStatus = '<span style="color:green;font-weight:900">成功</span>';
+                break;
+            case 3:
+                ProcessStatus = '<span style="color:red;font-weight:900">失敗</span>';
+                break;
+            case 9:
+                ProcessStatus = '审核退回';
+                break;
+            case 13:
+                ProcessStatus = '重审';
+                break;
+            case 14:
+                ProcessStatus = '系统问题单';
+                break;
+            default:
+                return '';
+                break;
+        }
+        $('#modal_Status').html(ProcessStatus);
+        if (data.Status == 0) {
+            getProviderCodeResult(data.forCompanyID, data.ServiceType, data.CurrencyType);
+            $('#span_select_providercode').hide();
+        } else {
+            $('#div_select_providercode').hide();
+            $('#div_select_companyservicepoint').hide();
+            $('#span_select_providercode').show();
+            $('#modal_ProviderName').text(data.ProviderName);
+
+            $('#modal-footer').hide();
+        }
+
+        $('#WithdrawalModal').modal('show');
+    }
 
     function wrapperFadeOut() {
         $(".page-loader-wrapper").fadeOut();
@@ -1150,10 +1156,9 @@
         c.callService(apiURL + "/UpdateWithdrawalResultByWithdrawSerial", postObj, function (success, o) {
             if (success) {
                 o = c.getJSON(o);
-                if (o.ResultCode == 0) {
+                if (o.ResultState == 0) {
+                    updateOrder();
                     alert("处理完成");
-
-                    $('#modal-footer').hide();
                 }
                 else {
                     alert(o.Message);
@@ -1170,6 +1175,34 @@
         });
 
     }
+
+    function updateOrder() {
+        postObj = {
+            OrderID: orderid,
+            CompanyID: companyid
+        }
+ 
+        c.callService(apiURL + "/GetWithdrawalByOrderID", postObj, function (success, o) {
+            if (success) {
+                o = c.getJSON(o);
+                if (o.ResultCode == 0) {
+                    updateBaseInfo(o.data);
+                }
+                else {
+                    alert(o.Message);
+                    wrapperFadeOut();
+
+                }
+
+            } else {
+                wrapperFadeOut();
+                alert("网路错误:" + o);
+            }
+
+            wrapperFadeOut();
+        });
+    }
+
 </script>
 <body class="theme-violet">
      <div class="page-loader-wrapper" style="display:none;">

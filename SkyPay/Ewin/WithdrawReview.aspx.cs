@@ -95,6 +95,22 @@ public partial class WithdrawReview : System.Web.UI.Page
         return result;
     }
 
+
+    [WebMethod]
+    [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+    public static WithdrawalResult GetWithdrawalByOrderID(string OrderID, int CompanyID)
+    {
+        WithdrawalResult result = new WithdrawalResult() { ResultCode= APIResult.enumResult.DataExist };
+      
+        Common.Withdrawal withdrawal = Common.GetWithdrawalByOrderID(OrderID, CompanyID);
+        if (withdrawal!=null)
+        {
+            result.data = withdrawal;
+            result.ResultCode = APIResult.enumResult.OK;
+        }
+        return result;
+    }
+
     public class APIResult
     {
         public enum enumResult
@@ -125,5 +141,10 @@ public partial class WithdrawReview : System.Web.UI.Page
     {
         public List<Common.ProviderPointVM> ProviderPointResults;
         public List<Common.CompanyServicePointVM> CompanyServicePointResults;
+    }
+
+    public class WithdrawalResult : APIResult
+    {
+        public Common.Withdrawal data;
     }
 }

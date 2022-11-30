@@ -9165,11 +9165,7 @@ public class BackendDB
             //如果不是后台申请提现,发送API回调
             if (WithdrawData.FloatType != 0)
             {
-
-                if (!(WithdrawData.DownUrl == "https://www.baidu.com/" || WithdrawData.DownUrl == "http://baidu.com"))
-                {
-                    ReSendWithdrawal(WithdrawData.WithdrawSerial, false);
-                }
+                ReSendWithdrawal(WithdrawData.WithdrawSerial, false);
             }
 
             return returnValue;

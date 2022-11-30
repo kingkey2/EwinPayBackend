@@ -6,10 +6,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
+using System.Web;
 
 /// <summary>
 /// Common 的摘要描述
@@ -1270,6 +1272,108 @@ public partial class Common : System.Web.UI.Page
                 return returnValue;
             }
         }
+    }
+
+    public static int InsertManualHistory(string ServiceType,int Type,string CurrencyType,decimal Amount,string Description,string ProviderCode,int CompanyID, int AdminID)
+    {
+        String SS = String.Empty;
+        SqlCommand DBCmd;
+        int returnValue = -4;
+
+        SS = "spAddManual";
+        DBCmd = new System.Data.SqlClient.SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = CommandType.StoredProcedure;
+        DBCmd.Parameters.Add("@Type", SqlDbType.Int).Value = Type;
+        DBCmd.Parameters.Add("@ServiceType", SqlDbType.VarChar).Value = ServiceType;
+        DBCmd.Parameters.Add("@CurrencyType", SqlDbType.VarChar).Value = CurrencyType;
+        DBCmd.Parameters.Add("@Amount", SqlDbType.Decimal).Value = Amount;
+        DBCmd.Parameters.Add("@Description", SqlDbType.NVarChar).Value = Description;
+        DBCmd.Parameters.Add("@TransactionSerial", SqlDbType.VarChar).Value = "";
+        DBCmd.Parameters.Add("@ProviderCode", SqlDbType.VarChar).Value = ProviderCode;
+        DBCmd.Parameters.Add("@forCompanyID", SqlDbType.Int).Value = CompanyID;
+        DBCmd.Parameters.Add("@forAdminID", SqlDbType.Int).Value = AdminID;
+        DBCmd.Parameters.Add("@Return", SqlDbType.VarChar).Direction = System.Data.ParameterDirection.ReturnValue;
+        DBAccess.ExecuteDB(DBConnStr, DBCmd);
+
+        returnValue = (int)DBCmd.Parameters["@Return"].Value;
+
+        return returnValue;
+    }
+
+    public static int InsertAdminOPLog(int CompanyID, int AdminID, int Type, string Description, string IP)
+    {
+        string SS;
+        int AdminOPID;
+        System.Data.SqlClient.SqlCommand DBCmd = null;
+
+        SS = "INSERT INTO AdminOPLog (forCompanyID,forAdminID,Type,Description,IP) " +
+         "                    VALUES (@forCompanyID,@forAdminID,@Type,@Description,@IP) SELECT @@IDENTITY;";
+
+        DBCmd = new System.Data.SqlClient.SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = CommandType.Text;
+        DBCmd.Parameters.Add("@forCompanyID", SqlDbType.Int).Value = CompanyID;
+        DBCmd.Parameters.Add("@IP", SqlDbType.VarChar).Value = IP;
+        DBCmd.Parameters.Add("@forAdminID", SqlDbType.NVarChar).Value = AdminID;
+        DBCmd.Parameters.Add("@Type", SqlDbType.NVarChar).Value = Type;
+        DBCmd.Parameters.Add("@Description", SqlDbType.NVarChar).Value = Description;
+        //DBAccess.ExecuteDB(Pay.DBConnStr, DBCmd);
+        AdminOPID = int.Parse(DBAccess.GetDBValue(DBConnStr, DBCmd).ToString());
+        return AdminOPID;
+    }
+
+    public static string GetUserIP()
+    {
+        string RetValue = string.Empty;
+
+        if (string.IsNullOrEmpty(HttpContext.Current.Request.Headers["X-Forwarded-For"]) == false)
+        {
+            RetValue = HttpContext.Current.Request.Headers["X-Forwarded-For"];
+            if (string.IsNullOrEmpty(RetValue) == false)
+            {
+                int tmpInt;
+
+                tmpInt = RetValue.IndexOf(",");
+                if (tmpInt != -1)
+                {
+                    RetValue = RetValue.Substring(0, tmpInt);
+                }
+            }
+        }
+        else
+        {
+            RetValue = HttpContext.Current.Request.UserHostAddress;
+        }
+
+        IPAddress address;
+        if (IPAddress.TryParse(RetValue, out address))
+        {
+            switch (address.AddressFamily)
+            {
+                case System.Net.Sockets.AddressFamily.InterNetwork:
+                    if (string.IsNullOrEmpty(RetValue) == false)
+                    {
+                        int tmpIndex;
+
+                        tmpIndex = RetValue.IndexOf(":");
+                        if (tmpIndex != -1)
+                        {
+                            RetValue = RetValue.Substring(0, tmpIndex);
+                        }
+                    }
+                    return RetValue;
+
+                case System.Net.Sockets.AddressFamily.InterNetworkV6:
+                    return RetValue;
+
+                default:
+                    // umm... yeah... I'm going to need to take your red packet and...
+                    break;
+            }
+        }
+
+        return RetValue;
     }
 
     public static void ReSendWithdrawal(string WithdrawSerial, bool isReSendWithdraw)
