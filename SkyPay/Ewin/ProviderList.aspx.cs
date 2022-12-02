@@ -63,7 +63,7 @@ public partial class ProviderList: System.Web.UI.Page
     public static APIResult ChangeProviderAPIType(string ProviderCode,int setAPIType)
     {
         APIResult retValue = new APIResult();
-     
+        
         System.Data.DataTable DT =Common.RedisCache.ProviderCode.GetProviderCode(ProviderCode);
 
         if (((int)DT.Rows[0]["ProviderAPIType"] & setAPIType) == setAPIType)
@@ -137,12 +137,12 @@ public partial class ProviderList: System.Web.UI.Page
 
     [WebMethod]
     [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
-    public static APIResult UpdateProviderServiceResult(int CompanyID, string ProviderCode, decimal MaxOnceAmount, decimal MinOnceAmount, decimal CostRate,string ServiceType)
+    public static APIResult UpdateProviderServiceResult(int CompanyID, string ProviderCode,decimal CostRate,string ServiceType)
     {
         APIResult retValue = new APIResult();
         string CurrencyType = Common.GetCurrencyTypeByCompanyID(CompanyID);
 
-        if (Common.UpdateProviderService(ProviderCode, ServiceType, CurrencyType,CostRate, MaxOnceAmount, MinOnceAmount) > 0)
+        if (Common.UpdateProviderService(ProviderCode, ServiceType, CurrencyType,CostRate) > 0)
         {
          
             retValue.ResultCode = APIResult.enumResult.OK;

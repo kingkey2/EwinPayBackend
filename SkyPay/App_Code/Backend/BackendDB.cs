@@ -1917,7 +1917,7 @@ public class BackendDB
 
     public string GetProviderNameByProviderCode(string ProviderCode)
     {
-        string returnValue = null;
+        string returnValue = "";
         string SS;
         SqlCommand DBCmd = null;
 
@@ -1926,7 +1926,11 @@ public class BackendDB
         DBCmd.CommandText = SS;
         DBCmd.CommandType = System.Data.CommandType.Text;
         DBCmd.Parameters.Add("@ProviderCode", SqlDbType.VarChar).Value = ProviderCode;
-        returnValue = DBAccess.GetDBValue(DBConnStr, DBCmd).ToString();
+        var DBreturn= DBAccess.GetDBValue(DBConnStr, DBCmd);
+        if (DBreturn!=null)
+        {
+            returnValue = DBreturn.ToString();
+        }
 
         return returnValue;
     }
@@ -10623,7 +10627,7 @@ public class BackendDB
         SS = " WITH T";
         SS += " AS(";
         SS += " SELECT ProviderCode.DecimalPlaces,ProviderCode.WithdrawRate,PPG.GroupName,ProxyProvider.forProviderCode,ProviderName,convert(varchar,Withdrawal.CreateDate,120) as CreateDate2,convert(varchar,Withdrawal.FinishDate,120) as FinishDate2,";
-        SS += " Withdrawal.Status,Withdrawal.WithdrawSerial,Withdrawal.DownOrderID,";
+        SS += " Withdrawal.ProviderCode,Withdrawal.Status,Withdrawal.WithdrawSerial,Withdrawal.DownOrderID,";
         SS += " Withdrawal.WithdrawType,Withdrawal.BankCard,Withdrawal.BankCardName,Withdrawal.CurrencyType,";
         SS += " Withdrawal.BankName,Withdrawal.Amount,Withdrawal.OwnProvince,Withdrawal.BankBranchName,";
         SS += " Withdrawal.CollectCharge,Withdrawal.CreateDate,Withdrawal.FinishDate,Withdrawal.FloatType,";

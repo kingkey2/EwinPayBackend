@@ -1094,8 +1094,7 @@
                             <div class="modal-body" id="providerServiceModalBody">
                                 <span style="display: block;margin-bottom:5px;">渠道:<span id="providerServiceModal_ProviderName" style="margin-left: 5px"></span></span>
                                 <span style="display: block;margin-bottom:5px;">支付通道:<span id="providerServiceModal_ServiceTypeName" style="margin-left: 5px"></span></span>
-                                <span style="display: block;margin-bottom:5px;">最低金額:<input class="thousand-symbols" id="providerServiceModal_MinLimit" style="margin-left: 5px"/></span>
-                                <span style="display: block;margin-bottom:5px;">最高金额:<input class="thousand-symbols" id="providerServiceModal_MaxLimit" style="margin-left: 5px"/></span>
+                
                                 <span style="display: block">费率(%):<input class="percent" id="providerServiceModal_Charge" style="margin-left: 5px"/></span>
                                 <input id="providerServiceModal_ProviderCode" style="display:none;" />
                                 <input id="providerServiceModal_ServiceType" style="display:none;" />
@@ -1160,8 +1159,8 @@
     function providerServiceModalSave() {
 
         wrapperFadeIn();
-        var MinOnceAmount = toNumber($('#providerServiceModal_MinLimit').val());
-        var MaxOnceAmount = toNumber($('#providerServiceModal_MaxLimit').val());
+        //var MinOnceAmount = toNumber($('#providerServiceModal_MinLimit').val());
+        //var MaxOnceAmount = toNumber($('#providerServiceModal_MaxLimit').val());
         var CostRate = toNumber($('#providerServiceModal_Charge').val());
         var ProviderCode = $('#providerServiceModal_ProviderCode').val();
         var ServiceType = $('#providerServiceModal_ServiceType').val();
@@ -1169,8 +1168,6 @@
         postObj = {
             ProviderCode: ProviderCode,
             CompanyID: companyID,
-            MaxOnceAmount: MaxOnceAmount,
-            MinOnceAmount: MinOnceAmount,
             CostRate: CostRate,
             ServiceType: ServiceType
         }
@@ -1307,8 +1304,7 @@
                                 retValue +=
                                     `<div style="padding-bottom:10px;">
                                      <div style='display: inline-block;'><input type="checkbox" onclick="changeProviderServiceState('${data.ProviderCode}','${data.ServiceType}','${data.CurrencyType}')" ${data.State == 0 ? checked = "checked" : checked = ""}/></div>
-                                     <div style='width:100px;display: inline-block;'>${data.ServiceTypeName}</div>
-                                     <div style='width:200px;display: inline-block;'>充值限額 :${toCurrency(data.MinOnceAmount)} ~ ${toCurrency(data.MaxOnceAmount)}</div>
+                                     <div style='width:100px;display: inline-block;'>${data.ServiceTypeName}</div>       
                                      <div style='width:100px;display: inline-block;'>費率 :${data.CostRate}% </div><button style="margin-left:5px;" onclick="showProviderServiceModal('${data.ProviderCode}','${data.ServiceType}','${data.ServiceTypeName}','${rowdata.ProviderName}')">調整</button></div>
                                      `;
                             }
@@ -1392,9 +1388,9 @@
                 $('#providerServiceModal_ProviderName').text(providerName);
                 $('#providerServiceModal_ServiceTypeName').text(serviceTypeName);
                 //$('#providerServiceModal_MinLimit').val(serviceData.MinOnceAmount);
-                AutoNumeric.getAutoNumericElement('#providerServiceModal_MinLimit').set(serviceData.MinOnceAmount);
+               // AutoNumeric.getAutoNumericElement('#providerServiceModal_MinLimit').set(serviceData.MinOnceAmount);
               //  $('#providerServiceModal_MaxLimit').val(serviceData.MaxOnceAmount);
-                AutoNumeric.getAutoNumericElement('#providerServiceModal_MaxLimit').set(serviceData.MaxOnceAmount);
+               // AutoNumeric.getAutoNumericElement('#providerServiceModal_MaxLimit').set(serviceData.MaxOnceAmount);
                 //$('#providerServiceModal_Charge').val(serviceData.CostRate);
                 AutoNumeric.getAutoNumericElement('#providerServiceModal_Charge').set(serviceData.CostRate);
                 $('#providerServiceModal_ProviderCode').val(providerdata.ProviderCode);

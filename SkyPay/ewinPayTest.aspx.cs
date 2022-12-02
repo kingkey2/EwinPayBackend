@@ -64,6 +64,18 @@ public partial class ewinPayTest : System.Web.UI.Page
 
     [WebMethod]
     [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+    public static string GetGPayRelation()
+    {
+        string Timestamp = ConvertUtcTimestamp(DateTime.UtcNow);
+        //Ewin訂單號
+        string Method = "GetGPayRelation";
+        string Sign = GetEPaySign(CompanyCode, "GetGPayRelation", Timestamp);
+        string Url = EwinPayUrl + "/EwinPayAPI.aspx?Method=" + Method + "&Timestamp=" + Timestamp + "&CompanyCode=" + CompanyCode + "&Sign=" + Sign;
+        return Url;
+    }
+
+    [WebMethod]
+    [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
     public static string WithdrawalRecord()
     {
         // 0=充值單 / 1=代付單
@@ -110,6 +122,17 @@ public partial class ewinPayTest : System.Web.UI.Page
         signStr += "&Timestamp=" + Timestamp;
         signStr += "&CompanyKey=" + CompanyKey;
 
+        string _Sign = GetMD5(signStr, false);
+
+        return _Sign;
+    }
+
+    public static string GetEPaySign(string CompanyCode, string Method, string Timestamp)
+    {
+        string signStr = "CompanyCode=" + CompanyCode;
+        signStr += "&Method=" + Method;
+        signStr += "&CompanyKey=" + CompanyKey;
+        signStr += "&Timestamp=" + Timestamp;
         string _Sign = GetMD5(signStr, false);
 
         return _Sign;

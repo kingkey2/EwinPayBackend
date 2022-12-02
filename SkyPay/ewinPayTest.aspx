@@ -879,10 +879,22 @@
         });
     }
 
-
     function withdrawReview() {
         var postObj = {};
         callService(apiURL + "/WithdrawReview", postObj, function (success, o) {
+            if (success) {
+                var data = JSON.parse(o);
+
+                window.open(data.d);
+            } else {
+                alert("网路错误:" + o);
+            }
+        });
+    }
+
+    function GetGPayRelation() {
+        var postObj = {};
+        callService(apiURL + "/GetGPayRelation", postObj, function (success, o) {
             if (success) {
                 var data = JSON.parse(o);
 
@@ -945,6 +957,7 @@
     <button onclick="paymentRecord()">充值訂單查詢</button>
     <button onclick="withdrawalRecord()">代付訂單查詢</button>
     <button onclick="setEPayCompanyService()">代付訂單查詢</button>
+     <button onclick="GetGPayRelation()">GetGPayRelation</button>
 </body>
 </html>
 

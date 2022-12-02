@@ -53,6 +53,25 @@ public partial class Common : System.Web.UI.Page
         return checkbool;
     }
 
+    public static bool CheckEPaySign(string CompanyCode,string Method, string Sign, string Timestamp)
+    {
+        bool checkbool = false;
+        string CompanyKey;
+        CompanyKey = GetCompanyKeyByCompanyCode(CompanyCode);
+        string signStr = "CompanyCode=" + CompanyCode;
+        signStr += "&Method=" + Method;
+        signStr += "&CompanyKey=" + CompanyKey;
+        signStr += "&Timestamp=" + Timestamp;
+        string _Sign = GetMD5(signStr, false);
+
+        if (_Sign.ToUpper() == Sign.ToUpper())
+        {
+            checkbool = true;
+        }
+
+        return checkbool;
+    }
+
     public static bool CheckPaymentSign(string CompanyCode,string OrderID,string PaymentType, string Sign,string Timestamp)
     {
         bool checkbool = false;
@@ -142,8 +161,6 @@ public partial class Common : System.Web.UI.Page
         int ret = -1;
         string SS;
         System.Data.SqlClient.SqlCommand DBCmd;
-        PaymentReport returnValue = null;
-        DataTable DT;
         DBCmd = new System.Data.SqlClient.SqlCommand();
         object DBreturn;
         SS = " SELECT CompanyID From CompanyTable Where CompanyCode=@CompanyCode ";
@@ -159,6 +176,31 @@ public partial class Common : System.Web.UI.Page
         }
 
         return ret;
+    }
+
+    public static Company GetCompanyIDAndCurrencyTypeByCompanyCode(string CompanyCode)
+    {
+        int ret = -1;
+        string SS;
+        System.Data.SqlClient.SqlCommand DBCmd;
+        DataTable DT;
+        DBCmd = new System.Data.SqlClient.SqlCommand();
+        object DBreturn;
+        SS = " SELECT CompanyID,CurrencyType From CompanyTable Where CompanyCode=@CompanyCode ";
+        Company R = null;
+        DBCmd = new SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = System.Data.CommandType.Text;
+        DBCmd.Parameters.Add("@CompanyCode", SqlDbType.VarChar).Value = CompanyCode;
+        DT = DBAccess.GetDB(DBConnStr, DBCmd);
+        if (DT != null&& DT.Rows.Count>0)
+        {
+            R = new Company();
+            R.CurrencyType = (string)DT.Rows[0]["CurrencyType"];
+            R.CompanyID = (int)DT.Rows[0]["CompanyID"];
+        }
+
+        return R;
     }
 
     public static string GetCurrencyTypeByCompanyID(int CompanyID)
@@ -633,13 +675,13 @@ public partial class Common : System.Web.UI.Page
         return returnValue;
     }
 
-    public static int UpdateProviderService(string ProviderCode, string ServiceType, string CurrencyType, decimal CostRate, decimal MaxOnceAmount, decimal MinOnceAmount)
+    public static int UpdateProviderService(string ProviderCode, string ServiceType, string CurrencyType, decimal CostRate)
     {
         int returnValue;
         string SS;
         System.Data.SqlClient.SqlCommand DBCmd = null;
 
-        SS = "UPDATE ProviderService SET CostRate=@CostRate,MaxOnceAmount=@MaxOnceAmount,MinOnceAmount=@MinOnceAmount WHERE ProviderCode=@ProviderCode AND ServiceType=@ServiceType AND CurrencyType=@CurrencyType";
+        SS = "UPDATE ProviderService SET CostRate=@CostRate WHERE ProviderCode=@ProviderCode AND ServiceType=@ServiceType AND CurrencyType=@CurrencyType";
 
         DBCmd = new System.Data.SqlClient.SqlCommand();
         DBCmd.CommandText = SS;
@@ -648,8 +690,7 @@ public partial class Common : System.Web.UI.Page
         DBCmd.Parameters.Add("@ServiceType", SqlDbType.VarChar).Value = ServiceType;
         DBCmd.Parameters.Add("@CurrencyType", SqlDbType.VarChar).Value = CurrencyType;
         DBCmd.Parameters.Add("@CostRate", SqlDbType.Decimal).Value = CostRate;
-        DBCmd.Parameters.Add("@MaxOnceAmount", SqlDbType.Decimal).Value = MaxOnceAmount;
-        DBCmd.Parameters.Add("@MinOnceAmount", SqlDbType.Decimal).Value = MinOnceAmount;
+
 
         returnValue = DBAccess.ExecuteDB(DBConnStr, DBCmd);
         RedisCache.ProviderService.UpdateProviderService(ProviderCode, ServiceType, CurrencyType);
@@ -1051,6 +1092,48 @@ public partial class Common : System.Web.UI.Page
                     _ProviderPointVM.WithdrawPoint = DT.Rows[i]["WithdrawPoint"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["WithdrawPoint"];
                     _ProviderPointVM.WithdrawProfit = DT.Rows[i]["WithdrawProfit"] == System.DBNull.Value ? 0 : (decimal)DT.Rows[i]["WithdrawProfit"];
                     returnValue.Add(_ProviderPointVM);
+                }
+            }
+        }
+
+        return returnValue;
+    }
+
+    public static List<GPayRelation> GetGPayRelation(int CompanyID,string CurrencyType)
+    {
+        string SS;
+        System.Data.SqlClient.SqlCommand DBCmd = null;
+        System.Data.DataTable DT;
+        List<GPayRelation> returnValue=null;
+        SS = "SELECT * FROM GPayRelation WITH (NOLOCK) WHERE forCompanyID=@CompanyID AND CurrencyType=@CurrencyType";
+        DBCmd = new System.Data.SqlClient.SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = System.Data.CommandType.Text;
+        DBCmd.Parameters.Add("@CompanyID", System.Data.SqlDbType.Int).Value = CompanyID;
+        DBCmd.Parameters.Add("@CurrencyType", System.Data.SqlDbType.VarChar).Value = CurrencyType;
+        DT = DBAccess.GetDB(DBConnStr, DBCmd);
+
+        if (DT != null)
+        {
+            if (DT.Rows.Count > 0)
+            {
+
+                returnValue = new List<GPayRelation>();
+                for (int i = 0; i < DT.Rows.Count; i++)
+                {
+                    string ServiceType=(string)DT.Rows[i]["ServiceType"];
+                    string ProviderCode= (string)DT.Rows[i]["ProviderCode"];
+
+                    if (returnValue.Where(w => w.ServiceType == ServiceType).Count() > 0)
+                    {
+                        returnValue.Find(w => w.ServiceType == ServiceType).ProviderName += "," + ProviderCode;
+                    }
+                    else {
+                        GPayRelation _GPayRelation = new GPayRelation();
+                        _GPayRelation.ServiceType = ServiceType;
+                        _GPayRelation.ProviderName = ProviderCode;
+                        returnValue.Add(_GPayRelation);
+                    }               
                 }
             }
         }
@@ -2272,6 +2355,12 @@ public partial class Common : System.Web.UI.Page
         public string CurrencyType { get; set; }
         public string ServiceType { get; set; }
         public decimal SystemPointValue { get; set; }
+    }
+
+    public class Company
+    {
+        public int CompanyID { get; set; }
+        public string CurrencyType { get; set; }
     }
 
     public class CompanyPointVM : CompanyPoint

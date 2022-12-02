@@ -346,6 +346,7 @@
     <Content Include="document\webfontloader.js" />
     <Content Include="ewinPayTest.aspx" />
     <Content Include="Ewin\Common.js" />
+    <Content Include="Ewin\EwinPayAPI.aspx" />
     <Content Include="Ewin\PaymentRecord.aspx" />
     <Content Include="Ewin\SetEPayCompanyService.aspx" />
     <Content Include="Ewin\WithdrawReview.aspx" />

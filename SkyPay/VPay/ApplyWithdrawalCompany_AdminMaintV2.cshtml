@@ -1290,7 +1290,14 @@
                             case 0:
                                 return '<button onclick="WithdrawalReview(this)">审核</button>';
                                 break;
-                       
+                            case 1:
+                                if (rowdata.WithdrawType == 1 && rowdata.ProviderCode == 'AsiaPlay888') {
+                                    return '<button onclick="QueryAPIWithdrawal(this)">查询</button>';
+                                } else {
+                                    return '';
+                                }
+
+                                break;
                             case 9:
                                 return '<button onclick="WithdrawalReview(this)">审核</button>';
                                 break;
@@ -1679,7 +1686,7 @@
                                 return '<button onclick="WithdrawalReview(this)">审核</button>';
                                 break;
                             case 1:
-                                if (rowdata.WithdrawType == 1 && rowdata.ProviderCode == '858pay') {
+                                if (rowdata.WithdrawType == 1 && rowdata.ProviderCode == 'AsiaPlay888') {
                                     return '<button onclick="QueryAPIWithdrawal(this)">查询</button>';
                                 } else {
                                     return '';
