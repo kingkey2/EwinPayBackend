@@ -1417,7 +1417,9 @@
                                 } else {
                                     return '手动</br><button onclick="confirmManualWithdrawal(this,2)" style="background-color:green">成功</button><button onclick="confirmManualWithdrawal(this,0)">取消</button><button onclick="confirmManualWithdrawal(this,3)" style="background-color:red">失败</button>';
                                 }
-                            } else {
+                            } else if (rowdata.Status == 0) {
+                                return '';
+                            }else {
                                 return '手动';
                             }
 
