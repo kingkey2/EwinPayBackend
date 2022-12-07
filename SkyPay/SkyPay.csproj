@@ -310,6 +310,8 @@
     <Content Include="Company\assets\swf\flashExport.swf" />
     <Content Include="document\api_data.js" />
     <Content Include="document\api_project.js" />
+    <Content Include="document\atelier-savanna-light.css" />
+    <Content Include="document\bootstrap.css" />
     <Content Include="document\bootstrap.min.css" />
     <Content Include="document\bootstrap.min.js" />
     <Content Include="document\ca.js" />
@@ -326,6 +328,7 @@
     <Content Include="document\list.min.js" />
     <Content Include="document\locale.js" />
     <Content Include="document\lodash.custom.min.js" />
+    <Content Include="document\main.css" />
     <Content Include="document\main.js" />
     <Content Include="document\nl.js" />
     <Content Include="document\PaymentProcess.png" />
@@ -342,7 +345,7 @@
     <Content Include="document\style.css" />
     <Content Include="document\tr.js" />
     <Content Include="document\vi.js" />
-    <Content Include="document\VPAYAPI.html" />
+    <Content Include="document\EPAYAPI.html" />
     <Content Include="document\webfontloader.js" />
     <Content Include="ewinPayTest.aspx" />
     <Content Include="Ewin\Common.js" />
