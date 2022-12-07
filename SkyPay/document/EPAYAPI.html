@@ -243,16 +243,15 @@
             <code class="json">
 
                 {
-                CompanyCode:'CompanyCode',
-                Currency:'CNY',
-                Service:'AA001',
-                BankCode:'BCCB',
-                ClientIP:'111.111.11.111',
-                OrderID:'OID001',
-                OrderDate:'2020-01-01 01:01:01',
-                OrderAmount:100.00,
-                ReturnURL:'http://ReturnURL',
-                Sign:'ManageCode=ManageCode&Currency=CNY&Service=AA001&OrderID=OID001&OrderAmount=100&OrderDate=2020-01-01 01:01:01&CompanyKey=CompanyKey'
+                    ManageCode:'ManageCode',
+                    Currency:'CNY',
+                    Service:'AA001',
+                    CustomerIP:'111.111.11.111',
+                    OrderID:'OID001',
+                    OrderDate:'2020-01-01 01:01:01',
+                    OrderAmount:100.00,
+                    RevolveURL:'http://ReturnURL',
+                    Sign:'ManageCode=ManageCode&Currency=CNY&Service=AA001&OrderID=OID001&OrderAmount=100&OrderDate=2020-01-01 01:01:01&CompanyKey=CompanyKey'
                 }
             </code>
         </pre>
@@ -399,7 +398,7 @@
                     "PayingAmount": 100.00,
                     "Service": "AA001",
                     "Currency":"CNY",
-                    "ManageCode": "CompanyCode",
+                    "ManageCode": "ManageCode",
                     "OrderID": "OID001",
                     "OrderDate":"2020-01-01 01:01:01",
                     "Sign":详细内容请见说明
@@ -453,7 +452,7 @@
         <pre>
             <code class="json">
                 {
-                    ManageCode:'CompanyCode',
+                    ManageCode:'ManageCode',
                     OrderID:'PT001',
                     Sign:'详细内容请见说明'
                 }
@@ -551,7 +550,8 @@
                     "OrderAmount": 100.00,
                     "PayingAmount": 100.00,
                     "Service": "AA001",
-                    "ManageCode": "CompanyCode",
+                    "Currency": "PHP",
+                    "ManageCode": "ManageCode",
                     "OrderID": "OD001",
                     "OrderDate":"2020-01-01 01:01:01",
                     "Sign":详细内容请见说明
@@ -686,9 +686,9 @@
                     "ManageCode": "ManageCode",
                     "Currency": "CNY",
                     "OrderAmount": 100.00,
+                    "BankName": "BankName",
                     "BankCard": 123456789,
                     "BankCardName": "BankCardName",
-                    "BankName": "BankName",
                     "BankComponentName": "BankComponentName",
                     "OwnProvince": "OwnProvince",
                     "OwnCity": "OwnCity",
