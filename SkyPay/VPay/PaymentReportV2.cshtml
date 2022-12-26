@@ -1387,7 +1387,11 @@ if ('@CheckLoginPermission' == 'false') {
                     "title": "手续费", "data": "PartialOrderAmount",
                     "render": function (data, display, rowdata) {
                         if (data != 0) {
-                            return toCurrency((rowdata.PartialOrderAmount * rowdata.CollectRate * 0.01) + rowdata.CollectCharge);
+                            if (rowdata.DecimalPlaces == 1) {
+                                return toCurrency(Math.floor((rowdata.PartialOrderAmount * rowdata.CollectRate * 0.01)) + rowdata.CollectCharge);
+                            } else {
+                                return toCurrency((rowdata.PartialOrderAmount * rowdata.CollectRate * 0.01) + rowdata.CollectCharge);
+                            }
                         } else {
                             return data;
                         }
@@ -1403,8 +1407,13 @@ if ('@CheckLoginPermission' == 'false') {
                 {
                     "title": "毛利", "data": "PartialOrderAmount",
                     "render": function (data, display, rowdata) {
+
                         if (data != 0) {
-                            return toCurrency(((rowdata.PartialOrderAmount * rowdata.CollectRate * 0.01) + rowdata.CollectCharge) - ((rowdata.PartialOrderAmount * rowdata.CostRate * 0.01) + rowdata.CostCharge));
+                            if (rowdata.DecimalPlaces == 1) {
+                                return toCurrency((Math.floor(rowdata.PartialOrderAmount * rowdata.CollectRate * 0.01) + rowdata.CollectCharge) - (Math.floor(rowdata.PartialOrderAmount * rowdata.CostRate * 0.01) + rowdata.CostCharge));
+                            } else {
+                                return toCurrency(((rowdata.PartialOrderAmount * rowdata.CollectRate * 0.01) + rowdata.CollectCharge) - ((rowdata.PartialOrderAmount * rowdata.CostRate * 0.01) + rowdata.CostCharge));
+                            }
                         } else {
                             return data;
                         }
@@ -1850,9 +1859,16 @@ if ('@CheckLoginPermission' == 'false') {
                                         break;
                                 }
 
-                                netincome = (data.PartialOrderAmount * (data.CollectRate - data.CostRate) * 0.01) + data.CostCharge;
+                                if (data.DecimalPlaces == 1) {
+                                    netincome = (data.PartialOrderAmount * Math.floor((data.CollectRate - data.CostRate) * 0.01)) + data.CostCharge;
 
-                                partialOrderAmount = (data.PartialOrderAmount * data.CollectRate * 0.01) + data.CollectCharge;
+                                    partialOrderAmount = Math.floor(data.PartialOrderAmount * data.CollectRate * 0.01) + data.CollectCharge;
+                                } else {
+                                    netincome = (data.PartialOrderAmount * (data.CollectRate - data.CostRate) * 0.01) + data.CostCharge;
+
+                                    partialOrderAmount = (data.PartialOrderAmount * data.CollectRate * 0.01) + data.CollectCharge;
+                                }
+                           
 
                                 var tmpArray = new Array(PaymentSerial, data.OrderID, data.CompanyName, data.ProviderName, data.ServiceTypeName, ProcessStatus, data.OrderAmount, data.CollectRate, partialOrderAmount, data.PaymentAmount, SubmitType, CreateDate, FinishDate, data.ClientIP, data.CostRate, netincome);
                                 exceldata.push(tmpArray);

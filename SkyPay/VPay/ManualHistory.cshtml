@@ -1070,9 +1070,10 @@ if ('@CheckLoginPermission' == 'false') {
                 return;
             }
             //#endregion
-
+            parent.wrapperFadeIn();
             api.insertManualHistory(company, servicetype, TransactionSerial, Amount, Description, Type, currency, providerCode, function (success, obj) {
                 if (success) {
+                    parent.wrapperFadeOut();
                     if (obj.ResultCode == 0) {
                         parent.successAlert(function () {
                             parent.CloseActivePage(window.frameElement.name);

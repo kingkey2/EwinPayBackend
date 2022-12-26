@@ -1010,15 +1010,12 @@ if ('@CheckLoginPermission' == 'false') {
             parent.warningAlert('尚未填写单号');
             return;
         }
-        if (!(TransactionSerial.indexOf('IP') >= 0)) {
-            parent.warningAlert('订单须为 IP 开头');
-            return;
-        }
+    
 
         api.getOrderByCompanyManualHistory(TransactionSerial, function (success, obj) {
             if (success) {
                 if (obj.ResultCode == 0) {
-                    if (TransactionSerial.indexOf('IP') >= 0) {
+                    if (TransactionSerial.indexOf('IP') >= 0 || TransactionSerial.indexOf('PD') >= 0) {
                         var strStatus = "";
                         switch (obj.Result.ProcessStatus) {
                             case 0:

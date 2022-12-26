@@ -13226,6 +13226,7 @@ public class BackendDB
         SS = "SELECT P.* ,  " +
              "       S.ServiceTypeName, " +
              "       PC.ProviderName, " +
+             "       PC.DecimalPlaces, " +
              "       B.BankName, " +
              "       B.BankType, " +
              "       C.CompanyName, " +
@@ -13379,10 +13380,16 @@ public class BackendDB
             " SUM(OrderAmount) AS SumOrderAmount," +
             " (Select SUM(P.PaymentAmount) WHERE(P.ProcessStatus = 4 OR P.ProcessStatus = 2)) AS SumSuccessOrderAmount," +
             " COUNT(*) AS OrderCount," +
-            " (Select SUM(PartialOrderAmount * CollectRate * 0.01) WHERE(P.ProcessStatus = 4 OR P.ProcessStatus = 2)) AS SumCharge," +
-            " (Select SUM(PartialOrderAmount * CollectRate * 0.01) + SUM(PaymentAmount) WHERE(P.ProcessStatus = 4 OR P.ProcessStatus = 2)) AS SumChargeAndSuccessOrderAmount," +
-            " (Select SUM(PartialOrderAmount * (CollectRate- CostRate) * 0.01) WHERE(P.ProcessStatus = 4 OR P.ProcessStatus = 2)) AS SumProviderCharge" +
+            " (Select " +
+            " SUM(CASE WHEN PC.DecimalPlaces=1 THEN floor(PartialOrderAmount * CollectRate * 0.01) " +
+            " ELSE PartialOrderAmount * CollectRate * 0.01 END)" +
+            " WHERE(P.ProcessStatus = 4 OR P.ProcessStatus = 2)) AS SumCharge," +
+            " (Select SUM(CASE WHEN PC.DecimalPlaces=1 THEN floor(PartialOrderAmount * CollectRate * 0.01) " +
+            " ELSE PartialOrderAmount * CollectRate * 0.01 END) + SUM(PaymentAmount) WHERE(P.ProcessStatus = 4 OR P.ProcessStatus = 2)) AS SumChargeAndSuccessOrderAmount," +
+            " (Select SUM(CASE WHEN PC.DecimalPlaces=1 THEN floor(PartialOrderAmount * (CollectRate- CostRate) * 0.01) " +
+            " ELSE PartialOrderAmount * (CollectRate- CostRate) * 0.01 END) WHERE(P.ProcessStatus = 4 OR P.ProcessStatus = 2)) AS SumProviderCharge" +
             " FROM PaymentTable AS P " +
+            " LEFT JOIN ProviderCode AS PC ON PC.ProviderCode = P.ProviderCode "+
             " WHERE P.CreateDate >= @StartDate And P.CreateDate <= @EndDate ";
 
         if (fromBody.CompanyID != -99)
@@ -13543,6 +13550,7 @@ public class BackendDB
         SS += " SELECT P.* ,  ";
         SS += "       S.ServiceTypeName, ";
         SS += "       PC.ProviderName, ";
+        SS += "       PC.DecimalPlaces, ";
         SS += "       B.BankName, ";
         SS += "       B.BankType, ";
         SS += "       C.CompanyName, ";
@@ -15716,7 +15724,7 @@ public class BackendDB
         DataTable DT;
         string SummaryDateString = string.Empty;
 
-        if (TransactionSerial.Contains("IP"))
+        if (TransactionSerial.Contains("IP")|| TransactionSerial.Contains("PD"))
         {
             SS = "SELECT P.* ,  " +
                  "       S.ServiceTypeName, " +
