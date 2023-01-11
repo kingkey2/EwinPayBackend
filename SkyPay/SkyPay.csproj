@@ -939,6 +939,7 @@
     <Content Include="VPay\Company_UpdateWithdrawType.cshtml" />
     <Content Include="VPay\PaymentReportCompanyV2.cshtml" />
     <Content Include="VPay\ApplyWithdrawalCompany_AdminMaintV2.cshtml" />
+    <Content Include="VPay\ApplyWithdrawal_AdminMaintV3.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

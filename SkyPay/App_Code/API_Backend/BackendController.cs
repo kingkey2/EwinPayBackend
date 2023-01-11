@@ -342,7 +342,7 @@ public class BackendController : ApiController
             );
             }
         }
-
+ 
         return _LayoutLeftSideBarResult;
     }
 
@@ -7296,7 +7296,7 @@ public class BackendController : ApiController
         }
         else if (AdminData.CompanyType == 0)
         {
-            retValue.ProviderPointResults = backendDB.GetAllProviderPoint();
+            retValue.ProviderPointResults = backendDB.GetAllProviderPoint2();
             retValue.CompanyServicePointResults = backendDB.GetCompanyServicePointDetail(fromBody.CompanyID);
         }
         else
@@ -10929,6 +10929,81 @@ CompanyServicePoint _CompanyServicePointResult = new CompanyServicePoint();
     }
 
     [HttpPost]
+    [ActionName("GetWithdrawalV3")]
+    public DBModel.returnWithdrawalV2 GetWithdrawalV3(FromBody.WithdrawalSetV2 fromBody)
+    {
+        RedisCache.BIDContext.BIDInfo AdminData = new RedisCache.BIDContext.BIDInfo();
+        DBModel.returnWithdrawalV2 _PaymentTableResult = new DBModel.returnWithdrawalV2();
+
+        if (!RedisCache.BIDContext.CheckBIDExist(fromBody.BID))
+        {
+            _PaymentTableResult.ResultCode = (int)APIResult.enumResult.SessionError;
+            return _PaymentTableResult;
+        }
+
+        AdminData = RedisCache.BIDContext.GetBIDInfo(fromBody.BID);
+
+        if (AdminData.CompanyType == 0)
+        {
+
+        }
+        else if (AdminData.CompanyType == 4)
+        {
+            fromBody.CompanyID = AdminData.forCompanyID;
+        }
+        else
+        {
+            _PaymentTableResult.ResultCode = (int)APIResult.enumResult.VerificationError;
+            return _PaymentTableResult;
+        }
+
+        BackendDB backendDB = new BackendDB();
+
+        List<DBModel.WithdrawalV2> _Table = backendDB.GetWithdrawalV3(fromBody);
+
+        if (_Table != null)
+        {
+            _PaymentTableResult.draw = fromBody.draw;
+            _PaymentTableResult.recordsTotal = _Table.First().TotalCount;
+            _PaymentTableResult.recordsFiltered = _Table.First().TotalCount;
+            _PaymentTableResult.IsAutoLoad = fromBody.IsAutoLoad;
+            _PaymentTableResult.data = _Table;//分頁後的資料 
+
+            var getWithdrawalBySearchFilter = backendDB.GetWithdrawalBySearchFilter(fromBody);
+            if (getWithdrawalBySearchFilter != null)
+            {
+                _PaymentTableResult.TotalAmount = getWithdrawalBySearchFilter.TotalAmount;
+                _PaymentTableResult.TotalHandlingFee = getWithdrawalBySearchFilter.TotalHandlingFee;
+            }
+            else
+            {
+                _PaymentTableResult.TotalAmount = 0;
+                _PaymentTableResult.TotalHandlingFee = 0;
+            }
+
+            //DBModel.StatisticsPaymentAmount DbReturn = backendDB.GetPaymentPointBySearchFilter(fromBody);
+            //if (DbReturn != null)
+            //{
+            //    _PaymentTableResult.StatisticsPaymentAmount = DbReturn;
+            //}
+
+            _PaymentTableResult.ResultCode = (int)APIResult.enumResult.OK;
+        }
+        else
+        {
+            _PaymentTableResult.draw = fromBody.draw;
+            _PaymentTableResult.recordsTotal = 0;
+            _PaymentTableResult.recordsFiltered = 0;
+            _PaymentTableResult.IsAutoLoad = fromBody.IsAutoLoad;
+            _PaymentTableResult.data = new List<DBModel.WithdrawalV2>();//分頁後的資料 
+
+            _PaymentTableResult.ResultCode = (int)APIResult.enumResult.NoData;
+        }
+
+        return _PaymentTableResult;
+    }
+
+    [HttpPost]
     [ActionName("GetWithdrawalAdminTableResult")]
     public WithdrawalTableResult GetWithdrawalAdminTableResult([FromBody] FromBody.WithdrawalSet fromBody)
     {
@@ -10954,6 +11029,45 @@ CompanyServicePoint _CompanyServicePointResult = new CompanyServicePoint();
 
         BackendDB backendDB = new BackendDB();
         List<DBModel.Withdrawal> TableResult = backendDB.GetWithdrawalAdminTableResult(fromBody);
+        if (TableResult != null)
+        {
+            _WithdrawalTableResult.WithdrawalResults = TableResult;
+            _WithdrawalTableResult.ResultCode = APIResult.enumResult.OK;
+
+        }
+        else
+        {
+            _WithdrawalTableResult.ResultCode = APIResult.enumResult.NoData;
+        }
+        return _WithdrawalTableResult;
+    }
+
+    [HttpPost]
+    [ActionName("GetWithdrawalAdminTableResult2")]
+    public WithdrawalTableResult GetWithdrawalAdminTableResult2([FromBody] FromBody.WithdrawalSet fromBody)
+    {
+        WithdrawalTableResult _WithdrawalTableResult = new WithdrawalTableResult();
+        RedisCache.BIDContext.BIDInfo AdminData = new RedisCache.BIDContext.BIDInfo();
+
+        if (!RedisCache.BIDContext.CheckBIDExist(fromBody.BID))
+        {
+            _WithdrawalTableResult.ResultCode = APIResult.enumResult.SessionError;
+            return _WithdrawalTableResult;
+        }
+        else
+        {
+            AdminData = RedisCache.BIDContext.GetBIDInfo(fromBody.BID);
+        }
+
+        if (AdminData.CompanyType != 0)
+        {
+            _WithdrawalTableResult.ResultCode = APIResult.enumResult.VerificationError;
+            return _WithdrawalTableResult;
+        }
+
+
+        BackendDB backendDB = new BackendDB();
+        List<DBModel.Withdrawal> TableResult = backendDB.GetWithdrawalAdminTableResult2(fromBody);
         if (TableResult != null)
         {
             _WithdrawalTableResult.WithdrawalResults = TableResult;

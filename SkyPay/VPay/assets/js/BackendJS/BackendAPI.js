@@ -1607,6 +1607,34 @@ var BackendAPI = function (BID, APIUrl) {
         });
     };
 
+    this.getWithdrawalAdminTableResult2 = function (withdrawSerial, companyid, startdate, enddate, status, providerCode, groupID, cb) {
+        var url = APIUrl + "/GetWithdrawalAdminTableResult2";
+        var postData;
+
+        postData = {
+            BID: BID,
+            WithdrawSerial: withdrawSerial,
+            CompanyID: companyid,
+            Startdate: startdate,
+            Enddate: enddate,
+            Status: status,
+            ProviderCode: providerCode,
+            GroupID: groupID
+        };
+
+        callServiceByPost(url, postData, function (success, text) {
+            if (success == true) {
+                var obj = getJSON(text);
+
+                if (cb)
+                    cb(true, obj);
+            } else {
+                if (cb)
+                    cb(false, text);
+            }
+        });
+    };
+
     this.getWithdrawalAdminTableResult = function (withdrawSerial, companyid, startdate, enddate, status, providerCode, groupID, cb) {
         var url = APIUrl + "/GetWithdrawalAdminTableResult";
         var postData;

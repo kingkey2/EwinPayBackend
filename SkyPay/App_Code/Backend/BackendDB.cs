@@ -6477,6 +6477,49 @@ public class BackendDB
         return returnValue;
     }
 
+    public List<DBViewModel.ProviderPointVM> GetAllProviderPoint2(bool SearchAllProvider = false)
+    {
+        List<DBViewModel.ProviderPointVM> returnValue = null;
+        string SS;
+        SqlCommand DBCmd = null;
+        DataTable DT;
+
+
+        SS = " SELECT PC.ProviderName,PC.ProviderAPIType,PC.ProviderCode, ISNULL(PP.TotalDepositePointValue,0) TotalDepositePointValue,ISNULL(PP.TotalProfitPointValue,0) TotalProfitPointValue, " +
+             " (ISNULL(PP.SystemPointValue, 0) - ISNULL(FP.ProviderFrozenAmount, 0)) AS SystemPointValue, ISNULL(FP.ProviderFrozenAmount, 0) ProviderFrozenAmount, ISNULL(FMH.WProfit,0) WithdrawProfit, " +
+             " (SELECT  ISNULL(SUM(W.Amount + W.CostCharge), 0) FROM Withdrawal W WITH (NOLOCK) " +
+             " WHERE W.Status <> 2 AND W.Status <> 3 AND W.Status <> 8  AND W.Status <> 90 AND W.Status <> 91 " +
+             " AND W.ProviderCode = PP.ProviderCode AND W.CurrencyType = PP.CurrencyType) AS WithdrawPoint " +
+             " FROM ProviderCode PC " +
+             " LEFT JOIN ProviderPoint PP ON PC.ProviderCode = PP.ProviderCode" +
+             " LEFT JOIN(SELECT forProviderCode, SUM(ISNULL(ProviderFrozenAmount, 0)) ProviderFrozenAmount FROM FrozenPoint FP " +
+             " WHERE  FP.Status = 0 " +
+             " GROUP BY forProviderCode) FP ON FP.forProviderCode = PC.ProviderCode " +
+             " LEFT JOIN (SELECT ProviderCode,SUM(ISNULL(Amount, 0)) WProfit FROM ProviderManualHistory FMH " +
+             " WHERE FMH.Type = 2 " +
+             " GROUP BY ProviderCode) FMH ON FMH.ProviderCode = PC.ProviderCode WHERE 1=1 And PC.forCompanyID=0";
+
+        if (!SearchAllProvider)
+        {
+            SS += " And PC.ProviderState = 0";
+        }
+
+
+        DBCmd = new SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = System.Data.CommandType.Text;
+        DT = DBAccess.GetDB(DBConnStr, DBCmd);
+        if (DT != null)
+        {
+            if (DT.Rows.Count > 0)
+            {
+                returnValue = DataTableExtensions.ToList<DBViewModel.ProviderPointVM>(DT).ToList();
+            }
+        }
+
+        return returnValue;
+    }
+
     public DBViewModel.ProviderPointVM GetProviderPointByProviderCode(string ProviderCode)
     {
         DBViewModel.ProviderPointVM returnValue = null;
@@ -10803,6 +10846,193 @@ public class BackendDB
         return returnValue;
     }
 
+    public List<DBModel.WithdrawalV2> GetWithdrawalV3(FromBody.WithdrawalSetV2 fromBody)
+    {
+        List<DBModel.WithdrawalV2> returnValue = null;
+        String SS = String.Empty;
+        SqlCommand DBCmd;
+        DataTable DT;
+        DBCmd = new System.Data.SqlClient.SqlCommand();
+
+        SS = " WITH T";
+        SS += " AS(";
+        SS += " SELECT ProviderCode.DecimalPlaces,ProviderCode.WithdrawRate,PPG.GroupName,ProxyProvider.forProviderCode,ProviderName,convert(varchar,Withdrawal.CreateDate,120) as CreateDate2,convert(varchar,Withdrawal.FinishDate,120) as FinishDate2,";
+        SS += " Withdrawal.ProviderCode,Withdrawal.Status,Withdrawal.WithdrawSerial,Withdrawal.DownOrderID,";
+        SS += " Withdrawal.WithdrawType,Withdrawal.BankCard,Withdrawal.BankCardName,Withdrawal.CurrencyType,";
+        SS += " Withdrawal.BankName,Withdrawal.Amount,Withdrawal.OwnProvince,Withdrawal.BankBranchName,";
+        SS += " Withdrawal.CollectCharge,Withdrawal.CreateDate,Withdrawal.FinishDate,Withdrawal.FloatType,";
+        SS += " Withdrawal.OwnCity,Withdrawal.FinishAmount,Withdrawal.DownUrl,Withdrawal.DownStatus,Withdrawal.HandleByAdminID,Withdrawal.CompanyDescription";
+        SS += " ,AT1.RealName as RealName1,AT2.RealName as RealName2,CompanyName FROM Withdrawal WITH (NOLOCK) ";
+        SS += " LEFT JOIN AdminTable AT1 WITH (NOLOCK) ON AT1.AdminID=Withdrawal.HandleByAdminID";
+        SS += " LEFT JOIN AdminTable AT2 WITH (NOLOCK) ON AT2.AdminID=Withdrawal.ConfirmByAdminID";
+        SS += " LEFT JOIN ProviderCode WITH (NOLOCK) ON ProviderCode.ProviderCode=Withdrawal.ProviderCode";
+        SS += " LEFT JOIN CompanyTable WITH (NOLOCK) ON CompanyTable.CompanyID=Withdrawal.forCompanyID";
+        SS += " LEFT JOIN ProxyProvider WITH (NOLOCK) ON ProxyProvider.forProviderCode=Withdrawal.ProviderCode";
+        SS += " LEFT JOIN  ProxyProviderOrder PPO WITH (NOLOCK)  ON PPO.forOrderSerial= Withdrawal.WithdrawSerial AND PPO.Type=1 ";
+        SS += " LEFT JOIN  ProxyProviderGroup PPG WITH (NOLOCK)  ON PPO.GroupID= PPG.GroupID  ";
+        if (!fromBody.IsSearchWaitReview)
+        {
+            SS += " WHERE Withdrawal.CreateDate >= @StartDate And Withdrawal.CreateDate <= @EndDate And Status<>8 AND Status <> 90 AND Status <> 91 AND CompanyTable.CompanyType<>4 ";
+
+            #region 筛选条件
+            //過濾資料
+            if (fromBody.Status != 99)
+            { //99代表取得所有資料
+                SS += " And Status=@Status";
+            }
+            //供应商过滤
+            if (fromBody.ProviderCode != "0")
+            { //99代表取得所有資料
+                SS += " And Withdrawal.ProviderCode=@ProviderCode";
+            }
+
+            //序號過濾
+            if (!string.IsNullOrEmpty(fromBody.WithdrawSerial))
+            {
+                SS += " And (WithdrawSerial=@WithdrawSerial or DownOrderID=@WithdrawSerial) ";
+            }
+
+            //營運商過濾
+            if (fromBody.CompanyID != 0)
+            {
+                SS += " And Withdrawal.forCompanyID=@CompanyID";
+            }
+
+            //群組選擇
+            if (fromBody.GroupID != 0)
+            {
+                SS += " And PPO.GroupID=@GroupID";
+            }
+            #endregion
+        }
+        else
+        {
+            SS += " WHERE Status IN ({0}) AND (FloatType=0 OR FloatType=1) And CompanyTable.CompanyType<>4 ";
+            fromBody.LstStatus = new List<int>() { 0, 1, 13, 14 };
+            var parameters = new string[fromBody.LstStatus.Count];
+            for (int i = 0; i < fromBody.LstStatus.Count; i++)
+            {
+                parameters[i] = string.Format("@Status{0}", i);
+                DBCmd.Parameters.AddWithValue(parameters[i], fromBody.LstStatus[i]);
+            }
+
+            SS = string.Format(SS, string.Join(", ", parameters));
+        }
+
+        if (!string.IsNullOrEmpty(fromBody.search.value))
+        {
+            SS += " And (Withdrawal.WithdrawSerial like '%'+@SearchFilter+'%' OR  Withdrawal.DownOrderID like '%'+@SearchFilter+'%'  OR  ProviderName like '%'+@SearchFilter+'%'  OR  CompanyName like '%'+@SearchFilter+'%'  OR  Withdrawal.BankCard like '%'+@SearchFilter+'%'  OR   Withdrawal.BankCard like '%'+@SearchFilter+'%' OR  Withdrawal.BankCardName like '%'+@SearchFilter+'%' OR  Withdrawal.Amount like '%'+@SearchFilter+'%' OR  Withdrawal.CollectCharge like '%'+@SearchFilter+'%' OR  AT1.RealName like '%'+@SearchFilter+'%'  OR  AT2.RealName like '%'+@SearchFilter+'%'  OR  Withdrawal.OwnCity like '%'+@SearchFilter+'%' OR  Withdrawal.OwnProvince like '%'+@SearchFilter+'%' OR  Withdrawal.BankBranchName like '%'+@SearchFilter+'%'  OR  Withdrawal.FinishAmount like '%'+@SearchFilter+'%'  ) ";
+        }
+
+
+        SS += " )";
+        SS += " SELECT TotalCount = COUNT(1) OVER( ";
+        SS += " ),T.* ";
+        SS += " FROM T";
+        #region 排序
+
+        switch (fromBody.columns[fromBody.order.First().column].data.ToString())
+        {
+            case "Status":
+                SS += " Order By T.Status ";
+                break;
+            case "WithdrawSerial":
+                SS += " Order By T.WithdrawSerial ";
+                break;
+            case "DownOrderID":
+                SS += " Order By T.DownOrderID ";
+                break;
+            case "WithdrawType":
+                SS += " Order By T.WithdrawType ";
+                break;
+            case "ProviderName":
+                SS += " Order By T.ProviderName ";
+                break;
+            case "CompanyName":
+                SS += " Order By T.CompanyName ";
+                break;
+            case "BankCard":
+                SS += " Order By T.BankCard ";
+                break;
+            case "Amount":
+                SS += " Order By T.Amount ";
+                break;
+            case "CollectCharge":
+                SS += " Order By T.CollectCharge ";
+                break;
+            case "CreateDate":
+                SS += " Order By T.CreateDate ";
+                break;
+            case "FinishDate":
+                SS += " Order By T.FinishDate ";
+                break;
+            case "RealName2":
+                SS += " Order By T.RealName2 ";
+                break;
+            case "OwnCity":
+                SS += " Order By T.OwnCity ";
+                break;
+            case "FinishAmount":
+                SS += " Order By T.FinishAmount ";
+                break;
+            case "FloatType":
+                SS += " Order By T.FloatType ";
+                break;
+            default:
+                break;
+        }
+
+        if (fromBody.order.First().dir == "asc")
+        {
+            SS += " ASC ";
+        }
+        else
+        {
+            SS += " DESC ";
+        }
+        #endregion
+
+        SS += " OFFSET @pageNo ROWS ";
+        SS += " FETCH NEXT @pageSize ROWS ONLY ";
+
+        //SS = " SELECT PPG.GroupName,ProxyProvider.forProviderCode,ProviderName,convert(varchar,Withdrawal.CreateDate,120) as CreateDate2,convert(varchar,Withdrawal.FinishDate,120) as FinishDate2,Withdrawal.*,AT1.RealName as RealName1,AT2.RealName as RealName2,CompanyName FROM Withdrawal WITH (NOLOCK) " +
+        //     " LEFT JOIN AdminTable AT1 WITH (NOLOCK) ON AT1.AdminID=Withdrawal.HandleByAdminID" +
+        //     " LEFT JOIN AdminTable AT2 WITH (NOLOCK) ON AT2.AdminID=Withdrawal.ConfirmByAdminID" +
+        //     " LEFT JOIN ProviderCode WITH (NOLOCK) ON ProviderCode.ProviderCode=Withdrawal.ProviderCode" +
+        //     " LEFT JOIN CompanyTable WITH (NOLOCK) ON CompanyTable.CompanyID=Withdrawal.forCompanyID" +
+        //     " LEFT JOIN ProxyProvider WITH (NOLOCK) ON ProxyProvider.forProviderCode=Withdrawal.ProviderCode" +
+        //     " LEFT JOIN  ProxyProviderOrder PPO ON PPO.forOrderSerial= Withdrawal.WithdrawSerial AND PPO.Type=1 " +
+        //     " LEFT JOIN  ProxyProviderGroup PPG ON PPO.GroupID= PPG.GroupID  " +
+        //     " WHERE Withdrawal.CreateDate >= @StartDate And Withdrawal.CreateDate <= @EndDate And Status<>8 AND Status <> 90 AND Status <> 91 ";
+
+
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = CommandType.Text;
+        DBCmd.Parameters.Add("@StartDate", SqlDbType.DateTime).Value = fromBody.StartDate;
+        DBCmd.Parameters.Add("@EndDate", SqlDbType.DateTime).Value = fromBody.EndDate;
+        DBCmd.Parameters.Add("@CompanyID", SqlDbType.Int).Value = fromBody.CompanyID;
+        DBCmd.Parameters.Add("@GroupID", SqlDbType.Int).Value = fromBody.GroupID;
+        DBCmd.Parameters.Add("@ProviderCode", SqlDbType.VarChar).Value = fromBody.ProviderCode;
+        DBCmd.Parameters.Add("@Status", SqlDbType.Int).Value = fromBody.Status;
+        DBCmd.Parameters.Add("@WithdrawSerial", SqlDbType.VarChar).Value = string.IsNullOrEmpty(fromBody.WithdrawSerial) ? "" : fromBody.WithdrawSerial;
+        DBCmd.Parameters.Add("@SearchFilter", System.Data.SqlDbType.NVarChar).Value = string.IsNullOrEmpty(fromBody.search.value) ? "" : fromBody.search.value;
+
+        DBCmd.Parameters.Add("@pageNo", System.Data.SqlDbType.Int).Value = fromBody.start;
+        DBCmd.Parameters.Add("@pageSize", System.Data.SqlDbType.Int).Value = fromBody.length;
+
+        DT = DBAccess.GetDB(DBConnStr, DBCmd);
+
+        if (DT != null)
+        {
+            if (DT.Rows.Count > 0)
+            {
+                returnValue = DataTableExtensions.ToList<DBModel.WithdrawalV2>(DT).ToList();
+            }
+        }
+
+        return returnValue;
+    }
+
     public DBModel.WithdrawalV2TotalAmount GetWithdrawalBySearchFilter(FromBody.WithdrawalSetV2 fromBody)
     {
         DBModel.WithdrawalV2TotalAmount returnValue = null;
@@ -10979,6 +11209,77 @@ public class BackendDB
         return returnValue;
     }
 
+
+
+    public List<DBModel.Withdrawal> GetWithdrawalAdminTableResult2(FromBody.WithdrawalSet fromBody)
+    {
+        List<DBModel.Withdrawal> returnValue = null;
+        String SS = String.Empty;
+        SqlCommand DBCmd;
+        DataTable DT;
+
+        SS = " SELECT ProviderCode.WithdrawRate,ProviderCode.DecimalPlaces,PPG.GroupName,ProxyProvider.forProviderCode,ProviderName,convert(varchar,Withdrawal.CreateDate,120) as CreateDate2,convert(varchar,Withdrawal.FinishDate,120) as FinishDate2,Withdrawal.*,AT1.RealName as RealName1,AT2.RealName as RealName2,CompanyName FROM Withdrawal WITH (NOLOCK) " +
+             " LEFT JOIN AdminTable AT1 WITH (NOLOCK) ON AT1.AdminID=Withdrawal.HandleByAdminID" +
+             " LEFT JOIN AdminTable AT2 WITH (NOLOCK) ON AT2.AdminID=Withdrawal.ConfirmByAdminID" +
+             " LEFT JOIN ProviderCode WITH (NOLOCK) ON ProviderCode.ProviderCode=Withdrawal.ProviderCode" +
+             " LEFT JOIN CompanyTable WITH (NOLOCK) ON CompanyTable.CompanyID=Withdrawal.forCompanyID" +
+             " LEFT JOIN ProxyProvider WITH (NOLOCK) ON ProxyProvider.forProviderCode=Withdrawal.ProviderCode" +
+             " LEFT JOIN  ProxyProviderOrder PPO WITH (NOLOCK)  ON PPO.forOrderSerial= Withdrawal.WithdrawSerial AND PPO.Type=1 " +
+             " LEFT JOIN  ProxyProviderGroup PPG WITH (NOLOCK)  ON PPO.GroupID= PPG.GroupID  " +
+             " WHERE Withdrawal.CreateDate >= @StartDate And Withdrawal.CreateDate <= @EndDate And Status<>8 AND Status <> 90 AND Status <> 91 And ProviderCode.forCompanyID=0 ";
+
+        //過濾資料
+        if (fromBody.Status != 99)
+        { //99代表取得所有資料
+            SS += " And Status=@Status";
+        }
+        //供应商过滤
+        if (fromBody.ProviderCode != "0")
+        { //99代表取得所有資料
+            SS += " And Withdrawal.ProviderCode=@ProviderCode";
+        }
+
+        //序號過濾
+        if (fromBody.WithdrawSerial != "")
+        {
+            SS += " And (WithdrawSerial=@WithdrawSerial or DownOrderID=@WithdrawSerial) ";
+        }
+
+        //營運商過濾
+        if (fromBody.CompanyID != 0)
+        {
+            SS += " And Withdrawal.forCompanyID=@CompanyID";
+        }
+
+        //群組選擇
+        if (fromBody.GroupID != 0)
+        {
+            SS += " And PPO.GroupID=@GroupID";
+        }
+
+        DBCmd = new System.Data.SqlClient.SqlCommand();
+        DBCmd.CommandText = SS;
+        DBCmd.CommandType = CommandType.Text;
+        DBCmd.Parameters.Add("@StartDate", SqlDbType.DateTime).Value = fromBody.StartDate;
+        DBCmd.Parameters.Add("@EndDate", SqlDbType.DateTime).Value = fromBody.EndDate;
+        DBCmd.Parameters.Add("@CompanyID", SqlDbType.Int).Value = fromBody.CompanyID;
+        DBCmd.Parameters.Add("@GroupID", SqlDbType.Int).Value = fromBody.GroupID;
+        DBCmd.Parameters.Add("@ProviderCode", SqlDbType.VarChar).Value = fromBody.ProviderCode;
+        DBCmd.Parameters.Add("@Status", SqlDbType.Int).Value = fromBody.Status;
+        DBCmd.Parameters.Add("@WithdrawSerial", SqlDbType.VarChar).Value = fromBody.WithdrawSerial;
+
+        DT = DBAccess.GetDB(DBConnStr, DBCmd);
+
+        if (DT != null)
+        {
+            if (DT.Rows.Count > 0)
+            {
+                returnValue = DataTableExtensions.ToList<DBModel.Withdrawal>(DT).ToList();
+            }
+        }
+
+        return returnValue;
+    }
     //提現審核 提現審核(主管) 出納匯款
     public List<DBModel.Withdrawal> GetWithdrawalAdminTableResult(FromBody.WithdrawalSet fromBody)
     {
