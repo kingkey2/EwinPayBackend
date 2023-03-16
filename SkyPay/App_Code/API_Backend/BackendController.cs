@@ -7546,7 +7546,7 @@ CompanyServicePoint _CompanyServicePointResult = new CompanyServicePoint();
             return _CompanyServicePointResult;
         }
 
-        List<DBViewModel.CompanyServicePointVM> companys = backendDB.GetCompanyServicePointDetail2(CompanyID);
+        List<DBViewModel.CompanyServicePointVM> companys = backendDB.GetCompanyServicePointDetail2(CompanyID, AdminData.CurrencyType);
         if (companys != null)
         {
             _CompanyServicePointResult.CompanyServicePoints = companys;
