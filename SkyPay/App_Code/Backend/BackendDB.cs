@@ -6955,7 +6955,7 @@ public class BackendDB
         DBCmd.CommandText = SS;
         DBCmd.CommandType = System.Data.CommandType.Text;
         DBCmd.Parameters.Add("@CompanyID", SqlDbType.Int).Value = CompanyID;
-        DBCmd.Parameters.Add("@CurrencyType", SqlDbType.VarChar).Value = "CNY";
+        DBCmd.Parameters.Add("@CurrencyType", SqlDbType.VarChar).Value = CurrencyType;
         DT = DBAccess.GetDB(DBConnStr, DBCmd);
 
 
