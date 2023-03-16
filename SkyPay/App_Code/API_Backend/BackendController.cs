@@ -570,7 +570,7 @@ public class BackendController : ApiController
             for (int i = 0; i < BankArray.Count; i++)
             {
                 var BankData = new BankData();
-                BankData.BankCode = BankArray[i]["BankCode"].ToString();
+                BankData.BankCode = BankArray[i]["BankName"].ToString();
                 BankData.BankName = BankArray[i]["BankName"].ToString();
                 retValue.BankDataList.Add(BankData);
             }
