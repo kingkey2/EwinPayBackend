@@ -7546,7 +7546,9 @@ CompanyServicePoint _CompanyServicePointResult = new CompanyServicePoint();
             return _CompanyServicePointResult;
         }
 
-        List<DBViewModel.CompanyServicePointVM> companys = backendDB.GetCompanyServicePointDetail2(CompanyID, AdminData.CurrencyType);
+        var CompanyModel=  RedisCache.Company.GetCompanyByID(CompanyID);
+       
+        List<DBViewModel.CompanyServicePointVM> companys = backendDB.GetCompanyServicePointDetail2(CompanyID, (string)CompanyModel.Rows[0]["CurrencyType"]);
         if (companys != null)
         {
             _CompanyServicePointResult.CompanyServicePoints = companys;
