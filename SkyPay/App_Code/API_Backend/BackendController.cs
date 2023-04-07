@@ -10897,7 +10897,7 @@ CompanyServicePoint _CompanyServicePointResult = new CompanyServicePoint();
             _PaymentTableResult.IsAutoLoad = fromBody.IsAutoLoad;
             _PaymentTableResult.data = _Table;//分頁後的資料 
 
-            var getWithdrawalBySearchFilter= backendDB.GetWithdrawalBySearchFilter(fromBody);
+            var getWithdrawalBySearchFilter= backendDB.GetWithdrawalBySearchFilter(fromBody,true);
             if (getWithdrawalBySearchFilter != null)
             {
                 _PaymentTableResult.TotalAmount = getWithdrawalBySearchFilter.TotalAmount;
@@ -10971,7 +10971,7 @@ CompanyServicePoint _CompanyServicePointResult = new CompanyServicePoint();
             _PaymentTableResult.IsAutoLoad = fromBody.IsAutoLoad;
             _PaymentTableResult.data = _Table;//分頁後的資料 
 
-            var getWithdrawalBySearchFilter = backendDB.GetWithdrawalBySearchFilter(fromBody);
+            var getWithdrawalBySearchFilter = backendDB.GetWithdrawalBySearchFilter(fromBody,false);
             if (getWithdrawalBySearchFilter != null)
             {
                 _PaymentTableResult.TotalAmount = getWithdrawalBySearchFilter.TotalAmount;

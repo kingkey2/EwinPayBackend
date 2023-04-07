@@ -956,7 +956,7 @@
                             <label for="ProviderAmount">
                                 冻结渠道金额 :
 
-                            </label>   <div class="checkbox" style="display:inline-block">
+                            </label>   <div class="checkbox" style="display:none;">
                                 <input id="checkboxActualProviderFrozenAmount" type="checkbox"  checked="checked">
                                 <label for="checkboxActualProviderFrozenAmount">
                                    不扣利润
@@ -1042,10 +1042,10 @@ if ('@CheckLoginPermission' == 'false') {
             parent.warningAlert('尚未填写单号');
             return;
         }
-        if (!(TransactionSerial.indexOf('IP') >= 0)) {
-            parent.warningAlert('订单须为 IP');
-            return;
-        }
+        //if (!(TransactionSerial.indexOf('IP') >= 0)) {
+        //    parent.warningAlert('订单须为 IP');
+        //    return;
+        //}
 
         api.getOrderByCompanyManualHistoryByFrozenPoint(TransactionSerial, function (success, obj) {
             if (success) {

@@ -11033,7 +11033,7 @@ public class BackendDB
         return returnValue;
     }
 
-    public DBModel.WithdrawalV2TotalAmount GetWithdrawalBySearchFilter(FromBody.WithdrawalSetV2 fromBody)
+    public DBModel.WithdrawalV2TotalAmount GetWithdrawalBySearchFilter(FromBody.WithdrawalSetV2 fromBody,bool selectAllCompany)
     {
         DBModel.WithdrawalV2TotalAmount returnValue = null;
         String SS = String.Empty;
@@ -11047,7 +11047,7 @@ public class BackendDB
         //SS += " LEFT JOIN AdminTable AT1 WITH (NOLOCK) ON AT1.AdminID=Withdrawal.HandleByAdminID";
         //SS += " LEFT JOIN AdminTable AT2 WITH (NOLOCK) ON AT2.AdminID=Withdrawal.ConfirmByAdminID";
         SS += " LEFT JOIN ProviderCode WITH (NOLOCK) ON ProviderCode.ProviderCode=Withdrawal.ProviderCode";
-        //SS += " LEFT JOIN CompanyTable WITH (NOLOCK) ON CompanyTable.CompanyID=Withdrawal.forCompanyID";
+        SS += " LEFT JOIN CompanyTable WITH (NOLOCK) ON CompanyTable.CompanyID=Withdrawal.forCompanyID";
         //SS += " LEFT JOIN ProxyProvider WITH (NOLOCK) ON ProxyProvider.forProviderCode=Withdrawal.ProviderCode";
         SS += " LEFT JOIN  ProxyProviderOrder PPO WITH (NOLOCK)  ON PPO.forOrderSerial= Withdrawal.WithdrawSerial AND PPO.Type=1 ";
         //SS += " LEFT JOIN  ProxyProviderGroup PPG ON PPO.GroupID= PPG.GroupID  ";
@@ -11100,6 +11100,10 @@ public class BackendDB
             SS = string.Format(SS, string.Join(", ", parameters));
         }
 
+        if (!selectAllCompany)
+        {
+            SS+= " AND CompanyTable.CompanyType<>4 ";
+        }
         //if (!string.IsNullOrEmpty(fromBody.search.value))
         //{
         //    SS += " And (Withdrawal.WithdrawSerial like '%'+@SearchFilter+'%' OR  Withdrawal.DownOrderID like '%'+@SearchFilter+'%'  OR  ProviderName like '%'+@SearchFilter+'%'  OR  CompanyName like '%'+@SearchFilter+'%'  OR  Withdrawal.BankCard like '%'+@SearchFilter+'%'  OR   Withdrawal.BankCard like '%'+@SearchFilter+'%' OR  Withdrawal.BankCardName like '%'+@SearchFilter+'%' OR  Withdrawal.Amount like '%'+@SearchFilter+'%' OR  Withdrawal.CollectCharge like '%'+@SearchFilter+'%' OR  AT1.RealName like '%'+@SearchFilter+'%'  OR  AT2.RealName like '%'+@SearchFilter+'%'  OR  Withdrawal.OwnCity like '%'+@SearchFilter+'%' OR  Withdrawal.OwnProvince like '%'+@SearchFilter+'%' OR  Withdrawal.BankBranchName like '%'+@SearchFilter+'%'  OR  Withdrawal.FinishAmount like '%'+@SearchFilter+'%'  ) ";
@@ -11226,7 +11230,7 @@ public class BackendDB
              " LEFT JOIN ProxyProvider WITH (NOLOCK) ON ProxyProvider.forProviderCode=Withdrawal.ProviderCode" +
              " LEFT JOIN  ProxyProviderOrder PPO WITH (NOLOCK)  ON PPO.forOrderSerial= Withdrawal.WithdrawSerial AND PPO.Type=1 " +
              " LEFT JOIN  ProxyProviderGroup PPG WITH (NOLOCK)  ON PPO.GroupID= PPG.GroupID  " +
-             " WHERE Withdrawal.CreateDate >= @StartDate And Withdrawal.CreateDate <= @EndDate And Status<>8 AND Status <> 90 AND Status <> 91 And ProviderCode.forCompanyID=0 ";
+             " WHERE Withdrawal.CreateDate >= @StartDate And Withdrawal.CreateDate <= @EndDate And Status<>8 AND Status <> 90 AND Status <> 91 And CompanyTable.CompanyType<>4 ";
 
         //過濾資料
         if (fromBody.Status != 99)
@@ -15970,7 +15974,7 @@ public class BackendDB
         DataTable DT;
         string SummaryDateString = string.Empty;
 
-        if (TransactionSerial.Contains("IP"))
+        if (TransactionSerial.Contains("IP") || TransactionSerial.Contains("PD"))
         {
             SS = "SELECT P.* ,  " +
                  "       PPG.GroupName, " +

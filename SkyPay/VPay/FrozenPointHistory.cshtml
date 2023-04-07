@@ -1063,7 +1063,7 @@
 
                                 </div>
                             </div>
-                            <div class="col col-lg-6 col-md-6 col-sm-6">
+                            <div class="col col-lg-6 col-md-6 col-sm-6" style="display:none;">
                                 <span style="margin-left:5px;font-size:larger">渠道总冻结金额:</span>
                                 <span id="AllProviderValue" style="margin-left:5px;color:green"></span>
                                 <span style="margin-left:25px;font-size:larger">商户总冻结金额:</span>
@@ -1125,8 +1125,8 @@
         //createCurrencySelect();
         CreateCompanySelect();
         createTypeSelect();
-        getProxyProviderGroup("LPay2");
-        getProxyProviderGroup2();
+        //getProxyProviderGroup("LPay2");
+        //getProxyProviderGroup2();
         //啟用日期
         var start = moment().hour(00).minute(00);
         var end = moment().hour(23).minute(59);
